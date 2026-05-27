@@ -1,4 +1,4 @@
-package com.quiddity.controlador;
+package com.quiddity.dao;
 
 import com.quiddity.model.Carrito;
 import com.quiddity.model.Catalogo;
