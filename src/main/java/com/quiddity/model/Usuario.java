@@ -9,13 +9,14 @@ public class Usuario {
     private String contrasena;
     private String documento;
     private String userName;
+    private String fotoPerfil;
     private int idRol;
 
     public Usuario() {
     }
 
     public Usuario(String id, String nombre, String apellido, String email, String contrasena, String documento,
-            String userName, int idRol) {
+            String userName, String fotoPerfil, int idRol) {
         this.id = id;
         this.nombre = nombre;
         this.apellido = apellido;
@@ -23,6 +24,7 @@ public class Usuario {
         this.contrasena = contrasena;
         this.documento = documento;
         this.userName = userName;
+        this.fotoPerfil = fotoPerfil;
         this.idRol = idRol;
     }
 
@@ -89,5 +91,14 @@ public class Usuario {
     public void setIdRol(int idRol) {
         this.idRol = idRol;
     }
+
+    public String getFotoPerfil() {
+        return fotoPerfil;
+    }
+
+    public void setFotoPerfil(String fotoPerfil) {
+        this.fotoPerfil = fotoPerfil;
+    }
+    
 
 }
