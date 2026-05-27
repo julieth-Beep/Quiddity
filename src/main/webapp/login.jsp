@@ -7,11 +7,7 @@
     <title>Acceder - Glow & Beauty</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,7 +16,6 @@
             background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fbc2eb 100%);
         }
 
-        /* Panel izquierdo - Imagen/Branding */
         .left-panel {
             flex: 1;
             display: flex;
@@ -36,31 +31,26 @@
         .left-panel::before {
             content: '';
             position: absolute;
-            width: 500px;
-            height: 500px;
-            background: rgba(255, 255, 255, 0.1);
+            width: 500px; height: 500px;
+            background: rgba(255,255,255,0.1);
             border-radius: 50%;
-            top: -150px;
-            left: -150px;
+            top: -150px; left: -150px;
         }
 
         .left-panel::after {
             content: '';
             position: absolute;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.08);
+            width: 400px; height: 400px;
+            background: rgba(255,255,255,0.08);
             border-radius: 50%;
-            bottom: -100px;
-            right: -100px;
+            bottom: -100px; right: -100px;
         }
 
         .brand-logo {
             font-size: 4rem;
             margin-bottom: 30px;
             animation: float 3s ease-in-out infinite;
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
         }
 
         .brand-name {
@@ -68,8 +58,7 @@
             font-weight: 700;
             margin-bottom: 15px;
             text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
         }
 
         .brand-tagline {
@@ -78,15 +67,13 @@
             text-align: center;
             max-width: 400px;
             line-height: 1.6;
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
         }
 
         .features-list {
             margin-top: 40px;
             list-style: none;
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
         }
 
         .features-list li {
@@ -98,8 +85,7 @@
         }
 
         .features-list li i {
-            width: 30px;
-            height: 30px;
+            width: 30px; height: 30px;
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
             display: flex;
@@ -108,7 +94,6 @@
             font-size: 0.9rem;
         }
 
-        /* Panel derecho - Formulario */
         .right-panel {
             flex: 1;
             display: flex;
@@ -123,7 +108,7 @@
             padding: 50px;
             width: 100%;
             max-width: 450px;
-            box-shadow: 0 25px 80px rgba(255, 107, 129, 0.2);
+            box-shadow: 0 25px 80px rgba(255,107,129,0.2);
             animation: slideIn 0.6s ease;
         }
 
@@ -144,8 +129,7 @@
         }
 
         .login-header .icon-circle {
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             background: linear-gradient(135deg, #ff9a9e, #fad0c4);
             border-radius: 50%;
             display: flex;
@@ -154,7 +138,7 @@
             margin: 0 auto 20px;
             font-size: 1.8rem;
             color: #fff;
-            box-shadow: 0 10px 30px rgba(255, 154, 158, 0.3);
+            box-shadow: 0 10px 30px rgba(255,154,158,0.3);
         }
 
         .form-group {
@@ -198,7 +182,7 @@
             outline: none;
             border-color: #ff9a9e;
             background: #fff;
-            box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.1);
+            box-shadow: 0 0 0 4px rgba(255,154,158,0.1);
         }
 
         .form-group input::placeholder {
@@ -236,8 +220,7 @@
         }
 
         .remember-me input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 18px; height: 18px;
             accent-color: #ff6b81;
             cursor: pointer;
         }
@@ -265,18 +248,12 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(255, 154, 158, 0.3);
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(255,154,158,0.3);
         }
 
         .btn-login-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(255, 154, 158, 0.4);
-        }
-
-        .btn-login-submit:active {
-            transform: translateY(0);
+            box-shadow: 0 15px 40px rgba(255,154,158,0.4);
         }
 
         .btn-login-submit i {
@@ -296,8 +273,7 @@
             font-size: 0.85rem;
         }
 
-        .divider::before,
-        .divider::after {
+        .divider::before, .divider::after {
             content: '';
             flex: 1;
             height: 1px;
@@ -336,15 +312,8 @@
             transform: translateY(-2px);
         }
 
-        .social-btn.google:hover {
-            color: #db4437;
-            border-color: #db4437;
-        }
-
-        .social-btn.facebook:hover {
-            color: #4267B2;
-            border-color: #4267B2;
-        }
+        .social-btn.google:hover { color: #db4437; border-color: #db4437; }
+        .social-btn.facebook:hover { color: #4267B2; border-color: #4267B2; }
 
         .register-link {
             text-align: center;
@@ -357,11 +326,9 @@
             color: #ff6b81;
             text-decoration: none;
             font-weight: 600;
-            transition: color 0.3s;
         }
 
         .register-link a:hover {
-            color: #ff4757;
             text-decoration: underline;
         }
 
@@ -384,7 +351,6 @@
             color: #ff6b81;
         }
 
-        /* Mensajes de error/éxito */
         .alert {
             padding: 12px 18px;
             border-radius: 12px;
@@ -407,113 +373,56 @@
             border: 1px solid #c8e6c9;
         }
 
-        /* Animaciones */
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-15px);
-            }
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
         }
 
-        /* Responsive */
         @media (max-width: 900px) {
-            body {
-                flex-direction: column;
-            }
-
-            .left-panel {
-                padding: 40px 20px;
-                min-height: 300px;
-            }
-
-            .brand-name {
-                font-size: 2rem;
-            }
-
-            .right-panel {
-                padding: 30px 20px;
-            }
-
-            .login-card {
-                padding: 35px 25px;
-            }
+            body { flex-direction: column; }
+            .left-panel { padding: 40px 20px; min-height: 300px; }
+            .brand-name { font-size: 2rem; }
+            .right-panel { padding: 30px 20px; }
+            .login-card { padding: 35px 25px; }
         }
 
         @media (max-width: 480px) {
-            .login-card {
-                padding: 30px 20px;
-                border-radius: 20px;
-            }
-
-            .social-login {
-                flex-direction: column;
-            }
-
-            .form-options {
-                flex-direction: column;
-                gap: 15px;
-                align-items: flex-start;
-            }
+            .login-card { padding: 30px 20px; border-radius: 20px; }
+            .social-login { flex-direction: column; }
+            .form-options { flex-direction: column; gap: 15px; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Panel Izquierdo - Branding -->
     <div class="left-panel">
-        <div class="brand-logo">
-            <i class="fas fa-spa"></i>
-        </div>
+        <div class="brand-logo"><i class="fas fa-spa"></i></div>
         <h1 class="brand-name">Glow & Beauty</h1>
         <p class="brand-tagline">
             Tu centro de belleza de confianza. Accede a tu cuenta para gestionar citas, 
             ver historial de tratamientos y disfrutar de beneficios exclusivos.
         </p>
         <ul class="features-list">
-            <li>
-                <i class="fas fa-check"></i>
-                <span>Reserva citas en línea 24/7</span>
-            </li>
-            <li>
-                <i class="fas fa-check"></i>
-                <span>Historial completo de servicios</span>
-            </li>
-            <li>
-                <i class="fas fa-check"></i>
-                <span>Promociones exclusivas para miembros</span>
-            </li>
-            <li>
-                <i class="fas fa-check"></i>
-                <span>Recordatorios automáticos por email</span>
-            </li>
+            <li><i class="fas fa-check"></i><span>Reserva citas en línea 24/7</span></li>
+            <li><i class="fas fa-check"></i><span>Historial completo de servicios</span></li>
+            <li><i class="fas fa-check"></i><span>Promociones exclusivas para miembros</span></li>
+            <li><i class="fas fa-check"></i><span>Recordatorios automáticos por email</span></li>
         </ul>
     </div>
 
-    <!-- Panel Derecho - Formulario -->
     <div class="right-panel">
         <div class="login-card">
             <div class="login-header">
-                <div class="icon-circle">
-                    <i class="fas fa-user"></i>
-                </div>
+                <div class="icon-circle"><i class="fas fa-user"></i></div>
                 <h2>¡Bienvenida de nuevo!</h2>
                 <p>Ingresa tus credenciales para acceder a tu cuenta</p>
             </div>
 
-            <!-- Mensaje de error (se muestra si hay error en el request) -->
             <% if (request.getAttribute("error") != null) { %>
                 <div class="alert alert-error">
                     <i class="fas fa-exclamation-circle"></i>
@@ -521,27 +430,22 @@
                 </div>
             <% } %>
 
-            <!-- Mensaje de éxito (ej: después de registro) -->
-            <% if (request.getParameter("registered") != null) { %>
+            <% if ("ok".equals(request.getParameter("registro"))) { %>
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle"></i>
                     ¡Registro exitoso! Ahora puedes iniciar sesión.
                 </div>
             <% } %>
 
-            <form action="login" method="POST">
+            <!-- ✅ CORREGIDO: name="contrasena" y accept-charset -->
+            <form action="${pageContext.request.contextPath}/login" method="POST" accept-charset="UTF-8">
+                
                 <div class="form-group">
-                    <label for="email">Correo Electrónico</label>
+                    <label for="email">Correo o Usuario</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            placeholder="tu@email.com" 
-                            required
-                            value="<%= request.getParameter("email") != null ? request.getParameter("email") : "" %>"
-                        >
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="email" name="email" placeholder="tu@email.com o tu_usuario" required
+                            value="<%= request.getAttribute("emailPrevio") != null ? request.getAttribute("emailPrevio") : (request.getParameter("email") != null ? request.getParameter("email") : "") %>">
                     </div>
                 </div>
 
@@ -549,13 +453,8 @@
                     <label for="password">Contraseña</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            placeholder="••••••••" 
-                            required
-                        >
+                        <!-- ✅ CORREGIDO: name="contrasena" (antes era "password") -->
+                        <input type="password" id="password" name="contrasena" placeholder="••••••••" required>
                         <i class="fas fa-eye password-toggle" onclick="togglePassword()" id="toggleIcon"></i>
                     </div>
                 </div>
@@ -573,9 +472,7 @@
                 </button>
             </form>
 
-            <div class="divider">
-                <span>O continúa con</span>
-            </div>
+            <div class="divider"><span>O continúa con</span></div>
 
             <div class="social-login">
                 <button type="button" class="social-btn google" onclick="alert('Login con Google - Implementar OAuth')">
@@ -591,9 +488,7 @@
             </div>
 
             <div class="back-home">
-                <a href="index.jsp">
-                    <i class="fas fa-arrow-left"></i> Volver al inicio
-                </a>
+                <a href="index.jsp"><i class="fas fa-arrow-left"></i> Volver al inicio</a>
             </div>
         </div>
     </div>
@@ -602,7 +497,6 @@
         function togglePassword() {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('toggleIcon');
-            
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 toggleIcon.classList.remove('fa-eye');
@@ -613,20 +507,6 @@
                 toggleIcon.classList.add('fa-eye');
             }
         }
-
-        // Animación de entrada suave
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach((input, index) => {
-                input.style.opacity = '0';
-                input.style.transform = 'translateY(10px)';
-                setTimeout(() => {
-                    input.style.transition = 'all 0.4s ease';
-                    input.style.opacity = '1';
-                    input.style.transform = 'translateY(0)';
-                }, 100 * index + 300);
-            });
-        });
     </script>
 
 </body>

@@ -10,8 +10,8 @@ import java.util.Properties;
 
 public class UsuarioDAO {
 
-    public static final int ROL_ADMIN     = 1;
-    public static final int ROL_USUARIO   = 2;
+    public static final int ROL_ADMIN = 1;
+    public static final int ROL_USUARIO = 2;
     public static final int ROL_COMPRADOR = 3;
 
     // ─────────────────────────────────────────────
@@ -20,15 +20,15 @@ public class UsuarioDAO {
     private Connection getConnection() throws Exception {
         Properties props = new Properties();
         InputStream is = getClass().getClassLoader().getResourceAsStream("db.properties");
-        if (is == null) throw new Exception("No se encontró db.properties en resources");
+        if (is == null)
+            throw new Exception("No se encontró db.properties en resources");
         props.load(is);
 
         Class.forName(props.getProperty("db.driver"));
         return DriverManager.getConnection(
-            props.getProperty("db.url"),
-            props.getProperty("db.username"),
-            props.getProperty("db.password")
-        );
+                props.getProperty("db.url"),
+                props.getProperty("db.username"),
+                props.getProperty("db.password"));
     }
 
     private Usuario mapear(ResultSet rs) throws SQLException {
@@ -48,9 +48,9 @@ public class UsuarioDAO {
     // CREATE
     public boolean crear(Usuario usuario) {
         String sql = "INSERT INTO usuario (nombre, apellido, email, contrasena, documento, username, fotoperfil, idrol) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, usuario.getNombre());
             ps.setString(2, usuario.getApellido());
@@ -72,11 +72,12 @@ public class UsuarioDAO {
     public Usuario obtenerPorId(int id) {
         String sql = "SELECT * FROM usuario WHERE id = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapear(rs);
+            if (rs.next())
+                return mapear(rs);
 
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error al obtener por ID: " + e.getMessage());
@@ -88,11 +89,12 @@ public class UsuarioDAO {
     public Usuario obtenerPorEmail(String email) {
         String sql = "SELECT * FROM usuario WHERE email = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapear(rs);
+            if (rs.next())
+                return mapear(rs);
 
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error al obtener por email: " + e.getMessage());
@@ -104,10 +106,11 @@ public class UsuarioDAO {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT * FROM usuario ORDER BY nombre";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) lista.add(mapear(rs));
+            while (rs.next())
+                lista.add(mapear(rs));
 
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error al listar usuarios: " + e.getMessage());
@@ -121,11 +124,12 @@ public class UsuarioDAO {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT * FROM usuario WHERE idrol = ? ORDER BY nombre";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, idRol);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) lista.add(mapear(rs));
+            while (rs.next())
+                lista.add(mapear(rs));
 
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error al listar por rol: " + e.getMessage());
@@ -136,9 +140,9 @@ public class UsuarioDAO {
     // UPDATE — datos generales
     public boolean actualizar(Usuario usuario) {
         String sql = "UPDATE usuario SET nombre = ?, apellido = ?, email = ?, documento = ?, "
-                   + "username = ?, fotoperfil = ?, idrol = ? WHERE id = ?";
+                + "username = ?, fotoperfil = ?, idrol = ? WHERE id = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, usuario.getNombre());
             ps.setString(2, usuario.getApellido());
@@ -161,7 +165,7 @@ public class UsuarioDAO {
     public boolean cambiarContrasena(int id, String nuevaContrasena) {
         String sql = "UPDATE usuario SET contrasena = ? WHERE id = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, nuevaContrasena);
             ps.setInt(2, id);
@@ -176,7 +180,7 @@ public class UsuarioDAO {
     public boolean cambiarRol(int id, int nuevoRol) {
         String sql = "UPDATE usuario SET idrol = ? WHERE id = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, nuevoRol);
             ps.setInt(2, id);
@@ -191,7 +195,7 @@ public class UsuarioDAO {
     public boolean eliminar(int id) {
         String sql = "DELETE FROM usuario WHERE id = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
@@ -202,18 +206,25 @@ public class UsuarioDAO {
         }
     }
 
-    public Usuario login(String email, String contrasena) {
-        String sql = "SELECT * FROM usuario WHERE email = ? AND contrasena = ?";
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+    public Usuario login(String identificador, String contrasena) {
+        // Busca por email O username, y compara contraseña en texto plano
+        String sql = "SELECT * FROM usuario WHERE (email = ? OR username = ?) AND contrasena = ? LIMIT 1";
 
-            ps.setString(1, email);
-            ps.setString(2, contrasena);
+        try (Connection con = getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+
+            // Pasamos el identificador DOS veces: una para email y otra para username
+            ps.setString(1, identificador);
+            ps.setString(2, identificador);
+            ps.setString(3, contrasena);
+
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapear(rs);
+            if (rs.next())
+                return mapear(rs);
 
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error en login: " + e.getMessage());
+            e.printStackTrace(); // Para ver el error completo en consola
         }
         return null;
     }
@@ -226,7 +237,7 @@ public class UsuarioDAO {
     public boolean emailExiste(String email) {
         String sql = "SELECT 1 FROM usuario WHERE email = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -241,7 +252,7 @@ public class UsuarioDAO {
     public boolean documentoExiste(String documento) {
         String sql = "SELECT 1 FROM usuario WHERE documento = ?";
         try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, documento);
             ResultSet rs = ps.executeQuery();

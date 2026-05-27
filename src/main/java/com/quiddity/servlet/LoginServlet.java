@@ -8,12 +8,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import java.io.IOException;
 
 @WebServlet(urlPatterns = {"/login", "/logout"})
 public class LoginServlet extends HttpServlet {
-
     private static final long serialVersionUID = 1L;
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
@@ -49,7 +47,7 @@ public class LoginServlet extends HttpServlet {
 
         req.setCharacterEncoding("UTF-8");
 
-        String email      = req.getParameter("email");
+        String email = req.getParameter("email");
         String contrasena = req.getParameter("contrasena");
 
         // Validación mínima de parámetros
@@ -59,11 +57,12 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        Usuario u = usuarioDAO.login(email.trim(), contrasena);
+        // Login: buscar por email O username
+        Usuario u = usuarioDAO.login(email.trim(), contrasena.trim());
 
         if (u == null) {
             req.setAttribute("error", "Correo o contraseña incorrectos.");
-            req.setAttribute("emailPrevio", email); // conservar el email en el formulario
+            req.setAttribute("emailPrevio", email);
             req.getRequestDispatcher("/login.jsp").forward(req, resp);
             return;
         }
@@ -71,8 +70,8 @@ public class LoginServlet extends HttpServlet {
         // Crear sesión y guardar el usuario autenticado
         HttpSession session = req.getSession(true);
         session.setAttribute("usuario", u);
-        session.setAttribute("rolId", u.getIdRol());       // conveniente para EL en JSP
-        session.setAttribute("esAdmin",     u.getIdRol() == UsuarioDAO.ROL_ADMIN);
+        session.setAttribute("rolId", u.getIdRol());
+        session.setAttribute("esAdmin", u.getIdRol() == UsuarioDAO.ROL_ADMIN);
         session.setAttribute("esComprador", u.getIdRol() == UsuarioDAO.ROL_COMPRADOR);
 
         // Redirigir al destino según el rol
@@ -84,7 +83,7 @@ public class LoginServlet extends HttpServlet {
         return switch (u.getIdRol()) {
             case UsuarioDAO.ROL_ADMIN     -> base + "/admin/dashboard";
             case UsuarioDAO.ROL_COMPRADOR -> base + "/catalogo";
-            default                       -> base + "/inicio";  
+            default                       -> base + "/inicio";
         };
     }
 }
