@@ -2,7 +2,7 @@ package com.quiddity.model;
 
 public class Usuario {
 
-    private String id;
+    private int id;
     private String nombre;
     private String apellido;
     private String email;
@@ -15,7 +15,7 @@ public class Usuario {
     public Usuario() {
     }
 
-    public Usuario(String id, String nombre, String apellido, String email, String contrasena, String documento,
+    public Usuario(int id, String nombre, String apellido, String email, String contrasena, String documento,
             String userName, String fotoPerfil, int idRol) {
         this.id = id;
         this.nombre = nombre;
@@ -28,11 +28,11 @@ public class Usuario {
         this.idRol = idRol;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
