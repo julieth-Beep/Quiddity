@@ -316,7 +316,7 @@
 
                     <!-- ── SLIDE 1 ── -->
                     <div class="hero-slide active" data-index="0">
-                        <img src="<%= ctx %>/uploads/catalogo/card1.jpeg" alt="Nueva Colección Quiddity" />
+                        <img src="<%= ctx %>/uploads/catalogo/heroSection/card1.jpeg" alt="Nueva Colección Quiddity" />
                         <div class="hero-content">
                             <div class="slide-text max-w-xl">
                                 <span class="block font-label-md text-[11px] tracking-[0.35em] text-white/80 uppercase mb-5
@@ -343,7 +343,7 @@
 
                     <!-- ── SLIDE 2 ── -->
                     <div class="hero-slide" data-index="1">
-                        <img src="<%= ctx %>/uploads/catalogo/card2.jpg" alt="Velvet Cloud Cream" />
+                        <img src="<%= ctx %>/uploads/catalogo/heroSection/card2.jpg" alt="Velvet Cloud Cream" />
                         <div class="hero-content">
                             <div class="slide-text max-w-xl">
                                 <span class="block font-label-md text-[11px] tracking-[0.35em] text-white/80 uppercase mb-5
@@ -369,7 +369,7 @@
 
                     <!-- ── SLIDE 3 ── -->
                     <div class="hero-slide" data-index="2">
-                        <img src="<%= ctx %>/uploads/catalogo/card3.png" alt="Midnight Recovery Oil" />
+                        <img src="<%= ctx %>/uploads/catalogo/heroSection/card3.png" alt="Midnight Recovery Oil" />
                         <div class="hero-content">
                             <div class="slide-text max-w-xl">
                                 <span class="block font-label-md text-[11px] tracking-[0.35em] text-white/80 uppercase mb-5
