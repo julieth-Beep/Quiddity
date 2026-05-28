@@ -70,7 +70,7 @@ public class AdminServlet extends HttpServlet {
         req.setAttribute("totalCompradores",compradores.size());
         req.setAttribute("ultimosUsuarios", todosUsuarios.subList(0, Math.min(5, todosUsuarios.size())));
 
-        req.getRequestDispatcher("/admin/dashboard.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/admin/dashboard.jsp").forward(req, resp);
     }
 
     /** Listado de usuarios — puede filtrar por ?rol=1|2|3. */
@@ -93,7 +93,7 @@ public class AdminServlet extends HttpServlet {
         }
 
         req.setAttribute("usuarios", lista);
-        req.getRequestDispatcher("/admin/usuarios.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/admin/usuarios.jsp").forward(req, resp);
     }
 
     /** Vista de reportes — carga todos los usuarios para análisis. */
@@ -104,6 +104,6 @@ public class AdminServlet extends HttpServlet {
         req.setAttribute("usuarios2",   usuarioDAO.listarPorRol(UsuarioDAO.ROL_USUARIO));
         req.setAttribute("compradores", usuarioDAO.listarPorRol(UsuarioDAO.ROL_COMPRADOR));
 
-        req.getRequestDispatcher("/admin/reportes.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/admin/reportes.jsp").forward(req, resp);
     }
 }

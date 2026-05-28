@@ -125,7 +125,7 @@ public class AuthFilter implements Filter {
     private boolean esRutaExclusivaUsuario(String path) {
         return path.startsWith("/inicio")
             || path.startsWith("/closet")
-            || path.startsWith("/facescan")
+            || path.startsWith("/facefull")
             || path.startsWith("/rutina")
             || path.startsWith("/sugerencias")
             || path.startsWith("/usuario/");

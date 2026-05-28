@@ -127,4 +127,9 @@ public class CaracteristicasDAO {
         c.setTipoPiel(rs.getString("tipopiel"));
         return c;
     }
+
+    public void actualizarTonoPiel(int id, String tonoPiel) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'actualizarTonoPiel'");
+    }
 }

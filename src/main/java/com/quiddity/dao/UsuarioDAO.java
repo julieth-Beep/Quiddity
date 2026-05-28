@@ -12,8 +12,8 @@ import java.util.Properties;
 public class UsuarioDAO {
 
     public static final int ROL_ADMIN = 1;
-    public static final int ROL_USUARIO = 2;
-    public static final int ROL_COMPRADOR = 3;
+    public static final int ROL_USUARIO = 3;
+    public static final int ROL_COMPRADOR = 2;
 
     private Usuario mapear(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();

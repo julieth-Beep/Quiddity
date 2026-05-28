@@ -83,7 +83,7 @@ public class LoginServlet extends HttpServlet {
         return switch (u.getIdRol()) {
             case UsuarioDAO.ROL_ADMIN     -> base + "/admin/dashboard";
             case UsuarioDAO.ROL_COMPRADOR -> base + "/catalogo";
-            default                       -> base + "/inicio";
+            default                       -> base + "/facefull";
         };
     }
 }
