@@ -109,7 +109,6 @@ public class UsuarioServlet extends HttpServlet {
     // ACCIONES PRIVADAS
     // ─────────────────────────────────────────────
 
-    /** Crea un nuevo usuario. Solo el ADMIN puede elegir el rol; por defecto se asigna ROL_USUARIO. */
     private void crearUsuario(HttpServletRequest req, HttpServletResponse resp, Usuario sesion)
             throws IOException, ServletException {
 
