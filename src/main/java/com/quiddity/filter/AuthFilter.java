@@ -98,20 +98,28 @@ public class AuthFilter implements Filter {
     // ── Helpers ─────────────────────────────────────────────────────────────
     private boolean esPublica(String path) {
         return path.equals("/login")
+
+
                 || path.equals("/login.jsp")
                 || path.equals("/logout")
                 || path.equals("/registro")
                 || path.equals("/registro.jsp")
                 || path.equals("/")
                 || path.equals("/index.jsp")
+                || path.equals("/chatbot")
                 || path.equals("/catalogo.jsp")
                 || path.startsWith("/css/")
                 || path.startsWith("/js/")
                 || path.startsWith("/img/")
                 || path.startsWith("/uploads/")
                 || path.startsWith("/favicon");
+
+
     }
 
+
+
+  
     private boolean esRutaExclusivaUsuario(String path) {
         return path.startsWith("/inicio")
             || path.startsWith("/closet")
