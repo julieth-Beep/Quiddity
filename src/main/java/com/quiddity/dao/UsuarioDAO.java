@@ -1,6 +1,7 @@
 package com.quiddity.dao;
 
 import com.quiddity.model.Usuario;
+import com.quiddity.util.ConexionDB;
 
 import java.io.InputStream;
 import java.sql.*;
@@ -13,23 +14,6 @@ public class UsuarioDAO {
     public static final int ROL_ADMIN = 1;
     public static final int ROL_USUARIO = 2;
     public static final int ROL_COMPRADOR = 3;
-
-    // ─────────────────────────────────────────────
-    // CONEXIÓN
-    // ─────────────────────────────────────────────
-    private Connection getConnection() throws Exception {
-        Properties props = new Properties();
-        InputStream is = getClass().getClassLoader().getResourceAsStream("db.properties");
-        if (is == null)
-            throw new Exception("No se encontró db.properties en resources");
-        props.load(is);
-
-        Class.forName(props.getProperty("db.driver"));
-        return DriverManager.getConnection(
-                props.getProperty("db.url"),
-                props.getProperty("db.username"),
-                props.getProperty("db.password"));
-    }
 
     private Usuario mapear(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();
@@ -49,7 +33,7 @@ public class UsuarioDAO {
     public boolean crear(Usuario usuario) {
         String sql = "INSERT INTO usuario (nombre, apellido, email, contrasena, documento, username, fotoperfil, idrol) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, usuario.getNombre());
@@ -71,7 +55,7 @@ public class UsuarioDAO {
 
     public Usuario obtenerPorId(int id) {
         String sql = "SELECT * FROM usuario WHERE id = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -88,7 +72,7 @@ public class UsuarioDAO {
     // READ — por email (para login)
     public Usuario obtenerPorEmail(String email) {
         String sql = "SELECT * FROM usuario WHERE email = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, email);
@@ -105,7 +89,7 @@ public class UsuarioDAO {
     public List<Usuario> listarTodos() {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT * FROM usuario ORDER BY nombre";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
 
@@ -123,7 +107,7 @@ public class UsuarioDAO {
     public List<Usuario> listarPorRol(int idRol) {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT * FROM usuario WHERE idrol = ? ORDER BY nombre";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, idRol);
@@ -141,7 +125,7 @@ public class UsuarioDAO {
     public boolean actualizar(Usuario usuario) {
         String sql = "UPDATE usuario SET nombre = ?, apellido = ?, email = ?, documento = ?, "
                 + "username = ?, fotoperfil = ?, idrol = ? WHERE id = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, usuario.getNombre());
@@ -164,7 +148,7 @@ public class UsuarioDAO {
     // UPDATE — cambiar contraseña
     public boolean cambiarContrasena(int id, String nuevaContrasena) {
         String sql = "UPDATE usuario SET contrasena = ? WHERE id = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, nuevaContrasena);
@@ -179,7 +163,7 @@ public class UsuarioDAO {
 
     public boolean cambiarRol(int id, int nuevoRol) {
         String sql = "UPDATE usuario SET idrol = ? WHERE id = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, nuevoRol);
@@ -194,7 +178,7 @@ public class UsuarioDAO {
 
     public boolean eliminar(int id) {
         String sql = "DELETE FROM usuario WHERE id = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -210,7 +194,7 @@ public class UsuarioDAO {
         // Busca por email O username, y compara contraseña en texto plano
         String sql = "SELECT * FROM usuario WHERE (email = ? OR username = ?) AND contrasena = ? LIMIT 1";
 
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             // Pasamos el identificador DOS veces: una para email y otra para username
@@ -236,7 +220,7 @@ public class UsuarioDAO {
 
     public boolean emailExiste(String email) {
         String sql = "SELECT 1 FROM usuario WHERE email = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, email);
@@ -251,7 +235,7 @@ public class UsuarioDAO {
 
     public boolean documentoExiste(String documento) {
         String sql = "SELECT 1 FROM usuario WHERE documento = ?";
-        try (Connection con = getConnection();
+        try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, documento);

@@ -40,7 +40,7 @@ public class UsuarioServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Acceso denegado");
                 return;
             }
-            req.getRequestDispatcher("/WEB-INF/views/usuario/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/usuario/form.jsp").forward(req, resp);
             return;
         }
 
@@ -60,7 +60,7 @@ public class UsuarioServlet extends HttpServlet {
                 return;
             }
             req.setAttribute("usuario", u);
-            req.getRequestDispatcher("/WEB-INF/views/usuario/perfil.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/usuario/perfil.jsp").forward(req, resp);
             return;
         }
 
@@ -73,7 +73,7 @@ public class UsuarioServlet extends HttpServlet {
 
         List<Usuario> lista = usuarioDAO.listarTodos();
         req.setAttribute("usuarios", lista);
-        req.getRequestDispatcher("/WEB-INF/views/usuario/lista.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/usuario/lista.jsp").forward(req, resp);
     }
 
     // ─────────────────────────────────────────────
@@ -122,12 +122,12 @@ public class UsuarioServlet extends HttpServlet {
         // Validación básica de duplicados
         if (usuarioDAO.emailExiste(email)) {
             req.setAttribute("error", "El correo ya está registrado.");
-            req.getRequestDispatcher("/WEB-INF/views/usuario/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/usuario/form.jsp").forward(req, resp);
             return;
         }
         if (usuarioDAO.documentoExiste(req.getParameter("documento"))) {
             req.setAttribute("error", "El documento ya está registrado.");
-            req.getRequestDispatcher("/WEB-INF/views/usuario/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/usuario/form.jsp").forward(req, resp);
             return;
         }
 
@@ -148,7 +148,7 @@ public class UsuarioServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/usuarios");
         } else {
             req.setAttribute("error", "No se pudo crear el usuario. Inténtalo de nuevo.");
-            req.getRequestDispatcher("/WEB-INF/views/usuario/form.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/usuario/form.jsp").forward(req, resp);
         }
     }
 
@@ -191,7 +191,7 @@ public class UsuarioServlet extends HttpServlet {
         } else {
             req.setAttribute("error", "No se pudo actualizar el usuario.");
             req.setAttribute("usuario", u);
-            req.getRequestDispatcher("/WEB-INF/views/usuario/perfil.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/usuario/perfil.jsp").forward(req, resp);
         }
     }
 
