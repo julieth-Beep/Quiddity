@@ -1,31 +1,35 @@
 package com.quiddity.filter;
 
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
 import com.quiddity.dao.UsuarioDAO;
 import com.quiddity.model.Usuario;
-
-import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.http.*;
-import java.io.IOException;
 
 /**
  * AuthFilter
  *
  * Protege todas las rutas internas según el rol del usuario en sesión.
  *
- * Rutas públicas (sin sesión): /login, /registro, /index.jsp, recursos estáticos
+ * Rutas públicas (sin sesión): /login, /registro, /index.jsp, recursos
+ * estáticos
  *
- * Rutas protegidas:
- *   /admin/*      → solo ROL_ADMIN     (1)
- *   /usuario/*    → solo ROL_USUARIO   (2)
- *   /inicio       → solo ROL_USUARIO   (2)
- *   /closet       → solo ROL_USUARIO   (2)
- *   /facescan     → solo ROL_USUARIO   (2)
- *   /rutina       → solo ROL_USUARIO   (2)
- *   /sugerencias  → solo ROL_USUARIO   (2)
- *   /comprador/*  → solo ROL_COMPRADOR (3)
- *   /carrito      → solo ROL_COMPRADOR (3)
- *   /catalogo     → ROL_USUARIO (2) y ROL_COMPRADOR (3) y ROL_ADMIN (1)
+ * Rutas protegidas: /admin/* → solo ROL_ADMIN (1) /usuario/* → solo ROL_USUARIO
+ * (2) /inicio → solo ROL_USUARIO (2) /closet → solo ROL_USUARIO (2) /facescan →
+ * solo ROL_USUARIO (2) /rutina → solo ROL_USUARIO (2) /sugerencias → solo
+ * ROL_USUARIO (2) /comprador/* → solo ROL_COMPRADOR (3) /carrito → solo
+ * ROL_COMPRADOR (3) /catalogo → ROL_USUARIO (2) y ROL_COMPRADOR (3) y ROL_ADMIN
+ * (1)
  */
 @WebFilter("/*")
 public class AuthFilter implements Filter {
@@ -34,11 +38,11 @@ public class AuthFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest  req  = (HttpServletRequest)  request;
+        HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
         String contextPath = req.getContextPath();
-        String uri         = req.getRequestURI();
+        String uri = req.getRequestURI();
         // Ruta relativa al contexto
         String path = uri.substring(contextPath.length());
 
@@ -60,7 +64,6 @@ public class AuthFilter implements Filter {
         int rol = usuario.getIdRol();
 
         // ── 3. Verificar permisos según ruta ────────────────────────────────
-
         // Solo Admin
         if (path.startsWith("/admin")) {
             if (rol != UsuarioDAO.ROL_ADMIN) {
@@ -108,29 +111,36 @@ public class AuthFilter implements Filter {
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
-
     private boolean esPublica(String path) {
         return path.equals("/login")
-            || path.equals("/logout")
-            || path.equals("/registro")
-            || path.equals("/")
-            || path.equals("/index.jsp")
-            || path.startsWith("/css/")
-            || path.startsWith("/js/")
-            || path.startsWith("/img/")
-            || path.startsWith("/uploads/")
-            || path.startsWith("/favicon");
+                || path.equals("/login.jsp")
+                || path.equals("/logout")
+                || path.equals("/registro")
+                || path.equals("/registro.jsp")
+                || path.equals("/")
+                || path.equals("/index.jsp")
+                || path.equals("/catalogo.jsp")
+                || path.startsWith("/css/")
+                || path.startsWith("/js/")
+                || path.startsWith("/img/")
+                || path.startsWith("/uploads/")
+                || path.startsWith("/favicon");
     }
 
     private boolean esRutaExclusivaUsuario(String path) {
         return path.startsWith("/inicio")
-            || path.startsWith("/closet")
-            || path.startsWith("/facescan")
-            || path.startsWith("/rutina")
-            || path.startsWith("/sugerencias")
-            || path.startsWith("/usuario/");
+                || path.startsWith("/closet")
+                || path.startsWith("/facescan")
+                || path.startsWith("/rutina")
+                || path.startsWith("/sugerencias")
+                || path.startsWith("/usuario/");
     }
 
-    @Override public void init(FilterConfig fc) {}
-    @Override public void destroy() {}
+    @Override
+    public void init(FilterConfig fc) {
+    }
+
+    @Override
+    public void destroy() {
+    }
 }

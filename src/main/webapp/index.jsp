@@ -266,7 +266,7 @@
                     <h1 class="font-display-lg text-headline-md tracking-[0.2em] text-primary uppercase">Quiddity</h1>
                     <nav class="hidden md:flex gap-8">
                         <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
-                            href="#">Shop</a>
+                            href="<%= ctx %>/catalogo.jsp">Shop</a>
                         <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
                             href="#">Our Story</a>
                         <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
