@@ -310,7 +310,7 @@
 ═══════════════════════════════════════════ -->
                 <section id="catalog-hero" aria-label="Catálogo hero">
                     <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
-                        <source src="<%= ctx %>/uploads/videos/mixed/1.mp4" type="video/mp4">
+                        <source src="<%= ctx %>/uploads/videos/mixed/2.mp4" type="video/mp4">
                     </video>
                     <div class="absolute inset-0"
                         style="background: linear-gradient(to right, rgba(15,10,12,0.60) 0%, rgba(15,10,12,0.25) 55%, rgba(15,10,12,0.05) 100%);">
