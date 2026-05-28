@@ -1,700 +1,845 @@
-<%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%@ page import="java.util.*" %>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glow & Beauty - Centro de Belleza</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #fdf6f9;
-            color: #333;
-            line-height: 1.6;
-        }
-
-        /* ===== NAVBAR ===== */
-        .navbar {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fad0c4 100%);
-            padding: 0 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 20px rgba(255, 154, 158, 0.3);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .logo i {
-            font-size: 1.8rem;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-            align-items: center;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #fff;
-            font-weight: 500;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: #fff;
-            transition: width 0.3s ease;
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        .btn-login {
-            background: #fff;
-            color: #ff6b81 !important;
-            padding: 8px 24px;
-            border-radius: 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(255, 107, 129, 0.3);
-        }
-
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 129, 0.4);
-        }
-
-        .btn-login::after {
-            display: none !important;
-        }
-
-        .menu-toggle {
-            display: none;
-            color: #fff;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        /* ===== HERO ===== */
-        .hero {
-            margin-top: 70px;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #fbc2eb 100%);
-            min-height: 90vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 0 5%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            top: -100px;
-            right: -100px;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            bottom: -50px;
-            left: -50px;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            max-width: 800px;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            color: #fff;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-            animation: fadeInUp 1s ease;
-        }
-
-        .hero p {
-            font-size: 1.3rem;
-            color: #fff;
-            margin-bottom: 40px;
-            opacity: 0.95;
-            animation: fadeInUp 1s ease 0.2s both;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            animation: fadeInUp 1s ease 0.4s both;
-        }
-
-        .btn-primary {
-            background: #fff;
-            color: #ff6b81;
-            padding: 14px 40px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: #fff;
-            padding: 14px 40px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border: 2px solid #fff;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background: #fff;
-            color: #ff6b81;
-        }
-
-        /* ===== SERVICIOS ===== */
-        .services {
-            padding: 80px 5%;
-            text-align: center;
-        }
-
-        .section-title {
-            font-size: 2.5rem;
-            color: #ff6b81;
-            margin-bottom: 15px;
-        }
-
-        .section-subtitle {
-            color: #888;
-            font-size: 1.1rem;
-            margin-bottom: 50px;
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .service-card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 40px 30px;
-            box-shadow: 0 10px 40px rgba(255, 154, 158, 0.1);
-            transition: all 0.4s ease;
-            border: 1px solid #ffe0e6;
-        }
-
-        .service-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(255, 154, 158, 0.2);
-        }
-
-        .service-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 2rem;
-            color: #fff;
-        }
-
-        .service-card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-
-        .service-card p {
-            color: #777;
-            font-size: 0.95rem;
-        }
-
-        /* ===== GALERÍA ===== */
-        .gallery {
-            padding: 60px 5%;
-            background: #fff;
-        }
-
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .gallery-item {
-            border-radius: 15px;
-            overflow: hidden;
-            height: 300px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .gallery-item:hover img {
-            transform: scale(1.1);
-        }
-
-        .gallery-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(255, 107, 129, 0.8));
-            padding: 30px 20px 20px;
-            color: #fff;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .gallery-item:hover .gallery-overlay {
-            transform: translateY(0);
-        }
-
-        /* ===== TESTIMONIOS ===== */
-        .testimonials {
-            padding: 80px 5%;
-            background: linear-gradient(135deg, #fdf6f9, #ffe0e6);
-        }
-
-        .testimonials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .testimonial-card {
-            background: #fff;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-
-        .testimonial-card .stars {
-            color: #ffc107;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-
-        .testimonial-card p {
-            color: #666;
-            font-style: italic;
-            margin-bottom: 20px;
-            line-height: 1.8;
-        }
-
-        .testimonial-card .client-name {
-            color: #ff6b81;
-            font-weight: 600;
-        }
-
-        .testimonial-card .client-role {
-            color: #999;
-            font-size: 0.9rem;
-        }
-
-        /* ===== CTA ===== */
-        .cta-section {
-            padding: 80px 5%;
-            text-align: center;
-            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-            color: #fff;
-        }
-
-        .cta-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-        }
-
-        .cta-section p {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            opacity: 0.95;
-        }
-
-        /* ===== FOOTER ===== */
-        .footer {
-            background: #2d2d2d;
-            color: #fff;
-            padding: 60px 5% 30px;
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px;
-            max-width: 1200px;
-            margin: 0 auto 40px;
-        }
-
-        .footer-col h4 {
-            color: #ff9a9e;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-        }
-
-        .footer-col p, .footer-col a {
-            color: #aaa;
-            text-decoration: none;
-            line-height: 2;
-            transition: color 0.3s;
-        }
-
-        .footer-col a:hover {
-            color: #ff9a9e;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .social-links a {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            transition: all 0.3s;
-        }
-
-        .social-links a:hover {
-            background: #ff9a9e;
-            transform: translateY(-3px);
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 30px;
-            border-top: 1px solid #444;
-            color: #888;
-        }
-
-        /* ===== ANIMACIONES ===== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 70px;
-                left: 0;
-                width: 100%;
-                background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-                flex-direction: column;
-                padding: 20px;
-                gap: 15px;
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .menu-toggle {
-                display: block;
-            }
-
-            .hero h1 {
-                font-size: 2.2rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .section-title {
-                font-size: 2rem;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a href="index.jsp" class="logo">
-            <i class="fas fa-spa"></i>
-            Glow & Beauty
-        </a>
-        <ul class="nav-links" id="navLinks">
-            <li><a href="index.jsp"><i class="fas fa-home"></i> Inicio</a></li>
-            <li><a href="#servicios">Servicios</a></li>
-            <li><a href="#galeria">Galería</a></li>
-            <li><a href="#testimonios">Testimonios</a></li>
-            <li><a href="#contacto">Contacto</a></li>
-            <li><a href="login.jsp" class="btn-login"><i class="fas fa-user"></i> Acceder</a></li>
-        </ul>
-        <div class="menu-toggle" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i>
-        </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Realza tu Belleza Natural</h1>
-            <p>Descubre un oasis de bienestar donde la elegancia y el cuidado personal se encuentran. Nuestros expertos te brindarán una experiencia única de transformación.</p>
-            <div class="hero-buttons">
-                <a href="#servicios" class="btn-primary">Ver Servicios</a>
-                <a href="login.jsp" class="btn-secondary">Reservar Cita</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- SERVICIOS -->
-    <section class="services" id="servicios">
-        <h2 class="section-title">Nuestros Servicios</h2>
-        <p class="section-subtitle">Tratamientos exclusivos diseñados para ti</p>
-        <div class="services-grid">
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-cut"></i></div>
-                <h3>Estilismo & Corte</h3>
-                <p>Cortes modernos, coloración profesional y tratamientos capilares que realzan tu estilo personal.</p>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-hand-sparkles"></i></div>
-                <h3>Manicure & Pedicure</h3>
-                <p>Diseño de uñas artísticas, spa de manos y pies con productos de alta gama para un acabado perfecto.</p>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-face-smile-beam"></i></div>
-                <h3>Faciales & Spa</h3>
-                <p>Tratamientos faciales rejuvenecedores, limpieza profunda y mascarillas orgánicas para una piel radiante.</p>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
-                <h3>Maquillaje Profesional</h3>
-                <p>Maquillaje para eventos, bodas y sesiones fotográficas con técnicas de última tendencia.</p>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-hot-tub-person"></i></div>
-                <h3>Masajes Terapéuticos</h3>
-                <p>Masajes relajantes, descontracturantes y aromaterapia para liberar el estrés y revitalizar tu cuerpo.</p>
-            </div>
-            <div class="service-card">
-                <div class="service-icon"><i class="fas fa-spray-can-sparkles"></i></div>
-                <h3>Depilación & Bronceado</h3>
-                <p>Depilación con cera de alta calidad y bronceado orgánico para una piel suave y luminosa.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- GALERÍA -->
-    <section class="gallery" id="galeria">
-        <h2 class="section-title" style="text-align:center; margin-bottom:15px;">Galería de Transformaciones</h2>
-        <p class="section-subtitle" style="text-align:center; margin-bottom:50px;">Resultados que hablan por sí solos</p>
-        <div class="gallery-grid">
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=400&fit=crop" alt="Estilismo">
-                <div class="gallery-overlay">
-                    <h4>Estilismo Premium</h4>
-                </div>
-            </div>
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&h=400&fit=crop" alt="Maquillaje">
-                <div class="gallery-overlay">
-                    <h4>Maquillaje Artístico</h4>
-                </div>
-            </div>
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&h=400&fit=crop" alt="Facial">
-                <div class="gallery-overlay">
-                    <h4>Tratamientos Faciales</h4>
-                </div>
-            </div>
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400&h=400&fit=crop" alt="Uñas">
-                <div class="gallery-overlay">
-                    <h4>Diseño de Uñas</h4>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- TESTIMONIOS -->
-    <section class="testimonials" id="testimonios">
-        <h2 class="section-title" style="text-align:center; margin-bottom:15px;">Lo que dicen nuestras clientas</h2>
-        <p class="section-subtitle" style="text-align:center; margin-bottom:50px;">Experiencias reales de transformación</p>
-        <div class="testimonials-grid">
-            <div class="testimonial-card">
-                <div class="stars">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                </div>
-                <p>"El mejor centro de belleza al que he ido. El equipo es increíblemente profesional y el ambiente es simplemente mágico. ¡Mi cabello nunca se había visto mejor!"</p>
-                <div class="client-name">María Fernanda López</div>
-                <div class="client-role">Cliente VIP</div>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                </div>
-                <p>"Los tratamientos faciales son de otro nivel. Después de solo tres sesiones, mi piel está completamente transformada. Recomiendo Glow & Beauty al 100%."</p>
-                <div class="client-name">Camila Rodríguez</div>
-                <div class="client-role">Cliente Regular</div>
-            </div>
-            <div class="testimonial-card">
-                <div class="stars">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                </div>
-                <p>"Me maquillaron para mi boda y el resultado fue espectacular. Duró toda la noche y las fotos salieron increíbles. ¡Gracias por hacerme sentir una princesa!"</p>
-                <div class="client-name">Ana Patricia Gómez</div>
-                <div class="client-role">Novia Feliz</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="cta-section">
-        <h2>¿Lista para tu Transformación?</h2>
-        <p>Reserva tu cita hoy y recibe un 20% de descuento en tu primer tratamiento</p>
-        <a href="login.jsp" class="btn-primary">Agendar Ahora</a>
-    </section>
-
-    <!-- FOOTER -->
-    <footer class="footer" id="contacto">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4><i class="fas fa-spa"></i> Glow & Beauty</h4>
-                <p>Tu centro de belleza de confianza donde la elegancia y el bienestar se encuentran. Más de 10 años transformando vidas.</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-tiktok"></i></a>
-                    <a href="#"><i class="fab fa-whatsapp"></i></a>
-                </div>
-            </div>
-            <div class="footer-col">
-                <h4>Servicios</h4>
-                <a href="#">Estilismo & Corte</a><br>
-                <a href="#">Manicure & Pedicure</a><br>
-                <a href="#">Faciales & Spa</a><br>
-                <a href="#">Maquillaje Profesional</a><br>
-                <a href="#">Masajes Terapéuticos</a>
-            </div>
-            <div class="footer-col">
-                <h4>Horario</h4>
-                <p>Lunes - Viernes: 9:00 AM - 8:00 PM</p>
-                <p>Sábados: 10:00 AM - 6:00 PM</p>
-                <p>Domingos: 10:00 AM - 4:00 PM</p>
-            </div>
-            <div class="footer-col">
-                <h4>Contacto</h4>
-                <p><i class="fas fa-map-marker-alt"></i> Calle Belleza #123, Centro</p>
-                <p><i class="fas fa-phone"></i> +57 300 123 4567</p>
-                <p><i class="fas fa-envelope"></i> info@glowandbeauty.com</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 Glow & Beauty. Todos los derechos reservados.</p>
-        </div>
-    </footer>
-
-    <script>
-        function toggleMenu() {
-            document.getElementById('navLinks').classList.toggle('active');
-        }
-
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+    <% String ctx=request.getContextPath(); %>
+        <!DOCTYPE html>
+        <html class="light" lang="es">
+
+        <head>
+            <meta charset="utf-8" />
+            <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+            <title>QUIDDITY | Botanical Essence for Your Soul</title>
+            <!-- Google Fonts -->
+            <link href="https://fonts.googleapis.com" rel="preconnect" />
+            <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+            <link
+                href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@200..800&display=swap"
+                rel="stylesheet" />
+            <!-- Material Symbols -->
+            <link
+                href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+                rel="stylesheet" />
+            <!-- Tailwind CSS -->
+            <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+            <script id="tailwind-config">
+                tailwind.config = {
+                    darkMode: "class",
+                    theme: {
+                        extend: {
+                            colors: {
+                                "primary": "#9a3a5a",
+                                "secondary": "#516617",
+                                "tertiary": "#88495a",
+                                "background": "#ffffff",
+                                "surface": "#ffffff",
+                                "on-surface": "#1c1b1d",
+                                "on-surface-variant": "#544246",
+                                "outline": "#877276",
+                                "surface-container-low": "#ffffff",
+                                "surface-container-lowest": "#ffffff",
+                                "surface-variant": "#f1ecef"
+                            },
+                            borderRadius: {
+                                DEFAULT: "0px",
+                                lg: "0px",
+                                xl: "0px",
+                                full: "9999px"
+                            },
+                            spacing: {
+                                "container-margin": "80px",
+                                "element-gap": "24px",
+                                "gutter": "32px",
+                                "section-gap": "120px"
+                            },
+                            fontFamily: {
+                                "headline-md": ["EB Garamond"],
+                                "display-lg": ["EB Garamond"],
+                                "headline-lg-mobile": ["EB Garamond"],
+                                "body-lg": ["Manrope"],
+                                "headline-lg": ["EB Garamond"],
+                                "body-md": ["Manrope"],
+                                "label-md": ["Manrope"]
+                            },
+                            fontSize: {
+                                "headline-md": ["32px", { lineHeight: "40px", fontWeight: "400" }],
+                                "display-lg": ["64px", { lineHeight: "72px", letterSpacing: "-0.01em", fontWeight: "400" }],
+                                "headline-lg-mobile": ["32px", { lineHeight: "40px", fontWeight: "400" }],
+                                "body-lg": ["20px", { lineHeight: "32px", fontWeight: "400" }],
+                                "headline-lg": ["48px", { lineHeight: "56px", fontWeight: "400" }],
+                                "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                                "label-md": ["13px", { lineHeight: "20px", letterSpacing: "0.1em", fontWeight: "600" }]
+                            }
+                        }
+                    }
                 }
-            });
-        });
-    </script>
+            </script>
+            <style>
+                .material-symbols-outlined {
+                    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+                }
 
-</body>
-</html>
+                .glass-effect {
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                }
+
+                ::-webkit-scrollbar {
+                    width: 4px;
+                }
+
+                ::-webkit-scrollbar-track {
+                    background: #ffffff;
+                }
+
+                ::-webkit-scrollbar-thumb {
+                    background: #e6e1e4;
+                }
+
+                /* ── Announcement bar ── */
+                #announcement-bar {
+                    background-color: #c4a9a2;
+                    height: 42px;
+                }
+
+                #announcement-bar.hidden-bar {
+                    display: none;
+                }
+
+                /* ── Hero carousel ── */
+                #hero-carousel {
+                    position: relative;
+                    width: 100%;
+                    height: 100vh;
+                    overflow: hidden;
+                }
+
+                .hero-slide {
+                    position: absolute;
+                    inset: 0;
+                    opacity: 0;
+                    transition: opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+                    pointer-events: none;
+                }
+
+                .hero-slide.active {
+                    opacity: 1;
+                    pointer-events: auto;
+                }
+
+                .hero-slide img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
+                }
+
+                /* left-side tint so text is always readable */
+                .hero-slide::after {
+                    content: '';
+                    position: absolute;
+                    inset: 0;
+                    background: linear-gradient(to right,
+                            rgba(15, 10, 12, 0.52) 0%,
+                            rgba(15, 10, 12, 0.18) 55%,
+                            rgba(15, 10, 12, 0.00) 100%);
+                }
+
+                /* text content floats above overlay */
+                .hero-content {
+                    position: absolute;
+                    inset: 0;
+                    z-index: 10;
+                    display: flex;
+                    align-items: center;
+                    padding-left: 80px;
+                    padding-right: 80px;
+                }
+
+                /* slide-in animation for text when slide becomes active */
+                .hero-slide .slide-text {
+                    transform: translateY(22px);
+                    opacity: 0;
+                    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.25s,
+                        opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.25s;
+                }
+
+                .hero-slide.active .slide-text {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+
+                /* ── Nav arrows ── */
+                .hero-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    z-index: 20;
+                    width: 52px;
+                    height: 52px;
+                    border: 1.5px solid rgba(255, 255, 255, 0.55);
+                    background: rgba(255, 255, 255, 0.08);
+                    backdrop-filter: blur(8px);
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: background 0.2s, border-color 0.2s;
+                    border-radius: 9999px;
+                }
+
+                .hero-arrow:hover {
+                    background: rgba(255, 255, 255, 0.22);
+                    border-color: rgba(255, 255, 255, 0.9);
+                }
+
+                #hero-prev {
+                    right: 76px;
+                }
+
+                #hero-next {
+                    right: 16px;
+                }
+
+                /* ── Progress dots ── */
+                #hero-dots {
+                    position: absolute;
+                    bottom: 36px;
+                    left: 80px;
+                    z-index: 20;
+                    display: flex;
+                    gap: 8px;
+                }
+
+                .hero-dot {
+                    width: 28px;
+                    height: 2px;
+                    background: rgba(255, 255, 255, 0.35);
+                    cursor: pointer;
+                    transition: background 0.3s, width 0.3s;
+                }
+
+                .hero-dot.active {
+                    background: #ffffff;
+                    width: 52px;
+                }
+
+                /* ── Progress bar (auto-advance timer) ── */
+                #hero-progress {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    height: 2px;
+                    background: #9a3a5a;
+                    z-index: 20;
+                    width: 0%;
+                    transition: none;
+                }
+
+                #hero-progress.animating {
+                    transition: width 6s linear;
+                    width: 100%;
+                }
+            </style>
+        </head>
+
+        <body class="bg-white font-body-md text-on-surface selection:bg-primary/10">
+
+            <!-- ═══════════════════════════════════════════
+     ANNOUNCEMENT BAR
+═══════════════════════════════════════════ -->
+            <div id="announcement-bar" class="fixed top-0 w-full z-[60] flex items-center justify-center px-8">
+                <p class="font-label-md text-[11px] tracking-[0.3em] text-white uppercase">
+                    NUEVOS ARRIVALES — ENVÍO GRATIS EN PEDIDOS MAYORES A $150.000
+                </p>
+                <button onclick="closeAnnouncementBar()"
+                    class="absolute right-6 text-white/60 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+                </button>
+            </div>
+
+            <!-- ═══════════════════════════════════════════
+     TOP APP BAR
+═══════════════════════════════════════════ -->
+            <header id="main-header"
+                class="fixed w-full z-50 bg-white/90 backdrop-blur-md flex justify-between items-center px-container-margin py-4 border-b border-on-surface/5 transition-all duration-300"
+                style="top: 42px;">
+                <div class="flex items-center gap-12">
+                    <h1 class="font-display-lg text-headline-md tracking-[0.2em] text-primary uppercase">Quiddity</h1>
+                    <nav class="hidden md:flex gap-8">
+                        <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
+                            href="#">Shop</a>
+                        <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
+                            href="#">Our Story</a>
+                        <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
+                            href="#">Apothecary</a>
+                        <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
+                            href="#">Journal</a>
+                    </nav>
+                </div>
+                <div class="flex items-center gap-6">
+                    <button class="text-on-surface hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined">search</span>
+                    </button>
+                    <button class="text-on-surface hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined">favorite</span>
+                    </button>
+                    <button class="text-on-surface hover:text-primary transition-colors relative">
+                        <span class="material-symbols-outlined">shopping_bag</span>
+                        <span
+                            class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    </button>
+
+                    <!-- ── Divisor ── -->
+                    <div class="w-px h-5 bg-outline/20"></div>
+
+                    <!-- ── Login ── -->
+                    <a href="<%= ctx %>/login.jsp"
+                        class="font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary transition-colors">
+                        Login
+                    </a>
+
+                    <!-- ── Registro ── -->
+                    <a href="<%= ctx %>/registro.jsp"
+                        class="font-label-md text-label-md uppercase tracking-widest px-6 py-2.5 bg-primary text-white hover:bg-tertiary transition-all duration-300 active:scale-95">
+                        Registro
+                    </a>
+                </div>
+            </header>
+
+            <main>
+
+                <!-- ═══════════════════════════════════════════
+     HERO — DYNAMIC CAROUSEL
+     Imágenes en: webapp/uploads/catalogo/
+     Cambia los nombres de archivo según los tuyos.
+═══════════════════════════════════════════ -->
+                <section id="hero-carousel" aria-label="Hero carousel">
+
+                    <!-- ── SLIDE 1 ── -->
+                    <div class="hero-slide active" data-index="0">
+                        <img src="<%= ctx %>/uploads/catalogo/card1.jpeg" alt="Nueva Colección Quiddity" />
+                        <div class="hero-content">
+                            <div class="slide-text max-w-xl">
+                                <span class="block font-label-md text-[11px] tracking-[0.35em] text-white/80 uppercase mb-5
+                             border border-white/30 inline-flex px-4 py-1.5 backdrop-blur-sm bg-white/10">
+                                    NUEVA COLECCIÓN
+                                </span>
+                                <h2 class="font-display-lg text-white mb-5 leading-[1.08] italic"
+                                    style="font-size:clamp(40px,5vw,68px);">
+                                    Botanical Essence<br />for Your Soul
+                                </h2>
+                                <p class="font-body-md text-white/70 mb-8 text-sm tracking-wide max-w-sm">
+                                    Fórmulas botánicas puras para una piel radiante.<br />
+                                    <em class="text-white/50 text-xs">*Resultados clínicamente comprobados en 4
+                                        semanas</em>
+                                </p>
+                                <button class="border border-white text-white font-label-md text-label-md px-10 py-4
+                               uppercase tracking-widest hover:bg-white hover:text-on-surface
+                               transition-all duration-300 active:scale-95">
+                                    Shop Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── SLIDE 2 ── -->
+                    <div class="hero-slide" data-index="1">
+                        <img src="<%= ctx %>/uploads/catalogo/card2.jpg" alt="Velvet Cloud Cream" />
+                        <div class="hero-content">
+                            <div class="slide-text max-w-xl">
+                                <span class="block font-label-md text-[11px] tracking-[0.35em] text-white/80 uppercase mb-5
+                             border border-white/30 inline-flex px-4 py-1.5 backdrop-blur-sm bg-white/10">
+                                    TRENDING
+                                </span>
+                                <h2 class="font-display-lg text-white mb-5 leading-[1.08] italic"
+                                    style="font-size:clamp(40px,5vw,68px);">
+                                    Velvet Cloud<br />Cream
+                                </h2>
+                                <p class="font-body-md text-white/70 mb-8 text-sm tracking-wide max-w-sm">
+                                    Hidratación profunda con extractos de rosas silvestres.<br />
+                                    <em class="text-white/50 text-xs">*100% mejora en textura después de 2 semanas</em>
+                                </p>
+                                <button class="border border-white text-white font-label-md text-label-md px-10 py-4
+                               uppercase tracking-widest hover:bg-white hover:text-on-surface
+                               transition-all duration-300 active:scale-95">
+                                    Shop Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── SLIDE 3 ── -->
+                    <div class="hero-slide" data-index="2">
+                        <img src="<%= ctx %>/uploads/catalogo/card3.png" alt="Midnight Recovery Oil" />
+                        <div class="hero-content">
+                            <div class="slide-text max-w-xl">
+                                <span class="block font-label-md text-[11px] tracking-[0.35em] text-white/80 uppercase mb-5
+                             border border-white/30 inline-flex px-4 py-1.5 backdrop-blur-sm bg-white/10">
+                                    BEST SELLER
+                                </span>
+                                <h2 class="font-display-lg text-white mb-5 leading-[1.08] italic"
+                                    style="font-size:clamp(40px,5vw,68px);">
+                                    Midnight<br />Recovery Oil
+                                </h2>
+                                <p class="font-body-md text-white/70 mb-8 text-sm tracking-wide max-w-sm">
+                                    Regeneración nocturna con aceites esenciales certificados.<br />
+                                    <em class="text-white/50 text-xs">*Visible glow desde la primera aplicación</em>
+                                </p>
+                                <button class="border border-white text-white font-label-md text-label-md px-10 py-4
+                               uppercase tracking-widest hover:bg-white hover:text-on-surface
+                               transition-all duration-300 active:scale-95">
+                                    Shop Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Navigation arrows ── -->
+                    <button id="hero-prev" class="hero-arrow" aria-label="Slide anterior">
+                        <span class="material-symbols-outlined" style="font-size:20px;">arrow_back</span>
+                    </button>
+                    <button id="hero-next" class="hero-arrow" aria-label="Siguiente slide">
+                        <span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span>
+                    </button>
+
+                    <!-- ── Dots ── -->
+                    <div id="hero-dots" aria-hidden="true">
+                        <div class="hero-dot active" data-dot="0"></div>
+                        <div class="hero-dot" data-dot="1"></div>
+                        <div class="hero-dot" data-dot="2"></div>
+                    </div>
+
+                    <!-- ── Progress bar ── -->
+                    <div id="hero-progress"></div>
+                </section>
+
+
+                <!-- ═══════════════════════════════════════════
+     MOST POPULAR CATALOG
+═══════════════════════════════════════════ -->
+                <section class="py-section-gap bg-white max-w-[1440px] mx-auto px-container-margin">
+                    <div class="mb-16 flex justify-between items-end">
+                        <div>
+                            <span
+                                class="font-label-md text-label-md text-primary uppercase tracking-[0.2em] mb-4 block">Curation</span>
+                            <h3 class="font-headline-lg text-headline-lg">Most Popular</h3>
+                        </div>
+                        <button
+                            class="group flex items-center gap-2 font-label-md text-label-md text-on-surface uppercase hover:text-primary transition-colors">
+                            View All Products
+                            <span
+                                class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+
+                        <!-- Product Card 1 -->
+                        <div class="group cursor-pointer">
+                            <div class="aspect-[4/5] overflow-hidden bg-surface-variant mb-6">
+                                <img alt="Radiance Elixir"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoATMvfaPCe5VWR3xa98ogHHt-NH80Yq5bEUeDOoywzl7DdGRBuIs3v9hiLxEwRlWHU4kAIMIvP9WhpBXV0Hd0NEuXZgtUNYqe9dzJyue4R2FWZM6H3XhS3Mlue6PeuZcOMnfOPFdeo2nwlV3I2xMhQe66aMk6zPpl856LQHqscKcPZ6Bt6fGHLcQuHbApD0OO7RaTKhfwHhQ3Zv9dXQ_mJ5QBiyhkL9KD9ok4kg_Ii-I81X3d-9B9wmLbyFJNvcO8GL8Qqw9Ba634" />
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-label-md text-[10px] text-on-surface-variant uppercase mb-2">Serum
+                                    </p>
+                                    <h4
+                                        class="font-headline-md text-headline-md mb-2 group-hover:text-primary transition-colors">
+                                        Radiance Elixir</h4>
+                                    <p class="font-body-md text-primary">$84.00</p>
+                                </div>
+                                <button
+                                    class="w-10 h-10 rounded-full border border-outline/20 flex items-center justify-center hover:bg-on-surface hover:text-white transition-all">
+                                    <span class="material-symbols-outlined text-xl">add</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Product Card 2 -->
+                        <div class="group cursor-pointer">
+                            <div class="aspect-[4/5] overflow-hidden bg-surface-variant mb-6">
+                                <img alt="Velvet Cloud Cream"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4E25gmKmSsT4fgqf4blKyXp5mQi7rv2NBthU8AZ3RIgxp7wQiMBbVEF2y1CI3k5jRMhnNkxHC6osV7nO9LQnUSoZTFYGbqPwvmSm6TSiIMDV6gwZqdrIDRU-yV2GKWh2M-Pisrd_e6dOpZK6AUdgbZXUtLAS68xIYJHC9z54K5McGoa7ZIhQ0qlwjMfFPAgVsAIBV1rGy1yZQbdX2c-OW48dJrbvt06xShkez3HAChWvGCgHQlo2CoLwR6MKA_QHbClNNh-84tJMZ" />
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-label-md text-[10px] text-on-surface-variant uppercase mb-2">
+                                        Moisturizer</p>
+                                    <h4
+                                        class="font-headline-md text-headline-md mb-2 group-hover:text-primary transition-colors">
+                                        Velvet Cloud Cream</h4>
+                                    <p class="font-body-md text-primary">$62.00</p>
+                                </div>
+                                <button
+                                    class="w-10 h-10 rounded-full border border-outline/20 flex items-center justify-center hover:bg-on-surface hover:text-white transition-all">
+                                    <span class="material-symbols-outlined text-xl">add</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Product Card 3 -->
+                        <div class="group cursor-pointer">
+                            <div class="aspect-[4/5] overflow-hidden bg-surface-variant mb-6">
+                                <img alt="Midnight Recovery"
+                                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBErvVGFmYgkuFKdrP54hlYrRZyWdPyg0UXFVavPgZAoVk0LhpYs9WXMQ5boavb9n0KkiQUaq7b4UsTxPxuZqvHB1YMLEcr6ivkgg8KbmWRvYFfsVZcQO1lP3MMosfL7VUMPvw-MS1I7WefUAtGbSt4wPo55f7ht1GTVd4MHAWMdQhdX2anMpAoAl2Giv9-Qjx_CjordzNRGiRT0cipWEJAqb1bIpgqK8GKDlda1HP5o7uNZWPRheSnHkGYzIUEkG-HVXm7Dz1bRo3V" />
+                            </div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-label-md text-[10px] text-on-surface-variant uppercase mb-2">Oil</p>
+                                    <h4
+                                        class="font-headline-md text-headline-md mb-2 group-hover:text-primary transition-colors">
+                                        Midnight Recovery</h4>
+                                    <p class="font-body-md text-primary">$95.00</p>
+                                </div>
+                                <button
+                                    class="w-10 h-10 rounded-full border border-outline/20 flex items-center justify-center hover:bg-on-surface hover:text-white transition-all">
+                                    <span class="material-symbols-outlined text-xl">add</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+
+                <!-- ═══════════════════════════════════════════
+     ABOUT US
+═══════════════════════════════════════════ -->
+                <section class="py-section-gap bg-white">
+                    <div
+                        class="max-w-[1440px] mx-auto px-container-margin grid grid-cols-1 md:grid-cols-2 gap-gutter items-center">
+                        <div class="pr-12">
+                            <span
+                                class="font-label-md text-label-md text-secondary uppercase tracking-[0.3em] mb-8 block">Our
+                                Philosophy</span>
+                            <h2
+                                class="font-display-lg text-headline-lg md:text-display-lg text-on-surface mb-10 leading-tight italic">
+                                Where nature meets <br class="hidden md:block" /> rigorous science.
+                            </h2>
+                            <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mb-12 leading-relaxed">
+                                At Quiddity, we believe true wellness is found in the equilibrium between the earth's
+                                raw
+                                potential and the clarity of modern dermatology. Each formula is a testament to purity.
+                            </p>
+                            <a class="inline-flex items-center gap-4 font-label-md text-label-md text-on-surface uppercase tracking-widest group border-b-2 border-primary pb-2 hover:text-primary transition-all"
+                                href="#">
+                                Discover our story
+                                <span
+                                    class="material-symbols-outlined text-sm group-hover:translate-x-2 transition-transform">east</span>
+                            </a>
+                        </div>
+                        <div class="relative aspect-[4/5] bg-surface-variant overflow-hidden">
+                            <img alt="The Laboratory" class="w-full h-full object-cover grayscale"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbi_t3yKSeO-sow28iM-Td5JN3-eIGUniHyX8KRXyyaoHGOmFr-OClFJ6QhJzVIe6yVGLebncnOObY_KqdcQogn-6qMN1AYpRG7Cu1vm0w70c411OECFv9MxPg0gc86nt0NLGJgBwbdp27uOq1s2MTzWRqnmPyK88uxAuIv8msleQ3Y9lQ66VvTD0o5sFuGkvi2AX5WmgU-hmn0xD0IuXYpaAgP9OK6iSYEIoiGMJvxOhAxjHd8-3_Mox3PGuLAnhohwnvRmET8ICN" />
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- ═══════════════════════════════════════════
+     OFFERINGS & SERVICES
+═══════════════════════════════════════════ -->
+                <section class="py-section-gap bg-white">
+                    <div class="max-w-[1440px] mx-auto px-container-margin">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+
+                            <div class="text-center group">
+                                <div
+                                    class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
+                                    <span class="material-symbols-outlined text-3xl">eco</span>
+                                </div>
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">100% Organic
+                                </h5>
+                                <p
+                                    class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
+                                    Pristine botanical sourcing from ethical farms</p>
+                            </div>
+
+                            <div class="text-center group">
+                                <div
+                                    class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
+                                    <span class="material-symbols-outlined text-3xl">pets</span>
+                                </div>
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Cruelty Free
+                                </h5>
+                                <p
+                                    class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
+                                    Leaping Bunny certified ethical practices</p>
+                            </div>
+
+                            <div class="text-center group">
+                                <div
+                                    class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
+                                    <span class="material-symbols-outlined text-3xl">science</span>
+                                </div>
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Custom Blends
+                                </h5>
+                                <p
+                                    class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
+                                    Formulations tailored to your unique skin DNA</p>
+                            </div>
+
+                            <div class="text-center group">
+                                <div
+                                    class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
+                                    <span class="material-symbols-outlined text-3xl">face_retouching_natural</span>
+                                </div>
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Expert Care</h5>
+                                <p
+                                    class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
+                                    Consultations with top-tier dermatologists</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- ═══════════════════════════════════════════
+     LOCATION
+═══════════════════════════════════════════ -->
+                <section class="py-section-gap bg-white border-t border-on-surface/5">
+                    <div
+                        class="max-w-[1440px] mx-auto px-container-margin grid grid-cols-1 md:grid-cols-2 gap-section-gap items-center">
+                        <div>
+                            <span
+                                class="font-label-md text-label-md text-primary uppercase tracking-[0.3em] mb-8 block">Visit
+                                Us</span>
+                            <h2 class="font-display-lg text-headline-lg mb-8 italic">The Apothecary</h2>
+                            <address class="not-italic font-body-lg text-on-surface space-y-4 mb-12">
+                                <p class="text-on-surface-variant">1248 Botanical Way, Garden District<br />San
+                                    Francisco, CA 94110</p>
+                                <div class="pt-4 border-t border-outline/10 space-y-2">
+                                    <p class="text-sm uppercase tracking-widest flex justify-between">
+                                        <span>Mon – Sat:</span><span>10am – 7pm</span>
+                                    </p>
+                                    <p class="text-sm uppercase tracking-widest flex justify-between">
+                                        <span>Sun:</span><span>11am – 5pm</span>
+                                    </p>
+                                </div>
+                            </address>
+                            <button
+                                class="w-full md:w-auto bg-on-surface text-white font-label-md text-label-md px-12 py-5 uppercase tracking-widest hover:bg-primary transition-all active:scale-95">
+                                Get Directions
+                            </button>
+                        </div>
+                        <div
+                            class="aspect-square bg-surface-variant relative overflow-hidden flex items-center justify-center group">
+                            <div class="absolute inset-0 opacity-10"
+                                style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 30px 30px;">
+                            </div>
+                            <div class="z-10 text-center group-hover:scale-110 transition-transform duration-700">
+                                <span class="material-symbols-outlined text-primary text-6xl mb-4">location_on</span>
+                                <p class="font-label-md text-label-md uppercase tracking-[0.4em] text-on-surface">
+                                    Quiddity Flagship</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+
+
+            <!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+            <footer class="bg-white border-t border-on-surface/5 py-24 px-container-margin">
+                <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-gutter">
+
+                    <div class="md:col-span-1">
+                        <h2 class="font-display-lg text-headline-md text-primary tracking-[0.2em] uppercase mb-8">
+                            Quiddity</h2>
+                        <p class="text-body-md text-on-surface-variant max-w-[240px]">
+                            Redefining botanical skincare through the lens of modern science and timeless purity.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h6 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-8 text-on-surface">Explore
+                        </h6>
+                        <ul class="space-y-4">
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">All Collections</a></li>
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">Bestsellers</a></li>
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">Gift Sets</a></li>
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">Bundles</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h6 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-8 text-on-surface">Support
+                        </h6>
+                        <ul class="space-y-4">
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">Shipping &amp; Returns</a></li>
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">Track Order</a></li>
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">Sustainability</a></li>
+                            <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
+                                    href="#">FAQ</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h6 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-8 text-on-surface">Follow
+                        </h6>
+                        <div class="flex gap-4 mb-8">
+                            <a class="w-10 h-10 border border-outline/20 flex items-center justify-center rounded-full hover:bg-primary hover:text-white transition-all"
+                                href="#">
+                                <i class="text-sm font-bold not-italic">IN</i>
+                            </a>
+                            <a class="w-10 h-10 border border-outline/20 flex items-center justify-center rounded-full hover:bg-primary hover:text-white transition-all"
+                                href="#">
+                                <i class="text-sm font-bold not-italic">FB</i>
+                            </a>
+                            <a class="w-10 h-10 border border-outline/20 flex items-center justify-center rounded-full hover:bg-primary hover:text-white transition-all"
+                                href="#">
+                                <i class="text-sm font-bold not-italic">PT</i>
+                            </a>
+                        </div>
+                        <p class="text-xs text-on-surface-variant uppercase tracking-widest">Join our Newsletter</p>
+                        <div class="mt-4 flex border-b border-on-surface pb-2">
+                            <input
+                                class="bg-transparent border-none focus:ring-0 w-full text-sm uppercase tracking-widest placeholder:text-outline/40"
+                                placeholder="email address" type="email" />
+                            <button class="material-symbols-outlined text-sm">east</button>
+                        </div>
+                    </div>
+
+                </div>
+                <div
+                    class="max-w-[1440px] mx-auto mt-24 pt-8 border-t border-outline/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <p class="text-[10px] font-label-md text-on-surface-variant/60 uppercase tracking-[0.2em]">
+                        © 2026 QUIDDITY SKINCARE. ALL RIGHTS RESERVED.
+                    </p>
+                    <div class="flex gap-8">
+                        <a class="text-[10px] font-label-md text-on-surface-variant/60 uppercase tracking-[0.2em] hover:text-primary"
+                            href="#">Privacy</a>
+                        <a class="text-[10px] font-label-md text-on-surface-variant/60 uppercase tracking-[0.2em] hover:text-primary"
+                            href="#">Terms</a>
+                        <a class="text-[10px] font-label-md text-on-surface-variant/60 uppercase tracking-[0.2em] hover:text-primary"
+                            href="#">Accessibility</a>
+                    </div>
+                </div>
+            </footer>
+
+
+            <!-- ═══════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════ -->
+            <script>
+                /* ── Announcement bar ── */
+                function closeAnnouncementBar() {
+                    const bar = document.getElementById('announcement-bar');
+                    const header = document.getElementById('main-header');
+                    bar.style.display = 'none';
+                    header.style.top = '0px';
+                }
+
+                /* ── Shrink header on scroll ── */
+                window.addEventListener('scroll', () => {
+                    const header = document.getElementById('main-header');
+                    const barShown = document.getElementById('announcement-bar').style.display !== 'none';
+                    if (window.scrollY > 10) {
+                        header.classList.add('py-2');
+                        header.classList.remove('py-4');
+                    } else {
+                        header.classList.remove('py-2');
+                        header.classList.add('py-4');
+                    }
+                });
+
+                /* ══════════════════════════════════════
+                   HERO CAROUSEL
+                ══════════════════════════════════════ */
+                (function () {
+                    const slides = Array.from(document.querySelectorAll('.hero-slide'));
+                    const dots = Array.from(document.querySelectorAll('.hero-dot'));
+                    const progressBar = document.getElementById('hero-progress');
+                    const INTERVAL = 6000;   // ms between auto-advance
+                    let current = 0;
+                    let timer = null;
+
+                    function goTo(index) {
+                        slides[current].classList.remove('active');
+                        dots[current].classList.remove('active');
+
+                        current = (index + slides.length) % slides.length;
+
+                        slides[current].classList.add('active');
+                        dots[current].classList.add('active');
+
+                        /* restart progress bar */
+                        progressBar.classList.remove('animating');
+                        progressBar.style.transition = 'none';
+                        progressBar.style.width = '0%';
+                        /* force reflow */
+                        void progressBar.offsetWidth;
+                        progressBar.classList.add('animating');
+                    }
+
+                    function startTimer() {
+                        clearInterval(timer);
+                        timer = setInterval(() => goTo(current + 1), INTERVAL);
+                    }
+
+                    /* arrows */
+                    document.getElementById('hero-next').addEventListener('click', () => {
+                        goTo(current + 1);
+                        startTimer();
+                    });
+                    document.getElementById('hero-prev').addEventListener('click', () => {
+                        goTo(current - 1);
+                        startTimer();
+                    });
+
+                    /* dots */
+                    dots.forEach(dot => {
+                        dot.addEventListener('click', () => {
+                            goTo(parseInt(dot.dataset.dot, 10));
+                            startTimer();
+                        });
+                    });
+
+                    /* keyboard */
+                    document.addEventListener('keydown', e => {
+                        if (e.key === 'ArrowRight') { goTo(current + 1); startTimer(); }
+                        if (e.key === 'ArrowLeft') { goTo(current - 1); startTimer(); }
+                    });
+
+                    /* touch / swipe */
+                    let touchStartX = 0;
+                    const carousel = document.getElementById('hero-carousel');
+                    carousel.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+                    carousel.addEventListener('touchend', e => {
+                        const diff = touchStartX - e.changedTouches[0].clientX;
+                        if (Math.abs(diff) > 50) {
+                            diff > 0 ? goTo(current + 1) : goTo(current - 1);
+                            startTimer();
+                        }
+                    });
+
+                    /* kick off */
+                    goTo(0);
+                    startTimer();
+                })();
+
+                /* ── Smooth scroll for anchor links ── */
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) target.scrollIntoView({ behavior: 'smooth' });
+                    });
+                });
+            </script>
+
+        </body>
+
+        </html>
