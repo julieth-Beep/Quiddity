@@ -119,7 +119,6 @@ public class AuthFilter implements Filter {
             || path.startsWith("/rutina")
             || path.startsWith("/sugerencias")
             || path.startsWith("/usuario/");
-
     }
 
     @Override
