@@ -583,5 +583,6 @@
         });
     </script>
 
+ <%@ include file="chatbot.jsp" %>
 </body>
 </html>
