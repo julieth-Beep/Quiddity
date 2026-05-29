@@ -1,14 +1,16 @@
 package com.quiddity.servlet;
 
-import com.quiddity.dao.UsuarioDAO;
-import com.quiddity.model.Usuario;
+import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
+
+import com.quiddity.dao.UsuarioDAO;
+import com.quiddity.model.Usuario;
 
 @WebServlet(urlPatterns = {"/login", "/logout"})
 public class LoginServlet extends HttpServlet {
@@ -83,11 +85,7 @@ public class LoginServlet extends HttpServlet {
         return switch (u.getIdRol()) {
             case UsuarioDAO.ROL_ADMIN     -> base + "/admin/dashboard";
             case UsuarioDAO.ROL_COMPRADOR -> base + "/catalogo";
-<<<<<<< HEAD
-            default                       -> base + "/inicio";
-=======
             default                       -> base + "/facefull";
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
         };
     }
 }

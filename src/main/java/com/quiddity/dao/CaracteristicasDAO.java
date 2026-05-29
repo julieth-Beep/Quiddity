@@ -1,28 +1,15 @@
 package com.quiddity.dao;
 
-import com.quiddity.model.Caracteristicas;
-import com.quiddity.util.ConexionDB;
-
-import java.sql.*;
-<<<<<<< HEAD
-
-public class CaracteristicasDAO {
-
-    // ─────────────────────────────────────────────
-    // Obtener caracteristicas por usuario (via avatar)
-    // ─────────────────────────────────────────────
-    public Caracteristicas obtenerPorUsuario(int idUsuario) {
-        String sql = "SELECT c.* FROM caracteristicas c " +
-                     "INNER JOIN avatar a ON a.idcaracteristicas = c.id " +
-                     "WHERE a.idusuario = ? LIMIT 1";
-        try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, idUsuario);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapear(rs);
-=======
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.quiddity.model.Caracteristicas;
+import com.quiddity.util.ConexionDB;
 
 public class CaracteristicasDAO {
 
@@ -61,7 +48,6 @@ public class CaracteristicasDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 return mapear(rs);
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
         } catch (Exception e) {
             System.err.println("[CaracteristicasDAO] Error obtenerPorUsuario: " + e.getMessage());
         }
@@ -73,11 +59,7 @@ public class CaracteristicasDAO {
     // ─────────────────────────────────────────────
     public boolean crearParaUsuario(int idUsuario, Caracteristicas c) {
         String sqlCaract = "INSERT INTO caracteristicas (tonopiel, formacara, tipocuerpo, tipocabello, tipopiel) " +
-<<<<<<< HEAD
-                           "VALUES (?, ?, ?, ?, ?)";
-=======
                 "VALUES (?, ?, ?, ?, ?)";
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
         String sqlAvatar = "INSERT INTO avatar (idusuario, idcaracteristicas) VALUES (?, ?)";
 
         Connection con = null;
@@ -94,14 +76,10 @@ public class CaracteristicasDAO {
                 ps.setString(5, c.getTipoPiel());
                 ps.executeUpdate();
                 ResultSet keys = ps.getGeneratedKeys();
-<<<<<<< HEAD
-                if (!keys.next()) { con.rollback(); return false; }
-=======
                 if (!keys.next()) {
                     con.rollback();
                     return false;
                 }
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
                 idCaract = keys.getInt(1);
             }
 
@@ -116,24 +94,18 @@ public class CaracteristicasDAO {
 
         } catch (Exception e) {
             System.err.println("[CaracteristicasDAO] Error crearParaUsuario: " + e.getMessage());
-<<<<<<< HEAD
-            if (con != null) try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
-=======
             if (con != null)
                 try {
                     con.rollback();
                 } catch (SQLException ex) {
                     ex.printStackTrace();
                 }
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
             return false;
         } finally {
             ConexionDB.close(con);
         }
     }
 
-<<<<<<< HEAD
-=======
     public List<Caracteristicas> obtenerTodos() {
         List<Caracteristicas> lista = new ArrayList<>();
         String sql = "SELECT * FROM caracteristicas ORDER BY id DESC";
@@ -176,7 +148,6 @@ public class CaracteristicasDAO {
         return lista;
     }
 
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
     // ─────────────────────────────────────────────
     // Actualizar solo formacara (usado por el escaneo facial)
     // ─────────────────────────────────────────────
@@ -186,11 +157,7 @@ public class CaracteristicasDAO {
         if (existente != null) {
             String sql = "UPDATE caracteristicas SET formacara = ? WHERE id = ?";
             try (Connection con = ConexionDB.getConnection();
-<<<<<<< HEAD
-                 PreparedStatement ps = con.prepareStatement(sql)) {
-=======
                     PreparedStatement ps = con.prepareStatement(sql)) {
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
                 ps.setString(1, formaCara);
                 ps.setInt(2, existente.getId());
                 return ps.executeUpdate() > 0;
@@ -205,8 +172,6 @@ public class CaracteristicasDAO {
         }
     }
 
-<<<<<<< HEAD
-=======
     public Caracteristicas obtenerPorId(int id) {
         String sql = "SELECT * FROM caracteristicas WHERE id = ? LIMIT 1";
         try (Connection con = ConexionDB.getConnection();
@@ -222,21 +187,14 @@ public class CaracteristicasDAO {
         return null;
     }
 
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
     // ─────────────────────────────────────────────
     // Actualizar todas las características
     // ─────────────────────────────────────────────
     public boolean actualizar(Caracteristicas c) {
         String sql = "UPDATE caracteristicas SET tonopiel = ?, formacara = ?, tipocuerpo = ?, " +
-<<<<<<< HEAD
-                     "tipocabello = ?, tipopiel = ? WHERE id = ?";
-        try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-=======
                 "tipocabello = ?, tipopiel = ? WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
             ps.setString(1, c.getTonoPiel());
             ps.setString(2, c.getFormaCara());
             ps.setString(3, c.getTipoCuerpo());
@@ -250,11 +208,6 @@ public class CaracteristicasDAO {
         }
     }
 
-<<<<<<< HEAD
-    // ─────────────────────────────────────────────
-    // MAPPER
-    // ─────────────────────────────────────────────
-=======
     public boolean eliminarPorUsuario(int idUsuario) {
         Connection con = null;
         try {
@@ -351,7 +304,6 @@ public class CaracteristicasDAO {
     }
 
     // MAPPER
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
     private Caracteristicas mapear(ResultSet rs) throws SQLException {
         Caracteristicas c = new Caracteristicas();
         c.setId(rs.getInt("id"));
@@ -362,8 +314,5 @@ public class CaracteristicasDAO {
         c.setTipoPiel(rs.getString("tipopiel"));
         return c;
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
 }

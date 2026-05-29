@@ -1,13 +1,17 @@
 package com.quiddity.servlet;
 
-import com.quiddity.dao.UsuarioDAO;
-import com.quiddity.model.Usuario;
+import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import java.io.IOException;
-import java.util.List;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.quiddity.dao.UsuarioDAO;
+import com.quiddity.model.Usuario;
 
 /**
  * AdminServlet
@@ -70,11 +74,7 @@ public class AdminServlet extends HttpServlet {
         req.setAttribute("totalCompradores",compradores.size());
         req.setAttribute("ultimosUsuarios", todosUsuarios.subList(0, Math.min(5, todosUsuarios.size())));
 
-<<<<<<< HEAD
-        req.getRequestDispatcher("/admin/dashboard.jsp").forward(req, resp);
-=======
         req.getRequestDispatcher("/WEB-INF/admin/dashboard.jsp").forward(req, resp);
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
     }
 
     /** Listado de usuarios — puede filtrar por ?rol=1|2|3. */
@@ -97,11 +97,7 @@ public class AdminServlet extends HttpServlet {
         }
 
         req.setAttribute("usuarios", lista);
-<<<<<<< HEAD
-        req.getRequestDispatcher("/admin/usuarios.jsp").forward(req, resp);
-=======
         req.getRequestDispatcher("/WEB-INF/admin/usuarios.jsp").forward(req, resp);
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
     }
 
     /** Vista de reportes — carga todos los usuarios para análisis. */
@@ -112,10 +108,6 @@ public class AdminServlet extends HttpServlet {
         req.setAttribute("usuarios2",   usuarioDAO.listarPorRol(UsuarioDAO.ROL_USUARIO));
         req.setAttribute("compradores", usuarioDAO.listarPorRol(UsuarioDAO.ROL_COMPRADOR));
 
-<<<<<<< HEAD
-        req.getRequestDispatcher("/admin/reportes.jsp").forward(req, resp);
-=======
         req.getRequestDispatcher("/WEB-INF/admin/reportes.jsp").forward(req, resp);
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
     }
 }
