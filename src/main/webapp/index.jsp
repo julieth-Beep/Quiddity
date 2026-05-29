@@ -268,11 +268,11 @@
                         <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
                             href="<%= ctx %>/catalogo.jsp">Shop</a>
                         <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
-                            href="#">Our Story</a>
+                            href="#">Nuestra historia</a>
                         <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
                             href="#">Apothecary</a>
                         <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
-                            href="#">Journal</a>
+                            href="#">Blog </a>
                     </nav>
                 </div>
                 <div class="flex items-center gap-6">
@@ -316,7 +316,7 @@
 
                     <!-- ── SLIDE 1 ── -->
                     <div class="hero-slide active" data-index="0">
-                        <img src="<%= ctx %>/uploads/catalogo/heroSection/card1.jpeg" alt="Nueva Colección Quiddity" />
+                        <img src="<%= ctx %>/uploads/catalogo/heroSection/card1.png" alt="Nueva Colección Quiddity" />
                         <div class="hero-content">
                             <div class="slide-text max-w-xl">
                                 <span class="block font-label-md text-[11px] tracking-[0.35em] text-white/80 uppercase mb-5
@@ -437,7 +437,7 @@
                             <div class="aspect-[4/5] overflow-hidden bg-surface-variant mb-6">
                                 <img alt="Radiance Elixir"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoATMvfaPCe5VWR3xa98ogHHt-NH80Yq5bEUeDOoywzl7DdGRBuIs3v9hiLxEwRlWHU4kAIMIvP9WhpBXV0Hd0NEuXZgtUNYqe9dzJyue4R2FWZM6H3XhS3Mlue6PeuZcOMnfOPFdeo2nwlV3I2xMhQe66aMk6zPpl856LQHqscKcPZ6Bt6fGHLcQuHbApD0OO7RaTKhfwHhQ3Zv9dXQ_mJ5QBiyhkL9KD9ok4kg_Ii-I81X3d-9B9wmLbyFJNvcO8GL8Qqw9Ba634" />
+                                    src="<%= ctx %>/uploads/catalogo/cuidado/skinCare/serum/gold.jpg" />
                             </div>
                             <div class="flex justify-between items-start">
                                 <div>
@@ -483,7 +483,7 @@
                             <div class="aspect-[4/5] overflow-hidden bg-surface-variant mb-6">
                                 <img alt="Midnight Recovery"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBErvVGFmYgkuFKdrP54hlYrRZyWdPyg0UXFVavPgZAoVk0LhpYs9WXMQ5boavb9n0KkiQUaq7b4UsTxPxuZqvHB1YMLEcr6ivkgg8KbmWRvYFfsVZcQO1lP3MMosfL7VUMPvw-MS1I7WefUAtGbSt4wPo55f7ht1GTVd4MHAWMdQhdX2anMpAoAl2Giv9-Qjx_CjordzNRGiRT0cipWEJAqb1bIpgqK8GKDlda1HP5o7uNZWPRheSnHkGYzIUEkG-HVXm7Dz1bRo3V" />
+                                    src="<%= ctx %>/uploads/catalogo/cuidado/skinCare/serum/Midnight.jpg" />
                             </div>
                             <div class="flex justify-between items-start">
                                 <div>
@@ -516,23 +516,21 @@
                                 Philosophy</span>
                             <h2
                                 class="font-display-lg text-headline-lg md:text-display-lg text-on-surface mb-10 leading-tight italic">
-                                Where nature meets <br class="hidden md:block" /> rigorous science.
+                                Donde la naturaleza se encuentra con la  <br class="hidden md:block" /> ciencia rigurosa.
                             </h2>
                             <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mb-12 leading-relaxed">
-                                At Quiddity, we believe true wellness is found in the equilibrium between the earth's
-                                raw
-                                potential and the clarity of modern dermatology. Each formula is a testament to purity.
+                                En Quiddity, creemos que el verdadero bienestar se encuentra en el equilibrio entre el potencial puro de la tierra y la claridad de la dermatología moderna. Cada fórmula es un testimonio de pureza.
                             </p>
                             <a class="inline-flex items-center gap-4 font-label-md text-label-md text-on-surface uppercase tracking-widest group border-b-2 border-primary pb-2 hover:text-primary transition-all"
                                 href="#">
-                                Discover our story
+                                Descubre nuestra historia
                                 <span
                                     class="material-symbols-outlined text-sm group-hover:translate-x-2 transition-transform">east</span>
                             </a>
                         </div>
                         <div class="relative aspect-[4/5] bg-surface-variant overflow-hidden">
-                            <img alt="The Laboratory" class="w-full h-full object-cover grayscale"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbi_t3yKSeO-sow28iM-Td5JN3-eIGUniHyX8KRXyyaoHGOmFr-OClFJ6QhJzVIe6yVGLebncnOObY_KqdcQogn-6qMN1AYpRG7Cu1vm0w70c411OECFv9MxPg0gc86nt0NLGJgBwbdp27uOq1s2MTzWRqnmPyK88uxAuIv8msleQ3Y9lQ66VvTD0o5sFuGkvi2AX5WmgU-hmn0xD0IuXYpaAgP9OK6iSYEIoiGMJvxOhAxjHd8-3_Mox3PGuLAnhohwnvRmET8ICN" />
+                            <img alt="The Laboratory" class="w-full h-full object-cover "
+                                src="<%= ctx %>/uploads/catalogo/heroSection/filosofia1.jpg" />
                         </div>
                     </div>
                 </section>
@@ -550,11 +548,11 @@
                                     class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
                                     <span class="material-symbols-outlined text-3xl">eco</span>
                                 </div>
-                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">100% Organic
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">100% Organic0
                                 </h5>
                                 <p
                                     class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
-                                    Pristine botanical sourcing from ethical farms</p>
+                                    Ingredientes botánicos puros provenientes de granjas éticas</p>
                             </div>
 
                             <div class="text-center group">
@@ -562,11 +560,11 @@
                                     class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
                                     <span class="material-symbols-outlined text-3xl">pets</span>
                                 </div>
-                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Cruelty Free
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Libre de crueldad animal
                                 </h5>
                                 <p
                                     class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
-                                    Leaping Bunny certified ethical practices</p>
+                                    Prácticas éticas certificadas por Leaping Bunny</p>
                             </div>
 
                             <div class="text-center group">
@@ -574,11 +572,11 @@
                                     class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
                                     <span class="material-symbols-outlined text-3xl">science</span>
                                 </div>
-                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Custom Blends
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Mezclas personalizadas
                                 </h5>
                                 <p
                                     class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
-                                    Formulations tailored to your unique skin DNA</p>
+                                    Fórmulas adaptadas a tu ADN cutáneo único</p>
                             </div>
 
                             <div class="text-center group">
@@ -586,10 +584,10 @@
                                     class="w-20 h-20 mx-auto border border-outline/10 flex items-center justify-center text-secondary mb-8 group-hover:bg-primary/5 transition-colors">
                                     <span class="material-symbols-outlined text-3xl">face_retouching_natural</span>
                                 </div>
-                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Expert Care</h5>
+                                <h5 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-4">Cuidado especializado</h5>
                                 <p
                                     class="text-xs text-on-surface-variant uppercase tracking-widest max-w-[160px] mx-auto leading-relaxed">
-                                    Consultations with top-tier dermatologists</p>
+                                    Consultas con dermatólogos de primer nivel</p>
                             </div>
 
                         </div>
@@ -605,18 +603,18 @@
                         class="max-w-[1440px] mx-auto px-container-margin grid grid-cols-1 md:grid-cols-2 gap-section-gap items-center">
                         <div>
                             <span
-                                class="font-label-md text-label-md text-primary uppercase tracking-[0.3em] mb-8 block">Visit
-                                Us</span>
+                                class="font-label-md text-label-md text-primary uppercase tracking-[0.3em] mb-8 block">
+                                Visítanos</span>
                             <h2 class="font-display-lg text-headline-lg mb-8 italic">The Apothecary</h2>
                             <address class="not-italic font-body-lg text-on-surface space-y-4 mb-12">
-                                <p class="text-on-surface-variant">1248 Botanical Way, Garden District<br />San
-                                    Francisco, CA 94110</p>
+                                <p class="text-on-surface-variant">1248 Botanical Way, Distrito Jardín<br />
+                                    San Francisco, CA 94110</p>
                                 <div class="pt-4 border-t border-outline/10 space-y-2">
                                     <p class="text-sm uppercase tracking-widest flex justify-between">
-                                        <span>Mon – Sat:</span><span>10am – 7pm</span>
+                                        <span>Lun – Sab:</span><span>10am – 7pm</span>
                                     </p>
                                     <p class="text-sm uppercase tracking-widest flex justify-between">
-                                        <span>Sun:</span><span>11am – 5pm</span>
+                                        <span>Dom:</span><span>11am – 5pm</span>
                                     </p>
                                 </div>
                             </address>
@@ -652,35 +650,35 @@
                         <h2 class="font-display-lg text-headline-md text-primary tracking-[0.2em] uppercase mb-8">
                             Quiddity</h2>
                         <p class="text-body-md text-on-surface-variant max-w-[240px]">
-                            Redefining botanical skincare through the lens of modern science and timeless purity.
+                            Redefiniendo el cuidado botánico de la piel a través de la lente de la ciencia moderna y la pureza atemporal.
                         </p>
                     </div>
 
                     <div>
-                        <h6 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-8 text-on-surface">Explore
+                        <h6 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-8 text-on-surface">Explorar
                         </h6>
                         <ul class="space-y-4">
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                                    href="#">All Collections</a></li>
+                                    href="#">Todas las Colecciones</a></li>
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                                    href="#">Bestsellers</a></li>
+                                    href="#">Lo más Vendido</a></li>
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                                    href="#">Gift Sets</a></li>
+                                    href="#">Sets de regalo</a></li>
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
                                     href="#">Bundles</a></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h6 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-8 text-on-surface">Support
+                        <h6 class="font-label-md text-label-md uppercase tracking-[0.2em] mb-8 text-on-surface">Soporte
                         </h6>
                         <ul class="space-y-4">
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                                    href="#">Shipping &amp; Returns</a></li>
+                                    href="#">Envíos &amp; Devoluciones</a></li>
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                                    href="#">Track Order</a></li>
+                                    href="#">Seguir mi pedido</a></li>
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                                    href="#">Sustainability</a></li>
+                                    href="#">Sostenibilidad</a></li>
                             <li><a class="text-body-md text-on-surface-variant hover:text-primary transition-colors"
                                     href="#">FAQ</a></li>
                         </ul>
