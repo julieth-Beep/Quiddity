@@ -1,839 +1,594 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-    <title>Face Full — Quiddity</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --cream:   #F5F0EA;
-            --blush:   #E8C4B8;
-            --rose:    #C4796A;
-            --plum:    #3D2B35;
-            --gold:    #C9A96E;
-            --glass:   rgba(255,255,255,0.12);
-            --overlay-active: rgba(201,169,110,0.55);
-            --overlay-idle:   rgba(255,255,255,0.18);
-        }
+    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+        <!DOCTYPE html>
+        <html lang="es">
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Face Full - Quiddity</title>
+            <link
+                href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap"
+                rel="stylesheet">
+            <style>
+                :root {
+                    --cream: #F5F0EA;
+                    --blush: #E8C4B8;
+                    --rose: #C4796A;
+                    --plum: #3D2B35;
+                    --gold: #C9A96E;
+                    --glass: rgba(255, 255, 255, 0.12);
+                }
 
-        body {
-            background: var(--plum);
-            font-family: 'DM Sans', sans-serif;
-=======
-    <title>Face Full - Quiddity</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --cream: #F5F0EA;
-            --blush: #E8C4B8;
-            --rose:  #C4796A;
-            --plum:  #3D2B35;
-            --gold:  #C9A96E;
-            --glass: rgba(255,255,255,0.12);
-        }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            background: var(--plum);
-            font-family: "DM Sans", sans-serif;
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-            color: var(--cream);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            overflow-x: hidden;
-        }
-<<<<<<< HEAD
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
 
-        /* ── HEADER ── */
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        header {
-            width: 100%;
-            padding: 1.4rem 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .logo {
-<<<<<<< HEAD
-            font-family: 'Cormorant Garamond', serif;
-=======
-            font-family: "Cormorant Garamond", serif;
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-            font-size: 1.6rem;
-            font-weight: 300;
-            letter-spacing: 0.18em;
-            color: var(--gold);
-        }
-        .step-indicator {
-            font-size: 0.72rem;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: rgba(245,240,234,0.45);
-        }
-<<<<<<< HEAD
+                body {
+                    background: var(--plum);
+                    font-family: "DM Sans", sans-serif;
+                    color: var(--cream);
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    overflow-x: hidden;
+                }
 
-        /* ── INTRO ── */
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .intro {
-            text-align: center;
-            padding: 2rem 1rem 1rem;
-        }
-        .intro h1 {
-<<<<<<< HEAD
-            font-family: 'Cormorant Garamond', serif;
-=======
-            font-family: "Cormorant Garamond", serif;
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-            font-size: clamp(1.8rem, 5vw, 3rem);
-            font-weight: 300;
-            letter-spacing: 0.06em;
-            margin-bottom: 0.5rem;
-        }
-        .intro p {
-            font-size: 0.88rem;
-            color: rgba(245,240,234,0.6);
-            max-width: 360px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-<<<<<<< HEAD
+                header {
+                    width: 100%;
+                    padding: 1.4rem 2rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                }
 
-        /* ── CÁMARA + OVERLAY ── */
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .camera-stage {
-            position: relative;
-            width: min(380px, 92vw);
-            aspect-ratio: 3/4;
-            border-radius: 24px;
-            overflow: hidden;
-            margin: 1.4rem auto 0;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-<<<<<<< HEAD
-        }
+                .logo {
+                    font-family: "Cormorant Garamond", serif;
+                    font-size: 1.6rem;
+                    font-weight: 300;
+                    letter-spacing: 0.18em;
+                    color: var(--gold);
+                }
 
-        #video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1); /* espejo natural */
-            display: block;
-        }
+                .step-indicator {
+                    font-size: 0.72rem;
+                    letter-spacing: 0.2em;
+                    text-transform: uppercase;
+                    color: rgba(245, 240, 234, 0.45);
+                }
 
-        /* Placeholder cuando no hay cámara */
-        .no-camera {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(160deg, #2a1f27 0%, #1a1118 100%);
-            display: flex;
-=======
-            background: #1a1118;
-        }
-        #video {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-        }
-        #overlayCanvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-        }
-        .no-camera {
-            position: absolute;
-            top:0; left:0;
-            width:100%; height:100%;
-            background: linear-gradient(160deg, #2a1f27 0%, #1a1118 100%);
-            display: none;
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            color: rgba(245,240,234,0.4);
-            font-size: 0.85rem;
-        }
-<<<<<<< HEAD
-        .no-camera svg { opacity: 0.3; }
+                .intro {
+                    text-align: center;
+                    padding: 2rem 1rem 1rem;
+                }
 
-        /* Overlay SVG de forma de cara activo */
-        #face-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            transition: opacity 0.35s ease;
-        }
+                .intro h1 {
+                    font-family: "Cormorant Garamond", serif;
+                    font-size: clamp(1.8rem, 5vw, 3rem);
+                    font-weight: 300;
+                    letter-spacing: 0.06em;
+                    margin-bottom: 0.5rem;
+                }
 
-        /* Guía de posición siempre visible */
-        .guide-ring {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -52%);
-            width: 58%;
-            aspect-ratio: 3/4;
-            border: 1.5px dashed rgba(255,255,255,0.2);
-            border-radius: 50%;
-            pointer-events: none;
-        }
+                .intro p {
+                    font-size: 0.88rem;
+                    color: rgba(245, 240, 234, 0.6);
+                    max-width: 360px;
+                    margin: 0 auto;
+                    line-height: 1.6;
+                }
 
-        /* Etiqueta del shape activo */
-=======
-        .no-camera svg { opacity:0.3; }
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .shape-label {
-            position: absolute;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-<<<<<<< HEAD
-            background: rgba(0,0,0,0.5);
-=======
-            background: rgba(0,0,0,0.55);
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 20px;
-            padding: 6px 18px;
-            font-size: 0.78rem;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--gold);
-            white-space: nowrap;
-<<<<<<< HEAD
-            transition: opacity 0.3s;
-        }
+                .camera-stage {
+                    position: relative;
+                    width: min(380px, 92vw);
+                    aspect-ratio: 3/4;
+                    border-radius: 24px;
+                    overflow: hidden;
+                    margin: 1.4rem auto 0;
+                    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    background: #1a1118;
+                }
 
-        /* ── SELECTOR DE FORMAS ── */
-        .shapes-title {
-=======
-            display: none;
-            z-index: 10;
-        }
-        .section-title {
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-            font-size: 0.7rem;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            color: rgba(245,240,234,0.4);
-            text-align: center;
-            margin-top: 1.6rem;
-            margin-bottom: 0.9rem;
-        }
-<<<<<<< HEAD
+                #video {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transform: scaleX(-1);
+                }
 
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .shapes-grid {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 0 1rem;
-            max-width: 440px;
-            margin: 0 auto;
-        }
-<<<<<<< HEAD
+                #overlayCanvas {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                }
 
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .shape-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            background: var(--glass);
-            border: 1.5px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            padding: 10px 14px;
-            cursor: pointer;
-            transition: all 0.22s ease;
-            min-width: 72px;
-            backdrop-filter: blur(6px);
-<<<<<<< HEAD
-=======
-            color: var(--cream);
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        }
-        .shape-btn:hover {
-            border-color: rgba(201,169,110,0.45);
-            background: rgba(201,169,110,0.08);
-            transform: translateY(-2px);
-        }
-        .shape-btn.active {
-            border-color: var(--gold);
-            background: rgba(201,169,110,0.18);
-            box-shadow: 0 0 18px rgba(201,169,110,0.2);
-        }
-<<<<<<< HEAD
-        .shape-btn svg {
-            width: 32px;
-            height: 40px;
-        }
-=======
-        .shape-btn svg { width:32px; height:40px; }
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .shape-btn span {
-            font-size: 0.68rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: rgba(245,240,234,0.65);
-            transition: color 0.2s;
-        }
-        .shape-btn.active span { color: var(--gold); }
-<<<<<<< HEAD
+                .no-camera {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(160deg, #2a1f27 0%, #1a1118 100%);
+                    display: none;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 1rem;
+                    color: rgba(245, 240, 234, 0.4);
+                    font-size: 0.85rem;
+                }
 
-        /* ── BOTÓN CONFIRMAR ── */
-=======
-        .skin-grid {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 0 1rem;
-            max-width: 440px;
-            margin: 0 auto;
-        }
-        .skin-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 7px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        .skin-btn:hover { transform: translateY(-2px); }
-        .skin-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2.5px solid rgba(255,255,255,0.15);
-            transition: all 0.22s ease;
-        }
-        .skin-btn.active .skin-circle {
-            border-color: #fff;
-            box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
-        }
-        .skin-btn span {
-            font-size: 0.63rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: rgba(245,240,234,0.55);
-        }
-        .skin-btn.active span { color: var(--cream); }
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .confirm-area {
-            margin: 1.8rem auto 2.5rem;
-            text-align: center;
-            padding: 0 1rem;
-        }
-        .hint {
-            font-size: 0.78rem;
-            color: rgba(245,240,234,0.38);
-            margin-bottom: 1rem;
-        }
-<<<<<<< HEAD
+                .no-camera svg {
+                    opacity: 0.3;
+                }
 
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        #btnConfirmar {
-            background: linear-gradient(135deg, var(--gold) 0%, var(--rose) 100%);
-            color: var(--plum);
-            border: none;
-            border-radius: 50px;
-            padding: 14px 48px;
-<<<<<<< HEAD
-            font-family: 'DM Sans', sans-serif;
-=======
-            font-family: "DM Sans", sans-serif;
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-            font-size: 0.9rem;
-            font-weight: 500;
-            letter-spacing: 0.1em;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            opacity: 0.35;
-            pointer-events: none;
-            text-transform: uppercase;
-        }
-<<<<<<< HEAD
-        #btnConfirmar.enabled {
-            opacity: 1;
-            pointer-events: auto;
-        }
-=======
-        #btnConfirmar.enabled { opacity:1; pointer-events:auto; }
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        #btnConfirmar.enabled:hover {
-            transform: scale(1.04);
-            box-shadow: 0 8px 30px rgba(201,169,110,0.4);
-        }
-<<<<<<< HEAD
+                .shape-label {
+                    position: absolute;
+                    bottom: 16px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(0, 0, 0, 0.55);
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.12);
+                    border-radius: 20px;
+                    padding: 6px 18px;
+                    font-size: 0.78rem;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    color: var(--gold);
+                    white-space: nowrap;
+                    display: none;
+                    z-index: 10;
+                }
 
-        /* Error */
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        .alert-error {
-            background: rgba(196,121,106,0.18);
-            border: 1px solid rgba(196,121,106,0.4);
-            border-radius: 12px;
-            padding: 12px 20px;
-            font-size: 0.82rem;
-            color: var(--blush);
-            margin: 0 auto 1rem;
-            max-width: 360px;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
+                .section-title {
+                    font-size: 0.7rem;
+                    letter-spacing: 0.22em;
+                    text-transform: uppercase;
+                    color: rgba(245, 240, 234, 0.4);
+                    text-align: center;
+                    margin-top: 1.6rem;
+                    margin-bottom: 0.9rem;
+                }
 
-<header>
-    <div class="logo">Quiddity</div>
-<<<<<<< HEAD
-    <div class="step-indicator">Face Full — Escaneo facial</div>
-=======
-    <div class="step-indicator">Face Full - Escaneo facial</div>
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-</header>
+                .shapes-grid {
+                    display: flex;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    padding: 0 1rem;
+                    max-width: 440px;
+                    margin: 0 auto;
+                }
 
-<div class="intro">
-    <h1>Descubre tu forma</h1>
-    <p>Centra tu rostro en el encuadre y selecciona la silueta que mejor coincida con tu cara.</p>
-</div>
+                .shape-btn {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 6px;
+                    background: var(--glass);
+                    border: 1.5px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 14px;
+                    padding: 10px 14px;
+                    cursor: pointer;
+                    transition: all 0.22s ease;
+                    min-width: 72px;
+                    backdrop-filter: blur(6px);
+                    color: var(--cream);
+                }
 
-<<<<<<< HEAD
-<!-- CÁMARA -->
-<div class="camera-stage">
-    <video id="video" autoplay playsinline muted></video>
-    <div class="no-camera" id="noCamMsg" style="display:none;">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-        </svg>
-        <span>Permite el acceso a la cámara</span>
-    </div>
-    <svg id="face-overlay" viewBox="0 0 380 506" preserveAspectRatio="xMidYMid meet"></svg>
-    <div class="guide-ring"></div>
-    <div class="shape-label" id="shapeLabel" style="display:none;"></div>
-</div>
+                .shape-btn:hover {
+                    border-color: rgba(201, 169, 110, 0.45);
+                    background: rgba(201, 169, 110, 0.08);
+                    transform: translateY(-2px);
+                }
 
-<!-- SELECTOR -->
-<p class="shapes-title">Selecciona tu forma de cara</p>
+                .shape-btn.active {
+                    border-color: var(--gold);
+                    background: rgba(201, 169, 110, 0.18);
+                    box-shadow: 0 0 18px rgba(201, 169, 110, 0.2);
+                }
 
-<div class="shapes-grid" id="shapesGrid">
-    <!-- generado por JS -->
-</div>
+                .shape-btn svg {
+                    width: 32px;
+                    height: 40px;
+                }
 
-<!-- CONFIRMAR -->
-=======
-<div class="camera-stage">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="overlayCanvas"></canvas>
-    <div class="no-camera" id="noCamMsg">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <path d="M23 7l-7 5 7 5V7z"/>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-        </svg>
-        <span>Permite el acceso a la camara</span>
-    </div>
-    <div class="shape-label" id="shapeLabel"></div>
-</div>
+                .shape-btn span {
+                    font-size: 0.68rem;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    color: rgba(245, 240, 234, 0.65);
+                    transition: color 0.2s;
+                }
 
-<p class="section-title">Selecciona tu forma de cara</p>
-<div class="shapes-grid" id="shapesGrid"></div>
+                .shape-btn.active span {
+                    color: var(--gold);
+                }
 
-<p class="section-title" style="margin-top:1.8rem;">Selecciona tu tono de piel</p>
-<div class="skin-grid" id="skinGrid"></div>
+                .skin-grid {
+                    display: flex;
+                    gap: 14px;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    padding: 0 1rem;
+                    max-width: 440px;
+                    margin: 0 auto;
+                }
 
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-<div class="confirm-area">
-    <c:if test="${not empty error}">
-        <div class="alert-error">${error}</div>
-    </c:if>
-    <p class="hint" id="hintText">Elige la forma que mejor describa tu rostro</p>
-<<<<<<< HEAD
+                .skin-btn {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 7px;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    transition: transform 0.2s ease;
+                }
 
-    <form id="faceScanForm" action="${pageContext.request.contextPath}/facefull" method="post">
-        <input type="hidden" name="formaCara" id="hiddenFormaCara">
-=======
-    <form id="faceScanForm" action="${pageContext.request.contextPath}/facefull" method="post">
-        <input type="hidden" name="formaCara" id="hiddenFormaCara">
-        <input type="hidden" name="tonoPiel"  id="hiddenTonoPiel">
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
-        <button type="submit" id="btnConfirmar">Confirmar y continuar</button>
-    </form>
-</div>
+                .skin-btn:hover {
+                    transform: translateY(-2px);
+                }
 
-<script>
-<<<<<<< HEAD
-// ─────────────────────────────────────────────
-// Definición de formas con SVG + paths de cara
-// ─────────────────────────────────────────────
-const SHAPES = [
-    {
-        id: 'ovalada',
-        label: 'Ovalada',
-        // Elipse perfecta
-        path: 'M190,60 C255,60 305,140 305,253 C305,366 255,446 190,446 C125,446 75,366 75,253 C75,140 125,60 190,60 Z',
-        icon: `<ellipse cx="16" cy="20" rx="8" ry="12" fill="none" stroke="currentColor" stroke-width="1.5"/>`
-    },
-    {
-        id: 'redonda',
-        label: 'Redonda',
-        path: 'M190,70 C268,70 320,130 320,253 C320,370 265,446 190,446 C115,446 60,370 60,253 C60,130 112,70 190,70 Z',
-        icon: `<circle cx="16" cy="20" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/>`
-    },
-    {
-        id: 'cuadrada',
-        label: 'Cuadrada',
-        path: 'M100,75 C135,65 245,65 280,75 C310,85 320,110 320,253 C320,396 310,421 280,431 C245,441 135,441 100,431 C70,421 60,396 60,253 C60,110 70,85 100,75 Z',
-        icon: `<rect x="5" y="8" width="22" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>`
-    },
-    {
-        id: 'corazon',
-        label: 'Corazón',
-        path: 'M130,70 C155,62 225,62 250,70 C285,80 310,110 310,160 C310,240 260,340 190,446 C120,340 70,240 70,160 C70,110 95,80 130,70 Z',
-        icon: `<path d="M16 32 C16 32 4 22 4 14 C4 9 8 6 12 7 C14 7.5 16 9 16 9 C16 9 18 7.5 20 7 C24 6 28 9 28 14 C28 22 16 32 16 32Z" transform="scale(0.6) translate(2,2)" fill="none" stroke="currentColor" stroke-width="2"/>`
-    },
-    {
-        id: 'diamante',
-        label: 'Diamante',
-        path: 'M190,65 C230,65 295,100 305,175 C315,240 270,360 190,446 C110,360 65,240 75,175 C85,100 150,65 190,65 Z',
-        icon: `<polygon points="16,6 27,18 16,34 5,18" fill="none" stroke="currentColor" stroke-width="1.5"/>`
-    },
-    {
-        id: 'rectangular',
-        label: 'Oblonga',
-        path: 'M115,60 C148,52 232,52 265,60 C292,68 300,95 300,253 C300,411 292,438 265,446 C232,454 148,454 115,446 C88,438 80,411 80,253 C80,95 88,68 115,60 Z',
-        icon: `<rect x="8" y="4" width="16" height="32" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/>`
-    },
-    {
-        id: 'triangular',
-        label: 'Triangular',
-        path: 'M75,160 C78,105 108,72 190,65 C272,72 302,105 305,160 C315,240 260,360 190,446 C120,360 65,240 75,160 Z',
-        icon: `<polygon points="16,6 28,34 4,34" fill="none" stroke="currentColor" stroke-width="1.5"/>`
-    }
-];
+                .skin-circle {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    border: 2.5px solid rgba(255, 255, 255, 0.15);
+                    transition: all 0.22s ease;
+                }
 
-// ─────────────────────────────────────────────
-// Estado
-// ─────────────────────────────────────────────
-let selectedId = null;
+                .skin-btn.active .skin-circle {
+                    border-color: #fff;
+                    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+                }
 
-// ─────────────────────────────────────────────
-// Renderizar botones del selector
-// ─────────────────────────────────────────────
-const grid = document.getElementById('shapesGrid');
-SHAPES.forEach(shape => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'shape-btn';
-    btn.dataset.id = shape.id;
-    btn.innerHTML = `
-        <svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5">
-            ${shape.icon}
-        </svg>
-        <span>${shape.label}</span>`;
-    btn.addEventListener('click', () => seleccionarForma(shape.id));
-    grid.appendChild(btn);
-});
+                .skin-btn span {
+                    font-size: 0.63rem;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    color: rgba(245, 240, 234, 0.55);
+                }
 
-// ─────────────────────────────────────────────
-// Lógica de selección
-// ─────────────────────────────────────────────
-function seleccionarForma(id) {
-    selectedId = id;
-    const shape = SHAPES.find(s => s.id === id);
+                .skin-btn.active span {
+                    color: var(--cream);
+                }
 
-    // Actualizar botones
-    document.querySelectorAll('.shape-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.id === id);
-    });
+                .confirm-area {
+                    margin: 1.8rem auto 2.5rem;
+                    text-align: center;
+                    padding: 0 1rem;
+                }
 
-    // Dibujar overlay en la cámara
-    const overlay = document.getElementById('face-overlay');
-    overlay.innerHTML = `
-        <path d="${shape.path}"
-              fill="rgba(201,169,110,0.15)"
-              stroke="rgba(201,169,110,0.75)"
-              stroke-width="2"
-              stroke-dasharray="8 4"/>`;
+                .hint {
+                    font-size: 0.78rem;
+                    color: rgba(245, 240, 234, 0.38);
+                    margin-bottom: 1rem;
+                }
 
-    // Mostrar etiqueta
-    const label = document.getElementById('shapeLabel');
-    label.textContent = shape.label;
-    label.style.display = 'block';
+                #btnConfirmar {
+                    background: linear-gradient(135deg, var(--gold) 0%, var(--rose) 100%);
+                    color: var(--plum);
+                    border: none;
+                    border-radius: 50px;
+                    padding: 14px 48px;
+                    font-family: "DM Sans", sans-serif;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    letter-spacing: 0.1em;
+                    cursor: pointer;
+                    transition: all 0.25s ease;
+                    opacity: 0.35;
+                    pointer-events: none;
+                    text-transform: uppercase;
+                }
 
-    // Activar botón confirmar
-    document.getElementById('hiddenFormaCara').value = id;
-    const btnConfirmar = document.getElementById('btnConfirmar');
-    btnConfirmar.classList.add('enabled');
-    document.getElementById('hintText').textContent = `Forma seleccionada: ${shape.label}`;
-}
+                #btnConfirmar.enabled {
+                    opacity: 1;
+                    pointer-events: auto;
+                }
 
-// ─────────────────────────────────────────────
-// Iniciar cámara
-// ─────────────────────────────────────────────
-(async function initCamera() {
-    const video = document.getElementById('video');
-    const noCamMsg = document.getElementById('noCamMsg');
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 853 } },
-            audio: false
-        });
-        video.srcObject = stream;
-        video.style.display = 'block';
-    } catch (err) {
-        console.warn('Cámara no disponible:', err);
-        video.style.display = 'none';
-        noCamMsg.style.display = 'flex';
-    }
-})();
-</script>
+                #btnConfirmar.enabled:hover {
+                    transform: scale(1.04);
+                    box-shadow: 0 8px 30px rgba(201, 169, 110, 0.4);
+                }
 
-</body>
-</html>
-=======
-// ViewBox del canvas: 380 x 506
-// Cara centrada aprox en cx=190, cy=253
-// Formas corregidas para coincidir con el filtro de referencia
+                .alert-error {
+                    background: rgba(196, 121, 106, 0.18);
+                    border: 1px solid rgba(196, 121, 106, 0.4);
+                    border-radius: 12px;
+                    padding: 12px 20px;
+                    font-size: 0.82rem;
+                    color: var(--blush);
+                    margin: 0 auto 1rem;
+                    max-width: 360px;
+                    text-align: center;
+                }
+            </style>
+        </head>
 
-var SHAPES = [
-    {
-        // CORAZON: ancho arriba, punta abajo, con hendidura en la frente
-        id:"corazon", label:"Corazon",
-        path:"M190,110 C190,110 170,85 140,85 C105,85 82,112 82,145 C82,200 130,265 190,330 C250,265 298,200 298,145 C298,112 275,85 240,85 C210,85 190,110 190,110 Z"
-    },
-    {
-        // TRIANGULO INVERTIDO: ancho en frente, estrecho en menton
-        id:"triangular_inv", label:"Invertida",
-        path:"M100,90 C130,80 250,80 280,90 C310,100 305,130 295,175 C280,230 240,295 190,360 C140,295 100,230 85,175 C75,130 70,100 100,90 Z"
-    },
-    {
-        // TRIANGULO: estrecho en frente, ancho en menton
-        id:"triangular", label:"Triangular",
-        path:"M155,85 C168,80 212,80 225,85 C245,92 265,120 278,165 C295,220 300,270 295,310 C270,335 230,355 190,355 C150,355 110,335 85,310 C80,270 85,220 102,165 C115,120 135,92 155,85 Z"
-    },
-    {
-        // OVALADA: elipse perfecta
-        id:"ovalada", label:"Ovalada",
-        path:"M190,75 C245,75 295,155 295,253 C295,351 245,430 190,430 C135,430 85,351 85,253 C85,155 135,75 190,75 Z"
-    },
-    {
-        // CUADRADA: frente y menton iguales, esquinas redondeadas
-        id:"cuadrada", label:"Cuadrada",
-        path:"M115,88 C145,78 235,78 265,88 C292,98 305,125 305,253 C305,381 292,408 265,418 C235,428 145,428 115,418 C88,408 75,381 75,253 C75,125 88,98 115,88 Z"
-    },
-    {
-        // REDONDA: mas ancha en los pomulos, menos altura que la ovalada
-        id:"redonda", label:"Redonda",
-        path:"M190,90 C255,90 308,160 308,253 C308,346 255,415 190,415 C125,415 72,346 72,253 C72,160 125,90 190,90 Z"
-    },
-    {
-        // DIAMANTE: frente estrecha, pomulos anchos, menton estrecho
-        id:"diamante", label:"Diamante",
-        path:"M190,75 C210,75 240,95 265,130 C295,172 305,215 298,255 C290,300 260,350 220,385 C210,393 200,398 190,400 C180,398 170,393 160,385 C120,350 90,300 82,255 C75,215 85,172 115,130 C140,95 170,75 190,75 Z"
-    }
-];
+        <body>
 
-var ICONS = {
-    corazon:       "<path d=\"M16,10 C16,10 10,6 6,9 C2,12 2,17 6,21 C10,25 16,30 16,30 C16,30 22,25 26,21 C30,17 30,12 26,9 C22,6 16,10 16,10Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
-    triangular_inv:"<polygon points=\"4,8 28,8 16,36\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
-    triangular:    "<polygon points=\"16,6 28,36 4,36\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
-    ovalada:       "<ellipse cx=\"16\" cy=\"20\" rx=\"8\" ry=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
-    cuadrada:      "<rect x=\"5\" y=\"8\" width=\"22\" height=\"24\" rx=\"3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
-    redonda:       "<circle cx=\"16\" cy=\"20\" r=\"11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
-    diamante:      "<polygon points=\"16,4 28,20 16,36 4,20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>"
-};
+            <header>
+                <div class="logo">Quiddity</div>
+                <div class="step-indicator">Face Full - Escaneo facial</div>
+            </header>
 
-var SKIN_TONES = [
-    { id:"muy_claro",  label:"Muy claro",  color:"#FDDBB4", r:253, g:219, b:180 },
-    { id:"claro",      label:"Claro",      color:"#F0C08A", r:240, g:192, b:138 },
-    { id:"medio",      label:"Medio",      color:"#D4956A", r:212, g:149, b:106 },
-    { id:"bronceado",  label:"Bronceado",  color:"#B97048", r:185, g:112, b:72  },
-    { id:"oscuro",     label:"Oscuro",     color:"#7D4A2A", r:125, g:74,  b:42  },
-    { id:"muy_oscuro", label:"Muy oscuro", color:"#3B1F0E", r:59,  g:31,  b:14  }
-];
+            <div class="intro">
+                <h1>Descubre tu forma</h1>
+                <p>Centra tu rostro en el encuadre y selecciona la silueta que mejor coincida con tu cara.</p>
+            </div>
 
-var selectedShapeId = null;
-var selectedSkinId  = null;
+            <div class="camera-stage">
+                <video id="video" autoplay playsinline muted></video>
+                <canvas id="overlayCanvas"></canvas>
+                <div class="no-camera" id="noCamMsg">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.2">
+                        <path d="M23 7l-7 5 7 5V7z" />
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                    </svg>
+                    <span>Permite el acceso a la camara</span>
+                </div>
+                <div class="shape-label" id="shapeLabel"></div>
+            </div>
 
-var canvas = document.getElementById("overlayCanvas");
-var ctx    = canvas.getContext("2d");
-var VB_W   = 380;
-var VB_H   = 506;
+            <p class="section-title">Selecciona tu forma de cara</p>
+            <div class="shapes-grid" id="shapesGrid"></div>
 
-function resizeCanvas() {
-    var stage = canvas.parentElement;
-    canvas.width  = stage.clientWidth;
-    canvas.height = stage.clientHeight;
-    redraw();
-}
+            <p class="section-title" style="margin-top:1.8rem;">Selecciona tu tono de piel</p>
+            <div class="skin-grid" id="skinGrid"></div>
 
-function redraw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (!selectedShapeId) return;
+            <div class="confirm-area">
+                <c:if test="${not empty error}">
+                    <div class="alert-error">${error}</div>
+                </c:if>
+                <p class="hint" id="hintText">Elige la forma que mejor describa tu rostro</p>
+                <form id="faceScanForm" action="${pageContext.request.contextPath}/facefull" method="post">
+                    <input type="hidden" name="formaCara" id="hiddenFormaCara">
+                    <input type="hidden" name="tonoPiel" id="hiddenTonoPiel">
+                    <button type="submit" id="btnConfirmar">Confirmar y continuar</button>
+                </form>
+            </div>
 
-    var shape = null;
-    for (var i = 0; i < SHAPES.length; i++) {
-        if (SHAPES[i].id === selectedShapeId) { shape = SHAPES[i]; break; }
-    }
-    if (!shape) return;
+            <script>
+                // ViewBox del canvas: 380 x 506
+                // Cara centrada aprox en cx=190, cy=253
+                // Formas corregidas para coincidir con el filtro de referencia
 
-    var scaleX = canvas.width  / VB_W;
-    var scaleY = canvas.height / VB_H;
+                var SHAPES = [
+                    {
+                        // CORAZON: mentón REDONDEADO tipo U, no puntiagudo
+                        id: "corazon", label: "Corazon",
+                        path: "M190,85 C195,78 210,72 230,76 C260,82 285,105 298,140 C310,175 305,215 290,255 C275,295 250,335 235,365 C225,382 215,390 190,390 C165,390 155,382 145,365 C130,335 105,295 90,255 C75,215 70,175 82,140 C95,105 120,82 150,76 C170,72 185,78 190,85 Z"
+                    },
+                    {
+                        // TRIANGULO INVERTIDO: frente ESTRECHADA, lados convergentes, mentón REDONDEADO
+                        id: "triangular_inv",
+                        label: "Invertida",
+                        path: "M135,100 C160,88 220,88 245,100 C270,115 295,140 295,170 C295,215 270,265 250,305 C240,325 215,345 190,355 C165,345 140,325 130,305 C110,265 85,215 85,170 C85,140 110,115 135,100 Z"
+                    },
+                    {
+                        // TRIANGULO INVERTIDO: ancho en frente, estrecho en mentón
+                        id: "triangular",
+                        label: "Triangular",
+                        path: "M145,85 C168,77 212,77 235,85 C260,95 280,120 290,155 C300,190 303,235 300,275 C297,305 285,325 265,340 C245,355 215,365 190,368 C165,365 135,355 115,340 C95,325 83,305 80,275 C77,235 80,190 90,155 C100,120 120,95 145,85 Z"
+                    },
+                    {
+                        // OVALADA: elipse perfecta
+                        id: "ovalada", label: "Ovalada",
+                        path: "M190,75 C245,75 295,155 295,253 C295,351 245,430 190,430 C135,430 85,351 85,253 C85,155 135,75 190,75 Z"
+                    },
+                    {
+                        // CUADRADA: frente REDONDA tipo arco, mentón redondeado
+                        id: "cuadrada", label: "Cuadrada",
+                        path: "M115,100 C130,75 250,75 265,100 C278,105 285,115 288,135 C290,155 290,320 288,340 C285,360 278,370 265,380 C240,400 220,415 190,420 C160,415 140,400 115,380 C102,370 95,360 92,340 C90,320 90,155 92,135 C95,115 102,105 115,100 Z"
+                    },
+                    {
+                        // REDONDA: mas ancha en los pomulos, menos altura que la ovalada
+                        id: "redonda", label: "Redonda",
+                        path: "M190,90 C255,90 308,160 308,253 C308,346 255,415 190,415 C125,415 72,346 72,253 C72,160 125,90 190,90 Z"
+                    },
+                    {
+                        // DIAMANTE: frente estrecha, pomulos anchos, menton estrecho
+                        id: "diamante", label: "Diamante",
+                        path: "M190,75 C210,75 240,95 265,130 C295,172 305,215 298,255 C290,300 260,350 220,385 C210,393 200,398 190,400 C180,398 170,393 160,385 C120,350 90,300 82,255 C75,215 85,172 115,130 C140,95 170,75 190,75 Z"
+                    }
+                ];
 
-    ctx.save();
-    ctx.scale(scaleX, scaleY);
+                var ICONS = {
+                    corazon: "<path d=\"M16,10 C16,10 10,6 6,9 C2,12 2,17 6,21 C10,25 16,30 16,30 C16,30 22,25 26,21 C30,17 30,12 26,9 C22,6 16,10 16,10Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
+                    triangular_inv: "<polygon points=\"4,8 28,8 16,36\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
+                    triangular: "<polygon points=\"16,6 28,36 4,36\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
+                    ovalada: "<ellipse cx=\"16\" cy=\"20\" rx=\"8\" ry=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
+                    cuadrada: "<rect x=\"5\" y=\"8\" width=\"22\" height=\"24\" rx=\"3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
+                    redonda: "<circle cx=\"16\" cy=\"20\" r=\"11\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>",
+                    diamante: "<polygon points=\"16,4 28,20 16,36 4,20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"/>"
+                };
 
-    var facePath = new Path2D(shape.path);
+                var SKIN_TONES = [
+                    { id: "muy_claro", label: "Muy claro", color: "#FDDBB4", r: 253, g: 219, b: 180 },
+                    { id: "claro", label: "Claro", color: "#F0C08A", r: 240, g: 192, b: 138 },
+                    { id: "medio", label: "Medio", color: "#D4956A", r: 212, g: 149, b: 106 },
+                    { id: "bronceado", label: "Bronceado", color: "#B97048", r: 185, g: 112, b: 72 },
+                    { id: "oscuro", label: "Oscuro", color: "#7D4A2A", r: 125, g: 74, b: 42 },
+                    { id: "muy_oscuro", label: "Muy oscuro", color: "#3B1F0E", r: 59, g: 31, b: 14 }
+                ];
 
-    // 1. Si hay tono de piel: pintar el area FUERA de la cara con color solido
-    if (selectedSkinId) {
-        var tone = null;
-        for (var j = 0; j < SKIN_TONES.length; j++) {
-            if (SKIN_TONES[j].id === selectedSkinId) { tone = SKIN_TONES[j]; break; }
-        }
-        if (tone) {
-            // Rellenar todo el canvas con el color de piel
-            ctx.fillStyle = "rgb(" + tone.r + "," + tone.g + "," + tone.b + ")";
-            ctx.fillRect(0, 0, VB_W, VB_H);
-            // Recortar la cara (dejar transparente dentro)
-            ctx.globalCompositeOperation = "destination-out";
-            ctx.fill(facePath);
-            ctx.globalCompositeOperation = "source-over";
-        }
-    }
+                var selectedShapeId = null;
+                var selectedSkinId = null;
 
-    // 2. Contorno blanco grueso alrededor de la cara
-    ctx.strokeStyle = "rgba(255,255,255,0.95)";
-    ctx.lineWidth   = 5;
-    ctx.lineJoin    = "round";
-    ctx.stroke(facePath);
+                var canvas = document.getElementById("overlayCanvas");
+                var ctx = canvas.getContext("2d");
+                var VB_W = 380;
+                var VB_H = 506;
 
-    // 3. Sombra negra fina interior para definicion
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.lineWidth   = 1.5;
-    ctx.stroke(facePath);
+                function resizeCanvas() {
+                    var stage = canvas.parentElement;
+                    canvas.width = stage.clientWidth;
+                    canvas.height = stage.clientHeight;
+                    redraw();
+                }
 
-    ctx.restore();
-}
+                function redraw() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    if (!selectedShapeId) return;
 
-// Render botones de forma
-var shapesGrid = document.getElementById("shapesGrid");
-for (var i = 0; i < SHAPES.length; i++) {
-    (function(shape) {
-        var btn = document.createElement("button");
-        btn.type      = "button";
-        btn.className = "shape-btn";
-        btn.setAttribute("data-id", shape.id);
-        btn.innerHTML = "<svg viewBox=\"0 0 32 40\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\">" + ICONS[shape.id] + "</svg><span>" + shape.label + "</span>";
-        btn.onclick = function() { seleccionarForma(shape.id); };
-        shapesGrid.appendChild(btn);
-    })(SHAPES[i]);
-}
+                    var shape = null;
+                    for (var i = 0; i < SHAPES.length; i++) {
+                        if (SHAPES[i].id === selectedShapeId) { shape = SHAPES[i]; break; }
+                    }
+                    if (!shape) return;
 
-// Render botones de tono
-var skinGrid = document.getElementById("skinGrid");
-for (var k = 0; k < SKIN_TONES.length; k++) {
-    (function(tone) {
-        var btn = document.createElement("button");
-        btn.type      = "button";
-        btn.className = "skin-btn";
-        btn.setAttribute("data-id", tone.id);
-        btn.innerHTML = "<div class=\"skin-circle\" style=\"background:" + tone.color + ";\"></div><span>" + tone.label + "</span>";
-        btn.onclick = function() { seleccionarTono(tone.id); };
-        skinGrid.appendChild(btn);
-    })(SKIN_TONES[k]);
-}
+                    var scaleX = canvas.width / VB_W;
+                    var scaleY = canvas.height / VB_H;
 
-function seleccionarForma(id) {
-    selectedShapeId = id;
-    var btns = document.querySelectorAll(".shape-btn");
-    for (var i = 0; i < btns.length; i++) {
-        if (btns[i].getAttribute("data-id") === id) btns[i].classList.add("active");
-        else btns[i].classList.remove("active");
-    }
-    var lbl = document.getElementById("shapeLabel");
-    for (var j = 0; j < SHAPES.length; j++) {
-        if (SHAPES[j].id === id) { lbl.textContent = SHAPES[j].label; break; }
-    }
-    lbl.style.display = "block";
-    document.getElementById("hiddenFormaCara").value = id;
-    document.getElementById("btnConfirmar").classList.add("enabled");
-    actualizarHint();
-    redraw();
-}
+                    ctx.save();
+                    ctx.scale(scaleX, scaleY);
 
-function seleccionarTono(id) {
-    selectedSkinId = id;
-    var btns = document.querySelectorAll(".skin-btn");
-    for (var i = 0; i < btns.length; i++) {
-        if (btns[i].getAttribute("data-id") === id) btns[i].classList.add("active");
-        else btns[i].classList.remove("active");
-    }
-    document.getElementById("hiddenTonoPiel").value = id;
-    actualizarHint();
-    redraw();
-}
+                    var facePath = new Path2D(shape.path);
 
-function actualizarHint() {
-    var hint = document.getElementById("hintText");
-    if (selectedShapeId && selectedSkinId) {
-        var sLabel = "", tLabel = "";
-        for (var i = 0; i < SHAPES.length; i++) { if (SHAPES[i].id === selectedShapeId) { sLabel = SHAPES[i].label; break; } }
-        for (var j = 0; j < SKIN_TONES.length; j++) { if (SKIN_TONES[j].id === selectedSkinId) { tLabel = SKIN_TONES[j].label; break; } }
-        hint.textContent = "Forma: " + sLabel + " - Tono: " + tLabel;
-    } else if (selectedShapeId) {
-        for (var k = 0; k < SHAPES.length; k++) { if (SHAPES[k].id === selectedShapeId) { hint.textContent = "Forma: " + SHAPES[k].label; break; } }
-    }
-}
+                    // 1. Si hay tono de piel: pintar el area FUERA de la cara con color solido
+                    if (selectedSkinId) {
+                        var tone = null;
+                        for (var j = 0; j < SKIN_TONES.length; j++) {
+                            if (SKIN_TONES[j].id === selectedSkinId) { tone = SKIN_TONES[j]; break; }
+                        }
+                        if (tone) {
+                            // Rellenar todo el canvas con el color de piel
+                            ctx.fillStyle = "rgb(" + tone.r + "," + tone.g + "," + tone.b + ")";
+                            ctx.fillRect(0, 0, VB_W, VB_H);
+                            // Recortar la cara (dejar transparente dentro)
+                            ctx.globalCompositeOperation = "destination-out";
+                            ctx.fill(facePath);
+                            ctx.globalCompositeOperation = "source-over";
+                        }
+                    }
 
-(function() {
-    var video    = document.getElementById("video");
-    var noCamMsg = document.getElementById("noCamMsg");
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "user" }, width: { ideal: 640 }, height: { ideal: 853 } },
-            audio: false
-        })
-        .then(function(stream) {
-            video.srcObject = stream;
-            video.addEventListener("loadedmetadata", resizeCanvas);
-            resizeCanvas();
-        })
-        .catch(function(err) {
-            console.warn("Camara no disponible:", err);
-            video.style.display = "none";
-            noCamMsg.style.display = "flex";
-            resizeCanvas();
-        });
-    } else {
-        video.style.display = "none";
-        noCamMsg.style.display = "flex";
-        resizeCanvas();
-    }
-})();
+                    // 2. Contorno blanco grueso alrededor de la cara
+                    ctx.strokeStyle = "rgba(255,255,255,0.95)";
+                    ctx.lineWidth = 5;
+                    ctx.lineJoin = "round";
+                    ctx.stroke(facePath);
 
-window.addEventListener("resize", resizeCanvas);
-</script>
-</body>
-</html>
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
+                    // 3. Sombra negra fina interior para definicion
+                    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke(facePath);
+
+                    ctx.restore();
+                }
+
+                // Render botones de forma
+                var shapesGrid = document.getElementById("shapesGrid");
+                for (var i = 0; i < SHAPES.length; i++) {
+                    (function (shape) {
+                        var btn = document.createElement("button");
+                        btn.type = "button";
+                        btn.className = "shape-btn";
+                        btn.setAttribute("data-id", shape.id);
+                        btn.innerHTML = "<svg viewBox=\"0 0 32 40\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\">" + ICONS[shape.id] + "</svg><span>" + shape.label + "</span>";
+                        btn.onclick = function () { seleccionarForma(shape.id); };
+                        shapesGrid.appendChild(btn);
+                    })(SHAPES[i]);
+                }
+
+                // Render botones de tono
+                var skinGrid = document.getElementById("skinGrid");
+                for (var k = 0; k < SKIN_TONES.length; k++) {
+                    (function (tone) {
+                        var btn = document.createElement("button");
+                        btn.type = "button";
+                        btn.className = "skin-btn";
+                        btn.setAttribute("data-id", tone.id);
+                        btn.innerHTML = "<div class=\"skin-circle\" style=\"background:" + tone.color + ";\"></div><span>" + tone.label + "</span>";
+                        btn.onclick = function () { seleccionarTono(tone.id); };
+                        skinGrid.appendChild(btn);
+                    })(SKIN_TONES[k]);
+                }
+
+                function seleccionarForma(id) {
+                    selectedShapeId = id;
+                    var btns = document.querySelectorAll(".shape-btn");
+                    for (var i = 0; i < btns.length; i++) {
+                        if (btns[i].getAttribute("data-id") === id) btns[i].classList.add("active");
+                        else btns[i].classList.remove("active");
+                    }
+                    var lbl = document.getElementById("shapeLabel");
+                    for (var j = 0; j < SHAPES.length; j++) {
+                        if (SHAPES[j].id === id) { lbl.textContent = SHAPES[j].label; break; }
+                    }
+                    lbl.style.display = "block";
+                    document.getElementById("hiddenFormaCara").value = id;
+                    document.getElementById("btnConfirmar").classList.add("enabled");
+                    actualizarHint();
+                    redraw();
+                }
+
+                function seleccionarTono(id) {
+                    selectedSkinId = id;
+                    var btns = document.querySelectorAll(".skin-btn");
+                    for (var i = 0; i < btns.length; i++) {
+                        if (btns[i].getAttribute("data-id") === id) btns[i].classList.add("active");
+                        else btns[i].classList.remove("active");
+                    }
+                    document.getElementById("hiddenTonoPiel").value = id;
+                    actualizarHint();
+                    redraw();
+                }
+
+                function actualizarHint() {
+                    var hint = document.getElementById("hintText");
+                    if (selectedShapeId && selectedSkinId) {
+                        var sLabel = "", tLabel = "";
+                        for (var i = 0; i < SHAPES.length; i++) { if (SHAPES[i].id === selectedShapeId) { sLabel = SHAPES[i].label; break; } }
+                        for (var j = 0; j < SKIN_TONES.length; j++) { if (SKIN_TONES[j].id === selectedSkinId) { tLabel = SKIN_TONES[j].label; break; } }
+                        hint.textContent = "Forma: " + sLabel + " - Tono: " + tLabel;
+                    } else if (selectedShapeId) {
+                        for (var k = 0; k < SHAPES.length; k++) { if (SHAPES[k].id === selectedShapeId) { hint.textContent = "Forma: " + SHAPES[k].label; break; } }
+                    }
+                }
+
+                (function () {
+                    var video = document.getElementById("video");
+                    var noCamMsg = document.getElementById("noCamMsg");
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: "user" }, width: { ideal: 640 }, height: { ideal: 853 } },
+                            audio: false
+                        })
+                            .then(function (stream) {
+                                video.srcObject = stream;
+                                video.addEventListener("loadedmetadata", resizeCanvas);
+                                resizeCanvas();
+                            })
+                            .catch(function (err) {
+                                console.warn("Camara no disponible:", err);
+                                video.style.display = "none";
+                                noCamMsg.style.display = "flex";
+                                resizeCanvas();
+                            });
+                    } else {
+                        video.style.display = "none";
+                        noCamMsg.style.display = "flex";
+                        resizeCanvas();
+                    }
+                })();
+
+                window.addEventListener("resize", resizeCanvas);
+            </script>
+        </body>
+
+        </html>

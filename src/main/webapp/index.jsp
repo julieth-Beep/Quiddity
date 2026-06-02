@@ -530,7 +530,7 @@
                         </div>
                         <div class="relative aspect-[4/5] bg-surface-variant overflow-hidden">
                             <img alt="The Laboratory" class="w-full h-full object-cover "
-                                src="<%= ctx %>/uploads/catalogo/heroSection/filosofia1.jpg" />
+                                src="<%= ctx %>/uploads/catalogo/heroSection/Philosophy.jpg" />
                         </div>
                     </div>
                 </section>
