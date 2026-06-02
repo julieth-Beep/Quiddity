@@ -222,7 +222,8 @@ public class CatalogoDAO {
                 rs.getInt("stock"),
                 rs.getString("imagen"),
                 rs.getString("categoria"),
-                rs.getString("marca")
+                rs.getString("marca"),
+                rs.getBoolean("meGusta")
         );
     }
 }

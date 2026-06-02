@@ -1,75 +1,63 @@
 package com.quiddity.servlet;
 
-import com.quiddity.dao.UsuarioDAO;
-import com.quiddity.model.Usuario;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
-/**
- * RegistroServlet
- *
- * GET  /registro → muestra el formulario de registro
- * POST /registro → procesa el registro: nombre, apellido, email, username,
- *                  contraseña, documento, foto de perfil y rol (usuario=2 | comprador=3)
- *
- * La foto de perfil se guarda en <contexto>/uploads/perfiles/
- * y se almacena en BD como ruta relativa (uploads/perfiles/<filename>).
- */
+import com.quiddity.dao.UsuarioDAO;
+import com.quiddity.model.Usuario;
+
 @WebServlet("/registro")
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024,      // 1 MB — empieza a escribir en disco
-    maxFileSize       = 5 * 1024 * 1024,  // 5 MB por archivo
-    maxRequestSize    = 10 * 1024 * 1024  // 10 MB por petición
+    fileSizeThreshold = 1024 * 1024,
+    maxFileSize       = 5 * 1024 * 1024,
+    maxRequestSize    = 10 * 1024 * 1024
 )
 public class RegistroServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
-    // ─────────────────────────────────────────────
-    // GET — mostrar formulario
-    // ─────────────────────────────────────────────
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // Si ya hay sesión activa, redirigir al destino correspondiente
         HttpSession session = req.getSession(false);
         if (session != null && session.getAttribute("usuario") != null) {
             Usuario u = (Usuario) session.getAttribute("usuario");
             resp.sendRedirect(destinoSegunRol(req, u));
             return;
         }
-
         req.getRequestDispatcher("/registro.jsp").forward(req, resp);
     }
 
-    // ─────────────────────────────────────────────
-    // POST — procesar registro
-    // ─────────────────────────────────────────────
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         req.setCharacterEncoding("UTF-8");
 
-        // ── Leer campos de texto ──────────────────
         String nombre     = trim(req.getParameter("nombre"));
         String apellido   = trim(req.getParameter("apellido"));
         String email      = trim(req.getParameter("email"));
-        String username   = trim(req.getParameter("username"));
+        String username   = trim(req.getParameter("userName"));
         String contrasena = req.getParameter("contrasena");
         String confirmar  = req.getParameter("confirmarContrasena");
         String documento  = trim(req.getParameter("documento"));
-        String rolParam   = trim(req.getParameter("rol")); // "2" = usuario, "3" = comprador
+        String rolParam   = trim(req.getParameter("rol"));
 
-        // ── Validaciones básicas ──────────────────
         if (isBlank(nombre) || isBlank(apellido) || isBlank(email) ||
             isBlank(username) || isBlank(contrasena) || isBlank(documento)) {
             reenviarConError(req, resp, "Todos los campos obligatorios deben estar completos.");
@@ -96,27 +84,30 @@ public class RegistroServlet extends HttpServlet {
             return;
         }
 
-        // ── Determinar rol (solo usuario=2 o comprador=3) ──
-        int idRol = "3".equals(rolParam) ? UsuarioDAO.ROL_COMPRADOR : UsuarioDAO.ROL_USUARIO;
+        int idRol = "COMPRADOR".equalsIgnoreCase(rolParam)
+                    ? UsuarioDAO.ROL_COMPRADOR
+                    : UsuarioDAO.ROL_USUARIO;
 
-        // ── Procesar foto de perfil (opcional) ───
+        // Foto de perfil: solo leer si el form es multipart (el form actual no lo es)
         String rutaFoto = null;
-        Part fotoPart = req.getPart("fotoPerfil");
-        if (fotoPart != null && fotoPart.getSize() > 0) {
-            rutaFoto = guardarFoto(fotoPart, req);
-            if (rutaFoto == null) {
-                reenviarConError(req, resp, "El archivo de foto no es válido. Solo se permiten imágenes JPG, PNG o WEBP.");
-                return;
+        String contentType = req.getContentType();
+        if (contentType != null && contentType.toLowerCase().contains("multipart/form-data")) {
+            Part fotoPart = req.getPart("fotoPerfil");
+            if (fotoPart != null && fotoPart.getSize() > 0) {
+                rutaFoto = guardarFoto(fotoPart, req);
+                if (rutaFoto == null) {
+                    reenviarConError(req, resp, "El archivo de foto no es válido. Solo se permiten imágenes JPG, PNG o WEBP.");
+                    return;
+                }
             }
         }
 
-        // ── Crear usuario ─────────────────────────
         Usuario nuevo = new Usuario();
         nuevo.setNombre(nombre);
         nuevo.setApellido(apellido);
         nuevo.setEmail(email);
         nuevo.setUserName(username);
-        nuevo.setContrasena(contrasena); // TODO: hashear con BCrypt antes de guardar
+        nuevo.setContrasena(contrasena);
         nuevo.setDocumento(documento);
         nuevo.setFotoPerfil(rutaFoto);
         nuevo.setIdRol(idRol);
@@ -128,18 +119,9 @@ public class RegistroServlet extends HttpServlet {
             return;
         }
 
-        // ── Registro exitoso → redirigir al login con mensaje ──
         resp.sendRedirect(req.getContextPath() + "/login?registro=ok");
     }
 
-    // ─────────────────────────────────────────────
-    // HELPERS
-    // ─────────────────────────────────────────────
-
-    /**
-     * Guarda la foto de perfil en disco y devuelve la ruta relativa,
-     * o null si el tipo de archivo no es permitido.
-     */
     private String guardarFoto(Part part, HttpServletRequest req) throws IOException {
         String nombreArchivo = obtenerNombreArchivo(part);
         if (nombreArchivo == null || nombreArchivo.isBlank()) return null;
@@ -150,14 +132,10 @@ public class RegistroServlet extends HttpServlet {
             return null;
         }
 
-        // Directorio de destino dentro del contexto desplegado
         String uploadDir = req.getServletContext().getRealPath("/uploads/perfiles");
         Path dirPath = Paths.get(uploadDir);
-        if (!Files.exists(dirPath)) {
-            Files.createDirectories(dirPath);
-        }
+        if (!Files.exists(dirPath)) Files.createDirectories(dirPath);
 
-        // Nombre único para evitar colisiones
         String nombreUnico = System.currentTimeMillis() + "_" + nombreArchivo.replaceAll("\\s+", "_");
         Path destino = dirPath.resolve(nombreUnico);
 
@@ -168,16 +146,13 @@ public class RegistroServlet extends HttpServlet {
         return "uploads/perfiles/" + nombreUnico;
     }
 
-    /** Extrae el nombre original del archivo del header Content-Disposition. */
     private String obtenerNombreArchivo(Part part) {
-        String contentDisposition = part.getHeader("Content-Disposition");
-        if (contentDisposition == null) return null;
-        for (String token : contentDisposition.split(";")) {
+        String cd = part.getHeader("Content-Disposition");
+        if (cd == null) return null;
+        for (String token : cd.split(";")) {
             token = token.trim();
             if (token.startsWith("filename")) {
-                return token.substring(token.indexOf('=') + 1)
-                            .trim()
-                            .replace("\"", "");
+                return token.substring(token.indexOf('=') + 1).trim().replace("\"", "");
             }
         }
         return null;
@@ -191,13 +166,12 @@ public class RegistroServlet extends HttpServlet {
     private void reenviarConError(HttpServletRequest req, HttpServletResponse resp, String mensaje)
             throws ServletException, IOException {
         req.setAttribute("error", mensaje);
-        // Conservar campos completados para no forzar al usuario a rellenar de nuevo
-        req.setAttribute("nombre",   req.getParameter("nombre"));
-        req.setAttribute("apellido", req.getParameter("apellido"));
-        req.setAttribute("email",    req.getParameter("email"));
-        req.setAttribute("username", req.getParameter("username"));
-        req.setAttribute("documento",req.getParameter("documento"));
-        req.setAttribute("rol",      req.getParameter("rol"));
+        req.setAttribute("nombre",    req.getParameter("nombre"));
+        req.setAttribute("apellido",  req.getParameter("apellido"));
+        req.setAttribute("email",     req.getParameter("email"));
+        req.setAttribute("userName",  req.getParameter("userName"));
+        req.setAttribute("documento", req.getParameter("documento"));
+        req.setAttribute("rol",       req.getParameter("rol"));
         req.getRequestDispatcher("/registro.jsp").forward(req, resp);
     }
 
@@ -205,11 +179,11 @@ public class RegistroServlet extends HttpServlet {
         String base = req.getContextPath();
         return switch (u.getIdRol()) {
             case UsuarioDAO.ROL_ADMIN     -> base + "/admin/dashboard";
-            case UsuarioDAO.ROL_COMPRADOR -> base + "/comprador/home";
+            case UsuarioDAO.ROL_COMPRADOR -> base + "/catalogo";
             default                       -> base + "/inicio";
         };
     }
 
-    private String trim(String s) { return s == null ? "" : s.trim(); }
+    private String trim(String s)     { return s == null ? "" : s.trim(); }
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
 }

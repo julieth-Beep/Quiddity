@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<<<<<<< HEAD
 <% String ctx = request.getContextPath(); %>
 <!DOCTYPE html>
 <html class="light" lang="es">

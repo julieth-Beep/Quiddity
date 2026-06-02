@@ -11,12 +11,13 @@ public class Catalogo {
     private String imagen;
     private String categoria;
     private String marca;
+    private boolean meGusta;
 
     public Catalogo() {
     }
-
+    
     public Catalogo(int id, String nombre, String descripcion, String componentes, double precio, int stock,
-            String imagen, String categoria, String marca) {
+            String imagen, String categoria, String marca, boolean meGusta) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -26,6 +27,7 @@ public class Catalogo {
         this.imagen = imagen;
         this.categoria = categoria;
         this.marca = marca;
+        this.meGusta = meGusta;
     }
 
     public int getId() {
@@ -98,6 +100,16 @@ public class Catalogo {
 
     public void setMarca(String marca) {
         this.marca = marca;
+    }
+
+
+    public boolean getMeGusta() {
+        return meGusta;
+    }
+
+
+    public void setMeGusta(boolean meGusta) {
+        this.meGusta = meGusta;
     }
 
 }
