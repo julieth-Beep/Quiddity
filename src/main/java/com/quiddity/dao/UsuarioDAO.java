@@ -242,7 +242,6 @@ public class UsuarioDAO {
             ps.setString(1, documento);
             ResultSet rs = ps.executeQuery();
             return rs.next();
-
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error al verificar documento: " + e.getMessage());
             return false;

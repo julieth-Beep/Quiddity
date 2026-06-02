@@ -1,15 +1,11 @@
 package com.quiddity.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.quiddity.model.Caracteristicas;
 import com.quiddity.util.ConexionDB;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CaracteristicasDAO {
 
