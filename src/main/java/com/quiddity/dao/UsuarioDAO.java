@@ -1,24 +1,20 @@
 package com.quiddity.dao;
 
-import com.quiddity.model.Usuario;
-import com.quiddity.util.ConexionDB;
-
-import java.io.InputStream;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
+
+import com.quiddity.model.Usuario;
+import com.quiddity.util.ConexionDB;
 
 public class UsuarioDAO {
 
     public static final int ROL_ADMIN = 1;
-<<<<<<< HEAD
-    public static final int ROL_USUARIO = 2;
-    public static final int ROL_COMPRADOR = 3;
-=======
     public static final int ROL_USUARIO = 3;
     public static final int ROL_COMPRADOR = 2;
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
 
     private Usuario mapear(ResultSet rs) throws SQLException {
         Usuario u = new Usuario();

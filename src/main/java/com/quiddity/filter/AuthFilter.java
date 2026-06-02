@@ -16,7 +16,6 @@ import javax.servlet.http.HttpSession;
 import com.quiddity.dao.UsuarioDAO;
 import com.quiddity.model.Usuario;
 
-<<<<<<< HEAD
 /**
  * AuthFilter
  *
@@ -32,8 +31,6 @@ import com.quiddity.model.Usuario;
  * ROL_COMPRADOR (3) /catalogo → ROL_USUARIO (2) y ROL_COMPRADOR (3) y ROL_ADMIN
  * (1)
  */
-=======
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
 @WebFilter("/*")
 public class AuthFilter implements Filter {
 
@@ -116,28 +113,28 @@ public class AuthFilter implements Filter {
     // ── Helpers ─────────────────────────────────────────────────────────────
     private boolean esPublica(String path) {
         return path.equals("/login")
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
                 || path.equals("/login.jsp")
                 || path.equals("/logout")
                 || path.equals("/registro")
                 || path.equals("/registro.jsp")
                 || path.equals("/")
                 || path.equals("/index.jsp")
-<<<<<<< HEAD
-=======
-                || path.equals("/chatbot")
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
                 || path.equals("/catalogo.jsp")
+                || path.equals("/chatbot")
+                // recursos estáticos
+                || path.startsWith("/uploads/")
                 || path.startsWith("/css/")
                 || path.startsWith("/js/")
                 || path.startsWith("/img/")
-                || path.startsWith("/uploads/")
-                || path.startsWith("/favicon");
-<<<<<<< HEAD
+                || path.endsWith(".css")
+                || path.endsWith(".js")
+                || path.endsWith(".jpg")
+                || path.endsWith(".jpeg")
+                || path.endsWith(".png")
+                || path.endsWith(".gif")
+                || path.endsWith(".svg")
+                || path.endsWith(".ico")
+                || path.endsWith(".mp4");
     }
 
     private boolean esRutaExclusivaUsuario(String path) {
@@ -146,23 +143,8 @@ public class AuthFilter implements Filter {
                 || path.startsWith("/facefull")
                 || path.startsWith("/rutina")
                 || path.startsWith("/sugerencias")
-                || path.startsWith("/usuario/");
-=======
-
-
-    }
-
-
-
-  
-    private boolean esRutaExclusivaUsuario(String path) {
-        return path.startsWith("/inicio")
-            || path.startsWith("/closet")
-            || path.startsWith("/facefull")
-            || path.startsWith("/rutina")
-            || path.startsWith("/sugerencias")
-            || path.startsWith("/usuario/");
->>>>>>> 5eb99d191c19e43d122b59f68bfb5dbbe3e1bfd4
+                || path.startsWith("/usuario/")
+                || path.startsWith("/caracteristicas");
     }
 
     @Override
