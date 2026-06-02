@@ -12,7 +12,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/usuarios")
+@WebServlet(urlPatterns = { "/usuarios", "/usuario/dashboard" })
 public class UsuarioServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -28,6 +28,15 @@ public class UsuarioServlet extends HttpServlet {
         // Cualquier acceso a este servlet requiere sesión activa
         if (sesionUsuario == null) {
             resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+
+        String uri = req.getRequestURI();
+        String contextPath = req.getContextPath();
+
+        // ← AÑADIR ESTO: manejar /usuario/dashboard por GET
+        if (uri.equals(contextPath + "/usuario/dashboard")) {
+            req.getRequestDispatcher("/WEB-INF/usuario/dashboard.jsp").forward(req, resp);
             return;
         }
 
@@ -94,15 +103,32 @@ public class UsuarioServlet extends HttpServlet {
         }
 
         String action = req.getParameter("action");
-        if (action == null) action = "";
+        if (action == null)
+            action = "";
 
         switch (action) {
-            case "crear"      -> crearUsuario(req, resp, sesionUsuario);
-            case "editar"     -> editarUsuario(req, resp, sesionUsuario);
-            case "eliminar"   -> eliminarUsuario(req, resp, sesionUsuario);
+            case "crear" -> crearUsuario(req, resp, sesionUsuario);
+            case "editar" -> editarUsuario(req, resp, sesionUsuario);
+            case "eliminar" -> eliminarUsuario(req, resp, sesionUsuario);
             case "cambiarRol" -> cambiarRol(req, resp, sesionUsuario);
+            case "dashboard" -> mostrarDashboard(req, resp);
             default -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Acción no reconocida");
         }
+    }
+
+    private void mostrarDashboard(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        List<Usuario> todosUsuarios = usuarioDAO.listarTodos();
+        List<Usuario> usuarios = usuarioDAO.listarPorRol(UsuarioDAO.ROL_USUARIO);
+        List<Usuario> compradores = usuarioDAO.listarPorRol(UsuarioDAO.ROL_COMPRADOR);
+
+        req.setAttribute("totalUsuarios", todosUsuarios.size());
+        req.setAttribute("totalClientes", usuarios.size());
+        req.setAttribute("totalCompradores", compradores.size());
+        req.setAttribute("ultimosUsuarios", todosUsuarios.subList(0, Math.min(5, todosUsuarios.size())));
+
+        req.getRequestDispatcher("/WEB-INF/usuario/dashboard.jsp").forward(req, resp);
     }
 
     // ─────────────────────────────────────────────
@@ -137,7 +163,7 @@ public class UsuarioServlet extends HttpServlet {
         nuevo.setNombre(req.getParameter("nombre"));
         nuevo.setApellido(req.getParameter("apellido"));
         nuevo.setEmail(email);
-        nuevo.setContrasena(req.getParameter("contrasena")); 
+        nuevo.setContrasena(req.getParameter("contrasena"));
         nuevo.setDocumento(req.getParameter("documento"));
         nuevo.setUserName(req.getParameter("username"));
         nuevo.setFotoPerfil(req.getParameter("fotoperfil"));
@@ -152,7 +178,10 @@ public class UsuarioServlet extends HttpServlet {
         }
     }
 
-    /** Edita los datos de un usuario. El admin puede editar cualquiera; el usuario/comprador solo a sí mismo. */
+    /**
+     * Edita los datos de un usuario. El admin puede editar cualquiera; el
+     * usuario/comprador solo a sí mismo.
+     */
     private void editarUsuario(HttpServletRequest req, HttpServletResponse resp, Usuario sesion)
             throws IOException, ServletException {
 
@@ -225,7 +254,7 @@ public class UsuarioServlet extends HttpServlet {
             return;
         }
 
-        int id      = Integer.parseInt(req.getParameter("id"));
+        int id = Integer.parseInt(req.getParameter("id"));
         int nuevoRol = parseRol(req.getParameter("idrol"));
 
         usuarioDAO.cambiarRol(id, nuevoRol);
@@ -240,15 +269,17 @@ public class UsuarioServlet extends HttpServlet {
     }
 
     /**
-     * Parsea el parámetro de rol validando que sea 1 (Admin), 2 (Usuario) o 3 (Comprador).
+     * Parsea el parámetro de rol validando que sea 1 (Admin), 2 (Usuario) o 3
+     * (Comprador).
      * Si el valor es inválido, devuelve ROL_USUARIO como valor seguro por defecto.
      */
     private int parseRol(String rolParam) {
-        if (rolParam == null) return UsuarioDAO.ROL_USUARIO;
+        if (rolParam == null)
+            return UsuarioDAO.ROL_USUARIO;
         return switch (rolParam.trim()) {
             case "1" -> UsuarioDAO.ROL_ADMIN;
-            case "3" -> UsuarioDAO.ROL_COMPRADOR;
-            default  -> UsuarioDAO.ROL_USUARIO;
+            case "2" -> UsuarioDAO.ROL_COMPRADOR;
+            default -> UsuarioDAO.ROL_USUARIO;
         };
     }
 }

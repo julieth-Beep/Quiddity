@@ -338,6 +338,6 @@
             loadingMsg.style.display = 'block';
         });
     </script>
-
+<%@ include file="/includes/sidebar.jsp" %>
 </body>
 </html>

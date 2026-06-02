@@ -525,5 +525,6 @@ function actualizarHint() {
 
 window.addEventListener("resize", resizeCanvas);
 </script>
+<%@ include file="/includes/sidebar.jsp" %>
 </body>
 </html>

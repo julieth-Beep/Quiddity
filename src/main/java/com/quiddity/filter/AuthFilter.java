@@ -18,18 +18,6 @@ import com.quiddity.model.Usuario;
 
 /**
  * AuthFilter
- *
- * Protege todas las rutas internas según el rol del usuario en sesión.
- *
- * Rutas públicas (sin sesión): /login, /registro, /index.jsp, recursos
- * estáticos
- *
- * Rutas protegidas: /admin/* → solo ROL_ADMIN (1) /usuario/* → solo ROL_USUARIO
- * (2) /inicio → solo ROL_USUARIO (2) /closet → solo ROL_USUARIO (2) /facescan →
- * solo ROL_USUARIO (2) /rutina → solo ROL_USUARIO (2) /sugerencias → solo
- * ROL_USUARIO (2) /comprador/* → solo ROL_COMPRADOR (3) /carrito → solo
- * ROL_COMPRADOR (3) /catalogo → ROL_USUARIO (2) y ROL_COMPRADOR (3) y ROL_ADMIN
- * (1)
  */
 @WebFilter("/*")
 public class AuthFilter implements Filter {

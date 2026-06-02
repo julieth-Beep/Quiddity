@@ -291,5 +291,6 @@ function actualizarBoton() {
     }
 }
 </script>
+<%@ include file="/includes/sidebar.jsp" %>
 </body>
 </html>
