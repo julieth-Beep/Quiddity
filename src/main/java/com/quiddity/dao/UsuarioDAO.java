@@ -1,11 +1,14 @@
 package com.quiddity.dao;
 
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
 
 import com.quiddity.model.Usuario;
 import com.quiddity.util.ConexionDB;
@@ -148,11 +151,14 @@ public class UsuarioDAO {
 
     // UPDATE — cambiar contraseña
     public boolean cambiarContrasena(int id, String nuevaContrasena) {
+        // Hashear antes de guardar
+        String hashed = BCrypt.hashpw(nuevaContrasena, BCrypt.gensalt());
+
         String sql = "UPDATE usuario SET contrasena = ? WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, nuevaContrasena);
+            ps.setString(1, hashed); // ← guardar hash, no texto plano
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;
 
@@ -191,27 +197,67 @@ public class UsuarioDAO {
         }
     }
 
+    private String hashSHA256(String texto) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(texto.getBytes("UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash)
+                sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (Exception e) {
+            return texto;
+        }
+    }
+
     public Usuario login(String identificador, String contrasena) {
-        // Busca por email O username, y compara contraseña en texto plano
-        String sql = "SELECT * FROM usuario WHERE (email = ? OR username = ?) AND contrasena = ? LIMIT 1";
+        String sql = "SELECT * FROM usuario WHERE (email = ? OR username = ?) LIMIT 1";
 
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
-            // Pasamos el identificador DOS veces: una para email y otra para username
             ps.setString(1, identificador);
             ps.setString(2, identificador);
-            ps.setString(3, contrasena);
 
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                return mapear(rs);
+            if (rs.next()) {
+                Usuario u = mapear(rs);
+                String stored = u.getContrasena();
+
+                boolean match;
+                if (stored.startsWith("$2a$") || stored.startsWith("$2b$")) {
+                    // Contraseña con BCrypt
+                    match = BCrypt.checkpw(contrasena, stored);
+                } else {
+                    // Contraseña en texto plano (usuarios viejos)
+                    match = stored.equals(contrasena);
+                }
+
+                if (match)
+                    return u;
+            }
 
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error en login: " + e.getMessage());
-            e.printStackTrace(); // Para ver el error completo en consola
+            e.printStackTrace();
         }
         return null;
+    }
+
+    // UPDATE — solo la foto de perfil
+    public boolean actualizarFoto(int id, String nombreArchivo) {
+        String sql = "UPDATE usuario SET fotoperfil = ? WHERE id = ?";
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, nombreArchivo);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.err.println("[UsuarioDAO] Error al actualizar foto: " + e.getMessage());
+            return false;
+        }
     }
 
     public boolean esAdmin(int id) {

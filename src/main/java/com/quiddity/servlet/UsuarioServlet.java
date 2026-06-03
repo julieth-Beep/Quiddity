@@ -34,7 +34,7 @@ public class UsuarioServlet extends HttpServlet {
         String uri = req.getRequestURI();
         String contextPath = req.getContextPath();
 
-        // ← AÑADIR ESTO: manejar /usuario/dashboard por GET
+        // Manejar /usuario/dashboard por GET
         if (uri.equals(contextPath + "/usuario/dashboard")) {
             req.getRequestDispatcher("/WEB-INF/usuario/dashboard.jsp").forward(req, resp);
             return;
@@ -42,6 +42,7 @@ public class UsuarioServlet extends HttpServlet {
 
         String action = req.getParameter("action");
         String idParam = req.getParameter("id");
+        String editarParam = req.getParameter("editar");
 
         // Mostrar formulario para crear nuevo usuario (solo ADMIN)
         if ("nuevo".equals(action)) {
@@ -53,7 +54,7 @@ public class UsuarioServlet extends HttpServlet {
             return;
         }
 
-        // Ver perfil de un usuario por ID
+        // Ver perfil de un usuario por ID (o editar si editar=true)
         if (idParam != null && !idParam.isBlank()) {
             int id = Integer.parseInt(idParam);
 
@@ -68,14 +69,26 @@ public class UsuarioServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Usuario no encontrado");
                 return;
             }
+
             req.setAttribute("usuario", u);
+
+            // Si viene editar=true, mostrar el formulario de edición
+            if ("true".equals(editarParam)) {
+                // Solo admin o el propio usuario puede editar
+                if (!esAdmin(sesionUsuario) && sesionUsuario.getId() != id) {
+                    resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Acceso denegado");
+                    return;
+                }
+                req.getRequestDispatcher("/WEB-INF/usuario/form.jsp").forward(req, resp);
+                return;
+            }
+
             req.getRequestDispatcher("/WEB-INF/usuario/perfil.jsp").forward(req, resp);
             return;
         }
 
-        // Listar todos los usuarios (solo ADMIN)
+        // Listar todos los usuarios (solo ADMIN) o redirigir a perfil propio
         if (!esAdmin(sesionUsuario)) {
-            // Usuario normal y comprador solo pueden ver su propio perfil
             resp.sendRedirect(req.getContextPath() + "/usuarios?id=" + sesionUsuario.getId());
             return;
         }
@@ -171,7 +184,7 @@ public class UsuarioServlet extends HttpServlet {
 
         boolean ok = usuarioDAO.crear(nuevo);
         if (ok) {
-            resp.sendRedirect(req.getContextPath() + "/usuarios");
+            resp.sendRedirect(req.getContextPath() + "/usuarios?success=Usuario creado correctamente");
         } else {
             req.setAttribute("error", "No se pudo crear el usuario. Inténtalo de nuevo.");
             req.getRequestDispatcher("/WEB-INF/usuario/form.jsp").forward(req, resp);
@@ -216,11 +229,11 @@ public class UsuarioServlet extends HttpServlet {
             if (sesion.getId() == id) {
                 req.getSession().setAttribute("usuario", u);
             }
-            resp.sendRedirect(req.getContextPath() + "/usuarios?id=" + id);
+            resp.sendRedirect(req.getContextPath() + "/usuarios?id=" + id + "&success=Perfil actualizado");
         } else {
             req.setAttribute("error", "No se pudo actualizar el usuario.");
             req.setAttribute("usuario", u);
-            req.getRequestDispatcher("/WEB-INF/usuario/perfil.jsp").forward(req, resp);
+            req.getRequestDispatcher("/WEB-INF/usuario/form.jsp").forward(req, resp);
         }
     }
 
@@ -242,7 +255,7 @@ public class UsuarioServlet extends HttpServlet {
         }
 
         usuarioDAO.eliminar(id);
-        resp.sendRedirect(req.getContextPath() + "/usuarios");
+        resp.sendRedirect(req.getContextPath() + "/usuarios?success=Usuario eliminado");
     }
 
     /** Cambia el rol de un usuario. Solo ADMIN. */
@@ -258,7 +271,7 @@ public class UsuarioServlet extends HttpServlet {
         int nuevoRol = parseRol(req.getParameter("idrol"));
 
         usuarioDAO.cambiarRol(id, nuevoRol);
-        resp.sendRedirect(req.getContextPath() + "/usuarios");
+        resp.sendRedirect(req.getContextPath() + "/usuarios?success=Rol actualizado");
     }
 
     // ─────────────────────────────────────────────
@@ -268,11 +281,6 @@ public class UsuarioServlet extends HttpServlet {
         return u != null && u.getIdRol() == UsuarioDAO.ROL_ADMIN;
     }
 
-    /**
-     * Parsea el parámetro de rol validando que sea 1 (Admin), 2 (Usuario) o 3
-     * (Comprador).
-     * Si el valor es inválido, devuelve ROL_USUARIO como valor seguro por defecto.
-     */
     private int parseRol(String rolParam) {
         if (rolParam == null)
             return UsuarioDAO.ROL_USUARIO;

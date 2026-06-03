@@ -55,9 +55,8 @@
 
             <!-- ══════════════════════════════════
                  SECCIÓN ADMIN (rol = 1)
-                 Rutas: /admin/dashboard, /admin/usuarios, /admin/reportes
                  ══════════════════════════════════ -->
-            <c:if test="${sessionScope.usuario.idRol == 1}">
+            <c:if test="${not empty sessionScope.usuario and sessionScope.usuario.idRol == 1}">
                 <li class="nav-divider"></li>
                 <p class="nav-section-title">Administración</p>
 
@@ -68,7 +67,7 @@
                     </a>
                 </li>
                 <li class="nav-item ${activePage == 'usuarios' ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/usuarios" class="nav-link">
+                    <a href="${pageContext.request.contextPath}/admin/usuarios" class="nav-link">
                         <span class="material-symbols-outlined nav-icon">group</span>
                         <span class="nav-text">Usuarios</span>
                     </a>
@@ -83,9 +82,8 @@
 
             <!-- ══════════════════════════════════
                  SECCIÓN COMPRADOR (rol = 2)
-                 Rutas: /carrito
                  ══════════════════════════════════ -->
-            <c:if test="${sessionScope.usuario.idRol == 2}">
+            <c:if test="${not empty sessionScope.usuario and sessionScope.usuario.idRol == 2}">
                 <li class="nav-divider"></li>
                 <p class="nav-section-title">Compras</p>
 
@@ -99,10 +97,8 @@
 
             <!-- ══════════════════════════════════
                  SECCIÓN USUARIO (rol = 3)
-                 Rutas: /usuario/dashboard, /caracteristicas,
-                        /estadoAnimo, /facefull, /chatbot
                  ══════════════════════════════════ -->
-            <c:if test="${sessionScope.usuario.idRol == 3}">
+            <c:if test="${not empty sessionScope.usuario and sessionScope.usuario.idRol == 3}">
                 <li class="nav-divider"></li>
                 <p class="nav-section-title">Mi Cuenta</p>
 
@@ -143,8 +139,7 @@
 
     <!-- Footer del sidebar -->
     <div class="sidebar-footer">
-        <a href="${pageContext.request.contextPath}/usuarios?id=${sessionScope.usuario.id}"
-           class="footer-link ${activePage == 'perfil' ? 'active' : ''}">
+        <a href="${pageContext.request.contextPath}/perfil" class="footer-link ${activePage == 'perfil' ? 'active' : ''}">
             <span class="material-symbols-outlined">settings_account_box</span>
             <span>Perfil</span>
         </a>

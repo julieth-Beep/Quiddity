@@ -554,7 +554,7 @@
                         <input type="checkbox" name="remember" id="remember" />
                         Recordarme
                     </label>
-                    <a href="#" class="fgt">¿Olvidaste tu contraseña?</a>
+                    <a href="<%= ctx %>/recuperar" class="fgt">¿Olvidaste tu contraseña?</a>
                 </div>
 
                 <button type="submit" class="btn-go">

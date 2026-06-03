@@ -109,6 +109,7 @@ public class AuthFilter implements Filter {
                 || path.equals("/index.jsp")
                 || path.equals("/catalogo.jsp")
                 || path.equals("/chatbot")
+                || path.equals("/recuperar")
                 // recursos estáticos
                 || path.startsWith("/uploads/")
                 || path.startsWith("/css/")
