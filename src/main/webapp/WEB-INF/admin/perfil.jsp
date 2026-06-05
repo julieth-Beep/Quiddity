@@ -34,92 +34,13 @@
             min-height: 100vh;
         }
 
-        .layout-wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
+        /* El layout-wrapper y main-content vienen de sidebar.jsp */
+        /* Solo agregamos estilos específicos del contenido */
 
-        .sidebar {
-            width: 260px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border);
-            padding: 1.5rem 1rem;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0 0.5rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 1.5rem;
-        }
-
-        .sidebar-brand i {
-            font-size: 1.75rem;
-            color: var(--primary);
-        }
-
-        .sidebar-brand h4 {
-            font-weight: 700;
-            color: var(--text-light);
-            margin: 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .nav-item i { width: 20px; text-align: center; }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 1rem;
-            left: 1rem;
-            right: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .user-mini {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .user-mini img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .user-mini .info { flex: 1; }
-        .user-mini .name { font-size: 0.875rem; font-weight: 600; color: var(--text-light); }
-        .user-mini .role { font-size: 0.75rem; color: var(--text-muted); }
-
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
+        .perfil-content {
             padding: 2rem;
+            background: var(--bg-dark);
+            min-height: 100vh;
         }
 
         .page-header {
@@ -289,140 +210,112 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 1rem; }
-        }
-
-        .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1001;
-            background: var(--primary);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 0.5rem;
-            cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+            .perfil-content { padding: 1rem; padding-top: 64px; }
         }
     </style>
 </head>
 <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
-
     <div class="layout-wrapper">
-        <!-- Main Content -->
+        <%@ include file="/includes/sidebar.jsp" %>
+
         <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <a href="${pageContext.request.contextPath}/usuarios" class="back-btn">
-                        <i class="fas fa-arrow-left"></i> Volver al listado
-                    </a>
-                    <h2 style="margin-top: 0.5rem;">
-                        <i class="fas fa-id-card" style="color: var(--primary); margin-right: 0.5rem;"></i>
-                        Perfil de Usuario
-                    </h2>
+            <div class="perfil-content">
+                <div class="page-header">
+                    <div>
+                        <a href="${pageContext.request.contextPath}/usuarios" class="back-btn">
+                            <i class="fas fa-arrow-left"></i> Volver al listado
+                        </a>
+                        <h2 style="margin-top: 0.5rem;">
+                            <i class="fas fa-id-card" style="color: var(--primary); margin-right: 0.5rem;"></i>
+                            Perfil de Usuario
+                        </h2>
+                    </div>
                 </div>
-            </div>
 
-            <div class="profile-card">
-                <div class="profile-header">
-                    <c:choose>
-                        <c:when test="${not empty usuario.fotoPerfil}">
-                            <img src="${pageContext.request.contextPath}/uploads/${usuario.fotoPerfil}" alt="Avatar" class="profile-avatar">
-                        </c:when>
-                        <c:otherwise>
-                            <div class="profile-avatar-default">
-                                ${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <c:choose>
+                            <c:when test="${not empty usuario.fotoPerfil}">
+                                <img src="${pageContext.request.contextPath}/uploads/${usuario.fotoPerfil}" alt="Avatar" class="profile-avatar">
+                            </c:when>
+                            <c:otherwise>
+                                <div class="profile-avatar-default">
+                                    ${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                        <h3>${usuario.nombre} ${usuario.apellido}</h3>
+                        <div class="username">@${usuario.userName}</div>
+                    </div>
+
+                    <div class="profile-body">
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-id-card"></i>
+                                <span>Documento</span>
                             </div>
-                        </c:otherwise>
-                    </c:choose>
-                    <h3>${usuario.nombre} ${usuario.apellido}</h3>
-                    <div class="username">@${usuario.userName}</div>
-                </div>
+                            <div class="info-value">${usuario.documento}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email</span>
+                            </div>
+                            <div class="info-value">${usuario.email}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-user-tag"></i>
+                                <span>Rol</span>
+                            </div>
+                            <div class="info-value">
+                                <c:choose>
+                                    <c:when test="${usuario.idRol == 1}">
+                                        <span class="role-badge role-admin">
+                                            <i class="fas fa-shield-alt"></i> Administrador
+                                        </span>
+                                    </c:when>
+                                    <c:when test="${usuario.idRol == 2}">
+                                        <span class="role-badge role-buyer">
+                                            <i class="fas fa-shopping-bag"></i> Comprador
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="role-badge role-user">
+                                            <i class="fas fa-user"></i> Usuario
+                                        </span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-hashtag"></i>
+                                <span>ID de Usuario</span>
+                            </div>
+                            <div class="info-value">#${usuario.id}</div>
+                        </div>
+                    </div>
 
-                <div class="profile-body">
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fas fa-id-card"></i>
-                            <span>Documento</span>
-                        </div>
-                        <div class="info-value">${usuario.documento}</div>
+                    <div class="profile-actions">
+                        <a href="${pageContext.request.contextPath}/usuarios?id=${usuario.id}&editar=true" class="btn-edit">
+                            <i class="fas fa-pen"></i> Editar Perfil
+                        </a>
+                        <c:if test="${sessionScope.usuario.idRol == 1 && usuario.id != sessionScope.usuario.id}">
+                            <form method="post" action="${pageContext.request.contextPath}/usuarios" style="flex:1;" onsubmit="return confirm('¿Eliminar a ${usuario.nombre} ${usuario.apellido}? Esta acción no se puede deshacer.');">
+                                <input type="hidden" name="action" value="eliminar">
+                                <input type="hidden" name="id" value="${usuario.id}">
+                                <button type="submit" class="btn-delete">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </c:if>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fas fa-envelope"></i>
-                            <span>Email</span>
-                        </div>
-                        <div class="info-value">${usuario.email}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fas fa-user-tag"></i>
-                            <span>Rol</span>
-                        </div>
-                        <div class="info-value">
-                            <c:choose>
-                                <c:when test="${usuario.idRol == 1}">
-                                    <span class="role-badge role-admin">
-                                        <i class="fas fa-shield-alt"></i> Administrador
-                                    </span>
-                                </c:when>
-                                <c:when test="${usuario.idRol == 2}">
-                                    <span class="role-badge role-buyer">
-                                        <i class="fas fa-shopping-bag"></i> Comprador
-                                    </span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="role-badge role-user">
-                                        <i class="fas fa-user"></i> Usuario
-                                    </span>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">
-                            <i class="fas fa-hashtag"></i>
-                            <span>ID de Usuario</span>
-                        </div>
-                        <div class="info-value">#${usuario.id}</div>
-                    </div>
-                </div>
-
-                <div class="profile-actions">
-                    <a href="${pageContext.request.contextPath}/usuarios?id=${usuario.id}&editar=true" class="btn-edit">
-                        <i class="fas fa-pen"></i> Editar Perfil
-                    </a>
-                    <c:if test="${sessionScope.usuario.idRol == 1 && usuario.id != sessionScope.usuario.id}">
-                        <form method="post" action="${pageContext.request.contextPath}/usuarios" style="flex:1;" onsubmit="return confirm('¿Eliminar a ${usuario.nombre} ${usuario.apellido}? Esta acción no se puede deshacer.');">
-                            <input type="hidden" name="action" value="eliminar">
-                            <input type="hidden" name="id" value="${usuario.id}">
-                            <button type="submit" class="btn-delete">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
-                        </form>
-                    </c:if>
                 </div>
             </div>
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-    </script>
-    <%@ include file="/includes/sidebar.jsp" %>
 </body>
 </html>

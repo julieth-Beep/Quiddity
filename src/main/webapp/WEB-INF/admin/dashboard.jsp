@@ -3,73 +3,49 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    // Página activa para resaltar en el sidebar
     request.setAttribute("activePage", "dashboard");
-
-    // Datos de ejemplo para el dashboard (reemplazar con datos reales de BD)
-    int totalUsuarios = 1248;
-    int nuevosHoy = 23;
-    int totalProductos = 456;
-    int productosBajos = 12;
-    int totalPedidos = 389;
-    double ingresosMes = 28450.75;
-    int citasHoy = 18;
-    int citasPendientes = 7;
-
-    // Simulación de usuario en sesión
-    Object usuario = session.getAttribute("usuario");
-    String nombreUsuario = "María García";
-    String rolUsuario = "admin";
-    if (usuario != null) {
+    String nombreUsuario = "Admin";
+    if (session.getAttribute("usuario") != null) {
         try {
-            nombreUsuario = (String) usuario.getClass().getMethod("getNombre").invoke(usuario);
-            rolUsuario = (String) usuario.getClass().getMethod("getRol").invoke(usuario);
-        } catch (Exception e) { }
+            nombreUsuario = (String) session.getAttribute("usuario").getClass()
+                .getMethod("getNombre").invoke(session.getAttribute("usuario"));
+        } catch (Exception e) {
+            // Ignorar, usar valor por defecto
+        }
     }
 %>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Belleza</title>
+    <title>Dashboard | QUIDDITY Command Center</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
 
+    <!-- Chart.js para gráficas avanzadas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
-        /* ═══════════════════════════════════════════════
-           VARIABLES DEL TEMA
-           ═══════════════════════════════════════════════ */
         :root {
-            --primary: #9a3a5a;
-            --primary-light: rgba(154, 58, 90, 0.08);
-            --primary-medium: rgba(154, 58, 90, 0.15);
-            --secondary: #516617;
-            --tertiary: #88495a;
-            --background: #ffffff;
-            --surface: #ffffff;
-            --on-surface: #1c1b1d;
-            --on-surface-variant: #544246;
-            --outline: #877276;
-            --surface-container-low: #ffffff;
-            --surface-container-lowest: #ffffff;
-            --surface-variant: #f1ecef;
-            --surface-variant-hover: #e8e3e6;
-            --success: #516617;
-            --warning: #c47e00;
-            --error: #b3261e;
-            --element-gap: 24px;
-            --gutter: 32px;
-            --section-gap: 120px;
-            --radius: 0px;
-            --radius-full: 9999px;
+            --primary: #4A5D3A;
+            --primary-light: rgba(74, 93, 58, 0.1);
+            --accent: #B8956A;
+            --dark: #2A2623;
+            --bg: #FAF8F5;
+            --surface: #FFFFFF;
+            --text: #1F1D1B;
+            --text-muted: #8B8882;
+            --border: #E8E4DE;
+            --success: #2D5A3D;
+            --warning: #D4A574;
+            --danger: #C45C4E;
+            --sidebar-width: 280px;
         }
 
         * {
@@ -80,15 +56,11 @@
 
         body {
             font-family: 'Manrope', sans-serif;
-            background: var(--background);
-            color: var(--on-surface);
+            background: var(--bg);
+            color: var(--text);
             line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* ═══════════════════════════════════════════════
-           LAYOUT CON SIDEBAR
-           ═══════════════════════════════════════════════ */
         .layout-wrapper {
             display: flex;
             min-height: 100vh;
@@ -96,84 +68,33 @@
 
         .main-content {
             flex: 1;
-            margin-left: 280px;
-            min-height: 100vh;
-            background: var(--background);
+            margin-left: var(--sidebar-width);
+            padding: 40px;
         }
 
-        /* ── Toggle móvil ── */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 998;
-            width: 44px;
-            height: 44px;
-            background: var(--surface);
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface);
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        /* ═══════════════════════════════════════════════
-           HEADER DEL DASHBOARD
-           ═══════════════════════════════════════════════ */
+        /* ═════ HEADER ════ */
         .dashboard-header {
-            padding: 40px var(--gutter) 0;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header-breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--outline);
-            letter-spacing: 0.02em;
-            margin-bottom: 16px;
-        }
-
-        .header-breadcrumb .material-symbols-outlined {
-            font-size: 16px;
-        }
-
-        .header-breadcrumb a {
-            color: var(--outline);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .header-breadcrumb a:hover {
-            color: var(--primary);
-        }
-
-        .header-title-row {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: var(--element-gap);
-            flex-wrap: wrap;
             margin-bottom: 40px;
         }
 
-        .header-title h1 {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 48px;
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .welcome-text h1 {
+            font-family: 'EB Garamond', serif;
+            font-size: 42px;
             font-weight: 400;
-            line-height: 56px;
-            color: var(--on-surface);
+            color: var(--dark);
             margin-bottom: 8px;
         }
 
-        .header-subtitle {
-            font-size: 16px;
-            color: var(--on-surface-variant);
-            line-height: 24px;
+        .welcome-text p {
+            color: var(--text-muted);
+            font-size: 15px;
         }
 
         .header-actions {
@@ -182,114 +103,79 @@
         }
 
         .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Manrope', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 24px;
-            font-family: 'Manrope', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            line-height: 20px;
         }
 
         .btn-primary {
             background: var(--primary);
-            color: #ffffff;
+            color: white;
         }
 
         .btn-primary:hover {
-            background: #7a2e48;
+            background: #3D4D30;
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(154, 58, 90, 0.25);
         }
 
         .btn-secondary {
-            background: var(--surface-variant);
-            color: var(--on-surface);
-            border: 1px solid var(--outline);
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
         }
 
         .btn-secondary:hover {
-            background: var(--surface-variant-hover);
+            background: var(--bg);
         }
 
-        .btn .material-symbols-outlined {
-            font-size: 18px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           KPI CARDS
-           ═══════════════════════════════════════════════ */
-        .kpi-section {
-            padding: 0 var(--gutter) 48px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
+        /* ═════ KPI GRID ════ */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: var(--element-gap);
+            gap: 24px;
+            margin-bottom: 40px;
         }
 
         .kpi-card {
             background: var(--surface);
-            border: 1px solid var(--surface-variant);
-            padding: 28px;
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
         }
 
         .kpi-card:hover {
-            border-color: var(--outline);
-            box-shadow: 0 4px 20px rgba(28, 27, 29, 0.06);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
         }
-
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--primary);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .kpi-card:hover::before {
-            opacity: 1;
-        }
-
-        .kpi-card.success::before { background: var(--success); }
-        .kpi-card.warning::before { background: var(--warning); }
-        .kpi-card.info::before { background: var(--tertiary); }
 
         .kpi-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            align-items: center;
+            margin-bottom: 16px;
         }
 
         .kpi-label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            letter-spacing: 0.1em;
             text-transform: uppercase;
-            color: var(--outline);
-            line-height: 20px;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
         }
 
         .kpi-icon {
             width: 40px;
             height: 40px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -297,32 +183,24 @@
         }
 
         .kpi-icon .material-symbols-outlined {
-            font-size: 22px;
             color: var(--primary);
+            font-size: 22px;
         }
 
-        .kpi-card.success .kpi-icon { background: rgba(81, 102, 23, 0.08); }
-        .kpi-card.success .kpi-icon .material-symbols-outlined { color: var(--success); }
-        .kpi-card.warning .kpi-icon { background: rgba(196, 126, 0, 0.08); }
-        .kpi-card.warning .kpi-icon .material-symbols-outlined { color: var(--warning); }
-        .kpi-card.info .kpi-icon { background: rgba(136, 73, 90, 0.08); }
-        .kpi-card.info .kpi-icon .material-symbols-outlined { color: var(--tertiary); }
-
         .kpi-value {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 40px;
+            font-family: 'EB Garamond', serif;
+            font-size: 36px;
             font-weight: 400;
-            line-height: 48px;
-            color: var(--on-surface);
-            margin-bottom: 12px;
+            color: var(--dark);
+            margin-bottom: 8px;
         }
 
         .kpi-trend {
+            font-size: 13px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 500;
+            gap: 4px;
         }
 
         .kpi-trend.up {
@@ -330,527 +208,315 @@
         }
 
         .kpi-trend.down {
-            color: var(--error);
+            color: var(--danger);
         }
 
-        .kpi-trend .material-symbols-outlined {
-            font-size: 16px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           SECCIONES DEL DASHBOARD
-           ═══════════════════════════════════════════════ */
-        .dashboard-section {
-            padding: 0 var(--gutter) 48px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* ═════ SECCIONES ════ */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
             margin-bottom: 24px;
         }
 
-        .section-title {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 32px;
-            font-weight: 400;
-            line-height: 40px;
-            color: var(--on-surface);
-        }
-
-        .section-link {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: gap 0.2s;
-        }
-
-        .section-link:hover {
-            gap: 8px;
-        }
-
-        .section-link .material-symbols-outlined {
-            font-size: 18px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           GRID DE CONTENIDO
-           ═══════════════════════════════════════════════ */
-        .content-grid {
-            display: grid;
+        .dashboard-grid.wide {
             grid-template-columns: 2fr 1fr;
-            gap: var(--element-gap);
         }
 
-        .content-grid.reverse {
-            grid-template-columns: 1fr 2fr;
-        }
-
-        .content-grid.equal {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        /* ═══════════════════════════════════════════════
-           CARDS / PANELES
-           ═══════════════════════════════════════════════ */
         .panel {
             background: var(--surface);
-            border: 1px solid var(--surface-variant);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
         }
 
         .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 24px 28px;
-            border-bottom: 1px solid var(--surface-variant);
+            align-items: center;
         }
 
         .panel-title {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 24px;
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
             font-weight: 400;
-            line-height: 32px;
-            color: var(--on-surface);
-        }
-
-        .panel-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .panel-action-btn {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface-variant);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .panel-action-btn:hover {
-            background: var(--surface-variant);
-            color: var(--on-surface);
-        }
-
-        .panel-action-btn .material-symbols-outlined {
-            font-size: 18px;
+            color: var(--dark);
         }
 
         .panel-body {
-            padding: 24px 28px;
+            padding: 24px;
         }
 
-        /* ═══════════════════════════════════════════════
-           TABLA DE ACTIVIDAD
-           ═══════════════════════════════════════════════ */
-        .activity-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* ═════ HEATMAP 7x24 ════ */
+        .heatmap-container {
+            overflow-x: auto;
         }
 
-        .activity-table th {
-            text-align: left;
-            padding: 12px 0;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--outline);
-            border-bottom: 1px solid var(--surface-variant);
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: 50px repeat(24, 1fr);
+            gap: 2px;
+            min-width: 800px;
         }
 
-        .activity-table td {
-            padding: 16px 0;
-            font-size: 14px;
-            color: var(--on-surface);
-            border-bottom: 1px solid var(--surface-variant);
-            vertical-align: middle;
-        }
-
-        .activity-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .activity-user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .activity-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-full);
-            background: var(--surface-variant);
+        .heatmap-label {
+            font-size: 10px;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 4px;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.3);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .heatmap-cell.level-0 { background: #f0f0f0; }
+        .heatmap-cell.level-1 { background: #d4edda; }
+        .heatmap-cell.level-2 { background: #a8d5ba; }
+        .heatmap-cell.level-3 { background: #7fbf9a; }
+        .heatmap-cell.level-4 { background: var(--success); }
+
+        .heatmap-cell::after {
+            content: attr(data-value);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .heatmap-cell:hover::after {
+            opacity: 1;
+        }
+
+        /* ═════ COMMAND CENTER (Feed) ════ */
+        .command-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .feed-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 10px;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .feed-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .feed-item.alert {
+            border-left-color: var(--warning);
+            background: rgba(212, 165, 116, 0.08);
+        }
+
+        .feed-item.alert::before {
+            content: '';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--warning);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .feed-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
             flex-shrink: 0;
         }
 
-        .activity-avatar .material-symbols-outlined {
-            font-size: 18px;
-            color: var(--primary);
-        }
-
-        .activity-user-info {
+        .feed-content {
+            flex: 1;
             min-width: 0;
         }
 
-        .activity-user-name {
+        .feed-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .feed-user {
             font-weight: 600;
-            color: var(--on-surface);
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .feed-product {
+            color: var(--text-muted);
+            font-size: 13px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .activity-user-email {
-            font-size: 12px;
-            color: var(--outline);
-        }
-
-        .activity-badge {
-            display: inline-flex;
+        .feed-meta {
+            display: flex;
             align-items: center;
-            padding: 4px 12px;
+            gap: 16px;
             font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+        }
+
+        .feed-time {
+            color: var(--text-muted);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .badge-success {
-            background: rgba(81, 102, 23, 0.08);
-            color: var(--success);
-        }
-
-        .badge-warning {
-            background: rgba(196, 126, 0, 0.08);
+        .status-pending {
+            background: rgba(212, 165, 116, 0.2);
             color: var(--warning);
         }
 
-        .badge-info {
-            background: rgba(136, 73, 90, 0.08);
-            color: var(--tertiary);
-        }
-
-        .badge-primary {
-            background: var(--primary-light);
+        .status-processing {
+            background: rgba(74, 93, 58, 0.15);
             color: var(--primary);
         }
 
-        .activity-time {
-            font-size: 13px;
-            color: var(--outline);
+        .status-completed {
+            background: rgba(45, 90, 61, 0.15);
+            color: var(--success);
         }
 
-        /* ═══════════════════════════════════════════════
-           LISTA DE TAREAS / CITAS
-           ═══════════════════════════════════════════════ */
-        .task-list {
-            list-style: none;
-        }
-
-        .task-item {
+        /* ═════ TOP PRODUCTS con Sparklines ════ */
+        .product-list {
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
             gap: 16px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--surface-variant);
         }
 
-        .task-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
-        .task-item:first-child {
-            padding-top: 0;
-        }
-
-        .task-checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--outline);
-            flex-shrink: 0;
-            margin-top: 2px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .product-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: var(--bg);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
-        .task-checkbox:hover {
-            border-color: var(--primary);
-        }
+        .product-rank.top-1 { background: var(--accent); color: white; }
+        .product-rank.top-2 { background: #C0C0C0; color: var(--dark); }
+        .product-rank.top-3 { background: #CD7F32; color: white; }
 
-        .task-checkbox.checked {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .task-checkbox.checked .material-symbols-outlined {
-            font-size: 14px;
-            color: #ffffff;
-            display: block;
-        }
-
-        .task-checkbox .material-symbols-outlined {
-            display: none;
-        }
-
-        .task-content {
+        .product-info {
             flex: 1;
             min-width: 0;
         }
 
-        .task-title {
-            font-size: 14px;
+        .product-name {
             font-weight: 600;
-            color: var(--on-surface);
-            margin-bottom: 4px;
-        }
-
-        .task-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 12px;
-            color: var(--outline);
-        }
-
-        .task-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .task-meta .material-symbols-outlined {
             font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .task-priority {
-            width: 8px;
-            height: 8px;
-            flex-shrink: 0;
-            margin-top: 8px;
+        .product-sales {
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
-        .priority-high { background: var(--error); }
-        .priority-medium { background: var(--warning); }
-        .priority-low { background: var(--success); }
+        .sparkline-container {
+            width: 100px;
+            height: 40px;
+        }
 
-        /* ═══════════════════════════════════════════════
-           GRÁFICO DE BARRAS (CSS puro)
-           ═══════════════════════════════════════════════ */
-        .chart-container {
+        .trend-indicator {
+            width: 40px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .trend-indicator.up { color: var(--success); }
+        .trend-indicator.down { color: var(--danger); }
+
+        /* ═════ GITHUB-STYLE CALENDAR ════ */
+        .contributions-calendar {
             padding: 20px 0;
         }
 
-        .chart-bars {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 12px;
-            height: 200px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid var(--surface-variant);
-            position: relative;
-        }
-
-        .chart-bar-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chart-bar {
-            width: 100%;
-            max-width: 48px;
-            background: var(--surface-variant);
-            transition: background 0.3s, height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            position: relative;
-            cursor: pointer;
-        }
-
-        .chart-bar:hover {
-            background: var(--primary);
-        }
-
-        .chart-bar::after {
-            content: attr(data-value);
-            position: absolute;
-            top: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--on-surface);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .chart-bar:hover::after {
-            opacity: 1;
-        }
-
-        .chart-label {
-            font-size: 12px;
-            color: var(--outline);
-            font-weight: 500;
-        }
-
-        .chart-legend {
+        .calendar-legend {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 20px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--on-surface-variant);
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-        }
-
-        .legend-dot.primary { background: var(--primary); }
-        .legend-dot.secondary { background: var(--secondary); }
-
-        /* ═══════════════════════════════════════════════
-           PRODUCTOS DESTACADOS
-           ═══════════════════════════════════════════════ */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .product-card {
-            border: 1px solid var(--surface-variant);
-            overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .product-card:hover {
-            border-color: var(--outline);
-            box-shadow: 0 4px 16px rgba(28, 27, 29, 0.06);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 160px;
-            background: var(--surface-variant);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .product-image .material-symbols-outlined {
-            font-size: 48px;
-            color: var(--outline);
-        }
-
-        .product-info {
-            padding: 16px 20px 20px;
-        }
-
-        .product-category {
+            justify-content: flex-end;
+            gap: 6px;
+            margin-bottom: 12px;
             font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 6px;
+            color: var(--text-muted);
         }
 
-        .product-name {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 18px;
-            font-weight: 400;
-            line-height: 24px;
-            color: var(--on-surface);
-            margin-bottom: 8px;
-        }
-
-        .product-price {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--on-surface);
-        }
-
-        .product-stock {
-            font-size: 12px;
-            color: var(--outline);
-            margin-top: 4px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           CALENDARIO MINI
-           ═══════════════════════════════════════════════ */
-        .mini-calendar {
-            width: 100%;
-        }
-
-        .calendar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .calendar-month {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 20px;
-            font-weight: 400;
-            color: var(--on-surface);
-        }
-
-        .calendar-nav {
-            display: flex;
-            gap: 4px;
-        }
-
-        .calendar-nav-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface-variant);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .calendar-nav-btn:hover {
-            background: var(--surface-variant);
-            color: var(--on-surface);
+        .legend-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
         }
 
         .calendar-grid {
@@ -859,858 +525,547 @@
             gap: 4px;
         }
 
-        .calendar-day-header {
-            text-align: center;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--outline);
-            padding: 8px 0;
-        }
-
         .calendar-day {
             aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--on-surface);
+            border-radius: 4px;
             cursor: pointer;
-            transition: all 0.2s;
             position: relative;
+            transition: transform 0.2s;
         }
 
         .calendar-day:hover {
-            background: var(--surface-variant);
+            transform: scale(1.2);
+            z-index: 10;
         }
 
-        .calendar-day.today {
-            background: var(--primary);
-            color: #ffffff;
-            font-weight: 600;
+        .calendar-day.level-0 { background: #ebedf0; }
+        .calendar-day.level-1 { background: #9be9a8; }
+        .calendar-day.level-2 { background: #40c463; }
+        .calendar-day.level-3 { background: #30a14e; }
+        .calendar-day.level-4 { background: #216e39; }
+
+        .calendar-day.best-day {
+            box-shadow: 0 0 0 2px var(--accent);
         }
 
-        .calendar-day.has-event::after {
-            content: '';
+        .calendar-day::after {
+            content: attr(data-date) ' - $' attr(data-sales);
             position: absolute;
-            bottom: 4px;
-            width: 4px;
-            height: 4px;
-            border-radius: var(--radius-full);
-            background: var(--primary);
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            margin-bottom: 6px;
         }
 
-        .calendar-day.today.has-event::after {
-            background: #ffffff;
+        .calendar-day:hover::after {
+            opacity: 1;
         }
 
-        .calendar-day.other-month {
-            color: var(--outline);
-        }
-
-        /* ═══════════════════════════════════════════════
-           NOTIFICACIONES
-           ═══════════════════════════════════════════════ */
-        .notification-list {
-            list-style: none;
-        }
-
-        .notification-item {
+        /* ═════ BUBBLE HEATMAP ════ */
+        .bubble-container {
             display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--surface-variant);
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            padding: 20px;
         }
 
-        .notification-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .notification-item:first-child {
-            padding-top: 0;
-        }
-
-        .notification-icon {
-            width: 36px;
-            height: 36px;
+        .category-bubble {
+            border-radius: 50%;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .notification-icon .material-symbols-outlined {
-            font-size: 20px;
-        }
-
-        .notification-icon.primary { background: var(--primary-light); }
-        .notification-icon.primary .material-symbols-outlined { color: var(--primary); }
-        .notification-icon.success { background: rgba(81, 102, 23, 0.08); }
-        .notification-icon.success .material-symbols-outlined { color: var(--success); }
-        .notification-icon.warning { background: rgba(196, 126, 0, 0.08); }
-        .notification-icon.warning .material-symbols-outlined { color: var(--warning); }
-
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-text {
-            font-size: 14px;
-            color: var(--on-surface);
-            line-height: 20px;
-            margin-bottom: 4px;
-        }
-
-        .notification-text strong {
+            color: white;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
         }
 
-        .notification-time {
+        .category-bubble:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .category-bubble:nth-child(1) { animation-delay: 0s; }
+        .category-bubble:nth-child(2) { animation-delay: 0.5s; }
+        .category-bubble:nth-child(3) { animation-delay: 1s; }
+        .category-bubble:nth-child(4) { animation-delay: 1.5s; }
+        .category-bubble:nth-child(5) { animation-delay: 2s; }
+
+        .bubble-label {
             font-size: 12px;
-            color: var(--outline);
+            text-align: center;
+            padding: 8px;
         }
 
-        /* ═══════════════════════════════════════════════
-           FOOTER
-           ═══════════════════════════════════════════════ */
-        .dashboard-footer {
-            padding: 32px var(--gutter);
-            max-width: 1400px;
-            margin: 0 auto;
-            border-top: 1px solid var(--surface-variant);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-            color: var(--outline);
+        .bubble-value {
+            font-size: 14px;
+            font-weight: 700;
         }
 
-        .footer-links {
-            display: flex;
-            gap: 24px;
+        .bubble-trend {
+            font-size: 10px;
+            opacity: 0.9;
         }
 
-        .footer-links a {
-            color: var(--outline);
-            text-decoration: none;
-            transition: color 0.2s;
+        /* ═════ RADAR CHART ════ */
+        .radar-container {
+            position: relative;
+            height: 320px;
         }
 
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-
-        /* ═══════════════════════════════════════════════
-           ANIMACIONES
-           ═══════════════════════════════════════════════ */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            opacity: 0;
-        }
-
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-        .delay-5 { animation-delay: 0.5s; }
-
-        /* ═══════════════════════════════════════════════
-           RESPONSIVE
-           ═══════════════════════════════════════════════ */
+        /* ═════ RESPONSIVE ════ */
         @media (max-width: 1200px) {
-            .kpi-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .content-grid,
-            .content-grid.reverse,
-            .content-grid.equal {
-                grid-template-columns: 1fr;
-            }
-            .product-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .dashboard-grid.wide { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 1024px) {
-            .main-content {
-                margin-left: 0;
-            }
-            .sidebar-toggle {
-                display: flex;
-            }
+            .main-content { margin-left: 0; }
         }
 
         @media (max-width: 768px) {
-            .kpi-grid {
-                grid-template-columns: 1fr;
-            }
-            .header-title h1 {
-                font-size: 32px;
-                line-height: 40px;
-            }
-            .header-actions {
-                width: 100%;
-            }
-            .btn {
-                flex: 1;
-                justify-content: center;
-            }
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
-            .dashboard-footer {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .header-top {
                 flex-direction: column;
-                gap: 12px;
-                text-align: center;
+                align-items: flex-start;
+                gap: 16px;
             }
-        }
-
-        @media (max-width: 480px) {
-            .dashboard-header,
-            .kpi-section,
-            .dashboard-section,
-            .dashboard-footer {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
+            .welcome-text h1 { font-size: 28px; }
         }
     </style>
 </head>
+
 <body>
 
-    <!-- Botón hamburguesa para móvil -->
-    <button type="button" class="sidebar-toggle" onclick="toggleSidebar()">
-        <span class="material-symbols-outlined">menu</span>
-    </button>
-
     <div class="layout-wrapper">
-        <!-- Sidebar -->
         <%@ include file="/includes/sidebar.jsp" %>
 
-        <!-- Contenido Principal -->
         <main class="main-content">
 
-            <!-- ═══════════════════════════════════════════════
-                 HEADER
-                 ═══════════════════════════════════════════════ -->
-            <header class="dashboard-header animate-in">
-                <nav class="header-breadcrumb">
-                    <a href="${pageContext.request.contextPath}/dashboard.jsp">Inicio</a>
-                    <span class="material-symbols-outlined">chevron_right</span>
-                    <span>Dashboard</span>
-                </nav>
-
-                <div class="header-title-row">
-                    <div class="header-title">
-                        <h1>Panel de Control</h1>
-                        <p class="header-subtitle">
-                            Bienvenida de vuelta, <strong><%= nombreUsuario %></strong>. 
-                            Aquí tienes un resumen de la actividad de hoy.
-                        </p>
+            <!-- ═════ HEADER ════ -->
+            <header class="dashboard-header">
+                <div class="header-top">
+                    <div class="welcome-text">
+                        <h1>Command Center</h1>
+                        <p>Bienvenido de vuelta, <%= nombreUsuario %>. Aquí está lo que está pasando hoy.</p>
                     </div>
                     <div class="header-actions">
-                        <a href="${pageContext.request.contextPath}/admin/reportes.jsp" class="btn btn-secondary">
+                        <button class="btn btn-secondary">
                             <span class="material-symbols-outlined">download</span>
-                            Exportar
-                        </a>
-                        <a href="${pageContext.request.contextPath}/usuario/caracteristicas.jsp" class="btn btn-primary">
-                            <span class="material-symbols-outlined">add</span>
-                            Nueva Cita
-                        </a>
+                            Exportar Reporte
+                        </button>
+                        <button class="btn btn-primary">
+                            <span class="material-symbols-outlined">refresh</span>
+                            Actualizar
+                        </button>
                     </div>
                 </div>
             </header>
 
-            <!-- ═══════════════════════════════════════════════
-                 KPI CARDS
-                 ═══════════════════════════════════════════════ -->
-            <section class="kpi-section">
-                <div class="kpi-grid">
-                    <!-- Usuarios -->
-                    <article class="kpi-card animate-in delay-1">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Usuarios</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">group</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalUsuarios) %></div>
-                        <div class="kpi-trend up">
+            <!-- ═════ KPI CARDS ════ -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Ventas Hoy</span>
+                        <div class="kpi-icon">
                             <span class="material-symbols-outlined">trending_up</span>
-                            +<%= nuevosHoy %> hoy
                         </div>
-                    </article>
-
-                    <!-- Productos -->
-                    <article class="kpi-card success animate-in delay-2">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Productos</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">inventory_2</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalProductos) %></div>
-                        <div class="kpi-trend down">
-                            <span class="material-symbols-outlined">trending_down</span>
-                            <%= productosBajos %> bajo stock
-                        </div>
-                    </article>
-
-                    <!-- Pedidos -->
-                    <article class="kpi-card warning animate-in delay-3">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Pedidos del Mes</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">shopping_bag</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalPedidos) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +12% vs mes pasado
-                        </div>
-                    </article>
-
-                    <!-- Ingresos -->
-                    <article class="kpi-card info animate-in delay-4">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Ingresos</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">payments</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value">$<%= String.format("%,.0f", ingresosMes) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +8.5% vs mes pasado
-                        </div>
-                    </article>
+                    </div>
+                    <div class="kpi-value">$12,450</div>
+                    <div class="kpi-trend up">
+                        <span class="material-symbols-outlined">arrow_upward</span>
+                        +18% vs ayer
+                    </div>
                 </div>
-            </section>
 
-            <!-- ═══════════════════════════════════════════════
-                 GRID PRINCIPAL: Actividad + Calendario
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid">
-                    <!-- Panel de Actividad Reciente -->
-                    <article class="panel animate-in delay-2">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Actividad Reciente</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Filtrar">
-                                    <span class="material-symbols-outlined">filter_list</span>
-                                </button>
-                                <button class="panel-action-btn" title="Ver todo">
-                                    <span class="material-symbols-outlined">open_in_new</span>
-                                </button>
-                            </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Pedidos</span>
+                        <div class="kpi-icon">
+                            <span class="material-symbols-outlined">shopping_cart</span>
                         </div>
-                        <div class="panel-body">
-                            <table class="activity-table">
-                                <thead>
-                                    <tr>
-                                        <th>Usuario</th>
-                                        <th>Acción</th>
-                                        <th>Estado</th>
-                                        <th>Hora</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Laura Mendoza</div>
-                                                    <div class="activity-user-email">laura@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Nueva cita agendada</td>
-                                        <td><span class="activity-badge badge-success">Completado</span></td>
-                                        <td class="activity-time">Hace 10 min</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Carlos Ruiz</div>
-                                                    <div class="activity-user-email">carlos@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Compra de productos</td>
-                                        <td><span class="activity-badge badge-primary">En proceso</span></td>
-                                        <td class="activity-time">Hace 25 min</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Ana Torres</div>
-                                                    <div class="activity-user-email">ana@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Registro de características</td>
-                                        <td><span class="activity-badge badge-info">Nuevo</span></td>
-                                        <td class="activity-time">Hace 1 hora</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Pedro Gómez</div>
-                                                    <div class="activity-user-email">pedro@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Face Scan realizado</td>
-                                        <td><span class="activity-badge badge-success">Completado</span></td>
-                                        <td class="activity-time">Hace 2 horas</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Diana Flores</div>
-                                                    <div class="activity-user-email">diana@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Estado de ánimo registrado</td>
-                                        <td><span class="activity-badge badge-warning">Pendiente</span></td>
-                                        <td class="activity-time">Hace 3 horas</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Calendario -->
-                    <article class="panel animate-in delay-3">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Calendario</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Agregar evento">
-                                    <span class="material-symbols-outlined">add</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="mini-calendar">
-                                <div class="calendar-header">
-                                    <span class="calendar-month">Junio 2026</span>
-                                    <div class="calendar-nav">
-                                        <button class="calendar-nav-btn">
-                                            <span class="material-symbols-outlined">chevron_left</span>
-                                        </button>
-                                        <button class="calendar-nav-btn">
-                                            <span class="material-symbols-outlined">chevron_right</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="calendar-grid">
-                                    <div class="calendar-day-header">Dom</div>
-                                    <div class="calendar-day-header">Lun</div>
-                                    <div class="calendar-day-header">Mar</div>
-                                    <div class="calendar-day-header">Mié</div>
-                                    <div class="calendar-day-header">Jue</div>
-                                    <div class="calendar-day-header">Vie</div>
-                                    <div class="calendar-day-header">Sáb</div>
-
-                                    <div class="calendar-day other-month">31</div>
-                                    <div class="calendar-day">1</div>
-                                    <div class="calendar-day">2</div>
-                                    <div class="calendar-day has-event">3</div>
-                                    <div class="calendar-day">4</div>
-                                    <div class="calendar-day has-event">5</div>
-                                    <div class="calendar-day">6</div>
-                                    <div class="calendar-day">7</div>
-                                    <div class="calendar-day has-event">8</div>
-                                    <div class="calendar-day">9</div>
-                                    <div class="calendar-day">10</div>
-                                    <div class="calendar-day has-event">11</div>
-                                    <div class="calendar-day">12</div>
-                                    <div class="calendar-day">13</div>
-                                    <div class="calendar-day">14</div>
-                                    <div class="calendar-day has-event">15</div>
-                                    <div class="calendar-day">16</div>
-                                    <div class="calendar-day">17</div>
-                                    <div class="calendar-day has-event">18</div>
-                                    <div class="calendar-day">19</div>
-                                    <div class="calendar-day">20</div>
-                                    <div class="calendar-day">21</div>
-                                    <div class="calendar-day has-event">22</div>
-                                    <div class="calendar-day">23</div>
-                                    <div class="calendar-day">24</div>
-                                    <div class="calendar-day">25</div>
-                                    <div class="calendar-day has-event">26</div>
-                                    <div class="calendar-day">27</div>
-                                    <div class="calendar-day">28</div>
-                                    <div class="calendar-day">29</div>
-                                    <div class="calendar-day has-event">30</div>
-                                    <div class="calendar-day today has-event">2</div>
-                                    <div class="calendar-day other-month">3</div>
-                                    <div class="calendar-day other-month">4</div>
-                                    <div class="calendar-day other-month">5</div>
-                                    <div class="calendar-day other-month">6</div>
-                                </div>
-                            </div>
-
-                            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--surface-variant);">
-                                <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--outline); margin-bottom: 12px;">
-                                    Próximas Citas
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-variant);">
-                                        <div style="width: 40px; height: 40px; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600;">10:00</div>
-                                        <div>
-                                            <div style="font-weight: 600; font-size: 14px;">Facial Hidratante</div>
-                                            <div style="font-size: 12px; color: var(--outline);">Laura Mendoza</div>
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-variant);">
-                                        <div style="width: 40px; height: 40px; background: var(--tertiary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600;">14:30</div>
-                                        <div>
-                                            <div style="font-weight: 600; font-size: 14px;">Masaje Relajante</div>
-                                            <div style="font-size: 12px; color: var(--outline);">Carlos Ruiz</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
+                    </div>
+                    <div class="kpi-value">47</div>
+                    <div class="kpi-trend up">
+                        <span class="material-symbols-outlined">arrow_upward</span>
+                        +12 nuevos
+                    </div>
                 </div>
-            </section>
 
-            <!-- ═══════════════════════════════════════════════
-                 GRID: Gráfico + Tareas
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid reverse">
-                    <!-- Panel de Gráfico -->
-                    <article class="panel animate-in delay-3">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Ingresos Semanales</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Descargar">
-                                    <span class="material-symbols-outlined">download</span>
-                                </button>
-                            </div>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Escaneos Faciales</span>
+                        <div class="kpi-icon">
+                            <span class="material-symbols-outlined">face</span>
                         </div>
-                        <div class="panel-body">
-                            <div class="chart-container">
-                                <div class="chart-bars">
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 45%;" data-value="$3,240"></div>
-                                        <span class="chart-label">Lun</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 62%;" data-value="$4,560"></div>
-                                        <span class="chart-label">Mar</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 38%;" data-value="$2,890"></div>
-                                        <span class="chart-label">Mié</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 75%;" data-value="$5,670"></div>
-                                        <span class="chart-label">Jue</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 55%;" data-value="$4,120"></div>
-                                        <span class="chart-label">Vie</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 88%;" data-value="$6,890"></div>
-                                        <span class="chart-label">Sáb</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 30%;" data-value="$2,100"></div>
-                                        <span class="chart-label">Dom</span>
-                                    </div>
-                                </div>
-                                <div class="chart-legend">
-                                    <div class="legend-item">
-                                        <div class="legend-dot primary"></div>
-                                        <span>Ingresos</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-dot secondary"></div>
-                                        <span>Meta</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Tareas -->
-                    <article class="panel animate-in delay-4">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Tareas Pendientes</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Nueva tarea">
-                                    <span class="material-symbols-outlined">add</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <ul class="task-list">
-                                <li class="task-item">
-                                    <div class="task-priority priority-high"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Revisar inventario de productos</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Hoy, 16:00</span>
-                                            <span><span class="material-symbols-outlined">inventory_2</span> Stock</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-medium"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Confirmar citas de mañana</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Hoy, 18:00</span>
-                                            <span><span class="material-symbols-outlined">event</span> Citas</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-low"></div>
-                                    <div class="task-checkbox checked" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title" style="text-decoration: line-through; color: var(--outline);">Actualizar catálogo de servicios</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Ayer</span>
-                                            <span><span class="material-symbols-outlined">check_circle</span> Completado</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-high"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Preparar reporte mensual</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Mañana, 09:00</span>
-                                            <span><span class="material-symbols-outlined">description</span> Reportes</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-medium"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Revisar feedback de clientes</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Viernes</span>
-                                            <span><span class="material-symbols-outlined">reviews</span> Clientes</span>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </article>
+                    </div>
+                    <div class="kpi-value">23</div>
+                    <div class="kpi-trend down">
+                        <span class="material-symbols-outlined">arrow_downward</span>
+                        -3 vs ayer
+                    </div>
                 </div>
-            </section>
 
-            <!-- ═══════════════════════════════════════════════
-                 GRID: Productos + Notificaciones
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid equal">
-                    <!-- Panel de Productos Destacados -->
-                    <article class="panel animate-in delay-4">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Productos Destacados</h2>
-                            <a href="${pageContext.request.contextPath}/catalogo/index.jsp" class="section-link">
-                                Ver catálogo <span class="material-symbols-outlined">arrow_forward</span>
-                            </a>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span class="kpi-label">Usuarios Activos</span>
+                        <div class="kpi-icon">
+                            <span class="material-symbols-outlined">people</span>
                         </div>
-                        <div class="panel-body">
-                            <div class="product-grid">
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">spa</span>
-                                    </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Cuidado Facial</div>
-                                        <div class="product-name">Serum Hidratante</div>
-                                        <div class="product-price">$45.00</div>
-                                        <div class="product-stock">Stock: 24 unidades</div>
-                                    </div>
-                                </div>
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">face</span>
-                                    </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Maquillaje</div>
-                                        <div class="product-name">Base Líquida Premium</div>
-                                        <div class="product-price">$38.50</div>
-                                        <div class="product-stock">Stock: 18 unidades</div>
-                                    </div>
-                                </div>
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">self_care</span>
-                                    </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Corporal</div>
-                                        <div class="product-name">Aceite Esencial</div>
-                                        <div class="product-price">$28.00</div>
-                                        <div class="product-stock">Stock: 32 unidades</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Notificaciones -->
-                    <article class="panel animate-in delay-5">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Notificaciones</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Marcar todo como leído">
-                                    <span class="material-symbols-outlined">done_all</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <ul class="notification-list">
-                                <li class="notification-item">
-                                    <div class="notification-icon primary">
-                                        <span class="material-symbols-outlined">person_add</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            <strong>Nuevo usuario</strong> registrado: Sofía Herrera
-                                        </div>
-                                        <div class="notification-time">Hace 15 minutos</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon success">
-                                        <span class="material-symbols-outlined">check_circle</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Pedido <strong>#2847</strong> completado exitosamente
-                                        </div>
-                                        <div class="notification-time">Hace 45 minutos</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon warning">
-                                        <span class="material-symbols-outlined">warning</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Stock bajo: <strong>Crema Anti-edad</strong> (5 unidades)
-                                        </div>
-                                        <div class="notification-time">Hace 2 horas</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon primary">
-                                        <span class="material-symbols-outlined">event</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            <strong>3 citas</strong> confirmadas para mañana
-                                        </div>
-                                        <div class="notification-time">Hace 3 horas</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon success">
-                                        <span class="material-symbols-outlined">trending_up</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Ingresos del día superaron la meta en <strong>12%</strong>
-                                        </div>
-                                        <div class="notification-time">Hace 5 horas</div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </article>
+                    </div>
+                    <div class="kpi-value">342</div>
+                    <div class="kpi-trend up">
+                        <span class="material-symbols-outlined">arrow_upward</span>
+                        +28 hoy
+                    </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- ═══════════════════════════════════════════════
-                 FOOTER
-                 ═══════════════════════════════════════════════ -->
-            <footer class="dashboard-footer">
-                <span> 2026 Belleza. Todos los derechos reservados.</span>
-                <div class="footer-links">
-                    <a href="#">Ayuda</a>
-                    <a href="#">Privacidad</a>
-                    <a href="#">Términos</a>
+            <!-- ═════ HEATMAP 7x24 ════ -->
+            <div class="panel" style="margin-bottom: 24px;">
+                <div class="panel-header">
+                    <h2 class="panel-title">Mapa de Calor de Actividad — Últimos 7 Días</h2>
+                    <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">filter_list</span>
+                        Filtrar
+                    </button>
                 </div>
-            </footer>
+                <div class="panel-body">
+                    <div class="heatmap-container">
+                        <div class="heatmap-grid" id="activityHeatmap"></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 16px; font-size: 12px; color: var(--text-muted);">
+                        <span>Menos activo</span>
+                        <div style="display: flex; gap: 2px;">
+                            <div style="width: 16px; height: 16px; background: #f0f0f0; border-radius: 2px;"></div>
+                            <div style="width: 16px; height: 16px; background: #d4edda; border-radius: 2px;"></div>
+                            <div style="width: 16px; height: 16px; background: #a8d5ba; border-radius: 2px;"></div>
+                            <div style="width: 16px; height: 16px; background: #7fbf9a; border-radius: 2px;"></div>
+                            <div style="width: 16px; height: 16px; background: var(--success); border-radius: 2px;"></div>
+                        </div>
+                        <span>Más activo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═════ GRID: Command Center + Top Products ════ -->
+            <div class="dashboard-grid wide">
+
+                <!-- Command Center Feed -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Centro de Comando — Pedidos en Tiempo Real</h2>
+                        <span class="status-badge status-processing" style="animation: pulse 2s infinite;">
+                            ● En Vivo
+                        </span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="command-feed" id="commandFeed"></div>
+                    </div>
+                </div>
+
+                <!-- Top Products con Sparklines -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Top 5 Productos</h2>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
+                            Ver Todo
+                        </button>
+                    </div>
+                    <div class="panel-body">
+                        <div class="product-list" id="topProducts"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═════ GRID: Calendar + Radar ════ -->
+            <div class="dashboard-grid wide">
+
+                <!-- GitHub-style Calendar -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Calendario de Ventas — Junio 2026</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="contributions-calendar">
+                            <div class="calendar-legend">
+                                <span>Menos</span>
+                                <div class="legend-box" style="background: #ebedf0;"></div>
+                                <div class="legend-box" style="background: #9be9a8;"></div>
+                                <div class="legend-box" style="background: #40c463;"></div>
+                                <div class="legend-box" style="background: #30a14e;"></div>
+                                <div class="legend-box" style="background: #216e39;"></div>
+                                <span>Más</span>
+                            </div>
+                            <div class="calendar-grid" id="salesCalendar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Platform Health Radar -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Salud de la Plataforma</h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="radar-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═════ Category Bubble Map ════ -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">¿Qué Está Caliente? — Mapa de Categorías</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="bubble-container" id="categoryBubbles"></div>
+                </div>
+            </div>
 
         </main>
     </div>
 
     <script>
-        // Animación de entrada para las barras del gráfico
-        document.addEventListener('DOMContentLoaded', function() {
-            const bars = document.querySelectorAll('.chart-bar');
-            bars.forEach((bar, index) => {
-                const finalHeight = bar.style.height;
-                bar.style.height = '0%';
-                setTimeout(() => {
-                    bar.style.height = finalHeight;
-                }, 600 + (index * 100));
+        // ═════ GENERAR HEATMAP 7x24 ════
+        function generateHeatmap() {
+            const grid = document.getElementById('activityHeatmap');
+            const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+            grid.innerHTML = '<div class="heatmap-label">Hora</div>';
+            for (let h = 0; h < 24; h++) {
+                grid.innerHTML += `<div class="heatmap-label">${h}:00</div>`;
+            }
+
+            days.forEach((day, dayIndex) => {
+                grid.innerHTML += `<div class="heatmap-label" style="font-weight: 600;">${day}</div>`;
+                for (let h = 0; h < 24; h++) {
+                    let activity = 0;
+                    if (h >= 12 && h <= 14) activity = 3;
+                    else if (h >= 18 && h <= 21) activity = 4;
+                    else if (h >= 9 && h <= 11) activity = 2;
+                    else if (h >= 22 || h <= 6) activity = 0;
+                    else activity = 1;
+
+                    if (dayIndex === 4 && h === 20) activity = 4;
+                    if (Math.random() > 0.7) activity = Math.min(4, activity + 1);
+
+                    const value = activity * Math.floor(Math.random() * 20 + 10);
+                    grid.innerHTML += `<div class="heatmap-cell level-${activity}" data-value="${value} actividades"></div>`;
+                }
             });
+        }
+
+        // ═════ COMMAND CENTER FEED ════
+        function generateCommandFeed() {
+            const feed = document.getElementById('commandFeed');
+            const orders = [
+                { user: 'María García', product: 'Serum Radiance Elixir - $84', status: 'processing', time: '2h 15m', alert: true },
+                { user: 'Carlos Ruiz', product: 'Set Brochas Profesional - $78', status: 'completed', time: '45m', alert: false },
+                { user: 'Ana Torres', product: 'Perfume Bloom Noir EDP - $185', status: 'pending', time: '15m', alert: false },
+                { user: 'Pedro Gómez', product: 'Crema Velvet Cloud - $62', status: 'processing', time: '1h 30m', alert: false },
+                { user: 'Laura Mendoza', product: 'Aceite Argán Capilar - $72', status: 'completed', time: '3h 10m', alert: false },
+            ];
+
+            orders.forEach(order => {
+                const initials = order.user.split(' ').map(n => n[0]).join('');
+                const alertClass = order.alert ? 'alert' : '';
+
+                feed.innerHTML += `
+                    <div class="feed-item ${alertClass}">
+                        <div class="feed-avatar">${initials}</div>
+                        <div class="feed-content">
+                            <div class="feed-header">
+                                <span class="feed-user">${order.user}</span>
+                                <span class="feed-product">${order.product}</span>
+                            </div>
+                            <div class="feed-meta">
+                                <span class="feed-time">Hace ${order.time}</span>
+                                <span class="status-badge status-${order.status}">${order.status}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ═════ TOP PRODUCTS CON SPARKLINES ════
+        function generateTopProducts() {
+            const container = document.getElementById('topProducts');
+            const products = [
+                { name: 'Serum Radiance Elixir', sales: 234, trend: [12, 15, 18, 22, 28, 35, 42], change: '+18%' },
+                { name: 'Perfume Bloom Noir', sales: 189, trend: [20, 22, 25, 24, 28, 30, 32], change: '+12%' },
+                { name: 'Crema Velvet Cloud', sales: 167, trend: [15, 18, 16, 19, 22, 25, 28], change: '+8%' },
+                { name: 'Set Brochas Pro', sales: 145, trend: [25, 23, 20, 18, 16, 14, 12], change: '-5%' },
+                { name: 'Aceite Midnight Recovery', sales: 132, trend: [10, 12, 15, 18, 22, 26, 30], change: '+22%' },
+            ];
+
+            products.forEach((product, index) => {
+                const rank = index + 1;
+                const rankClass = rank <= 3 ? `top-${rank}` : '';
+                const trendClass = product.change.startsWith('+') ? 'up' : 'down';
+
+                container.innerHTML += `
+                    <div class="product-item">
+                        <div class="product-rank ${rankClass}">${rank}</div>
+                        <div class="product-info">
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-sales">${product.sales} ventas esta semana</div>
+                        </div>
+                        <div class="sparkline-container">
+                            <svg width="100" height="40" viewBox="0 0 100 40">
+                                <polyline 
+                                    fill="none" 
+                                    stroke="${trendClass === 'up' ? 'var(--success)' : 'var(--danger)'}" 
+                                    stroke-width="2"
+                                    points="${product.trend.map((v, i) => `${i * 16.67},${40 - v}`).join(' ')}"
+                                />
+                            </svg>
+                        </div>
+                        <div class="trend-indicator ${trendClass}">${product.change}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // ═════ GITHUB-STYLE CALENDAR ════
+        function generateSalesCalendar() {
+            const grid = document.getElementById('salesCalendar');
+            const daysInMonth = 30;
+            const bestDay = 15;
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                let level = Math.floor(Math.random() * 5);
+                if (i === bestDay) level = 4;
+
+                const sales = level * 500 + Math.floor(Math.random() * 500);
+                const bestClass = i === bestDay ? 'best-day' : '';
+
+                grid.innerHTML += `
+                    <div class="calendar-day level-${level} ${bestClass}" 
+                         data-date="${i} Junio" 
+                         data-sales="${sales}">
+                    </div>
+                `;
+            }
+        }
+
+        // ═════ RADAR CHART ════
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Ventas', 'Stock', 'Usuarios Nuevos', 'Escaneos', 'Pedidos', 'Reseñas'],
+                    datasets: [{
+                        label: 'Hoy',
+                        data: [85, 70, 90, 65, 80, 75],
+                        backgroundColor: 'rgba(74, 93, 58, 0.2)',
+                        borderColor: 'var(--primary)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'var(--primary)',
+                    }, {
+                        label: 'Ayer',
+                        data: [75, 75, 80, 70, 70, 80],
+                        backgroundColor: 'rgba(184, 149, 106, 0.2)',
+                        borderColor: 'var(--accent)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'var(--accent)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                color: 'var(--text-muted)',
+                                font: { size: 10 }
+                            },
+                            grid: {
+                                color: 'var(--border)'
+                            },
+                            pointLabels: {
+                                color: 'var(--text)',
+                                font: { size: 11, weight: '600' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 16,
+                                font: { size: 11 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ═════ CATEGORY BUBBLES ════
+        function generateCategoryBubbles() {
+            const container = document.getElementById('categoryBubbles');
+            const categories = [
+                { name: 'Cuidado Facial', sales: 1240, trend: '+15%', size: 140, color: '#4A5D3A' },
+                { name: 'Perfumes', sales: 890, trend: '+8%', size: 110, color: '#B8956A' },
+                { name: 'Maquillaje', sales: 756, trend: '-3%', size: 95, color: '#88495A' },
+                { name: 'Cabello', sales: 623, trend: '+12%', size: 85, color: '#516617' },
+                { name: 'Corporal', sales: 445, trend: '+5%', size: 70, color: '#9a3a5a' },
+            ];
+
+            categories.forEach(cat => {
+                const trendClass = cat.trend.startsWith('+') ? '↑' : '↓';
+                container.innerHTML += `
+                    <div class="category-bubble" 
+                         style="width: ${cat.size}px; height: ${cat.size}px; background: ${cat.color};">
+                        <div class="bubble-label">${cat.name}</div>
+                        <div class="bubble-value">${cat.sales}</div>
+                        <div class="bubble-trend">${trendClass} ${cat.trend}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // ═════ INIT ════
+        document.addEventListener('DOMContentLoaded', function () {
+            generateHeatmap();
+            generateCommandFeed();
+            generateTopProducts();
+            generateSalesCalendar();
+            initRadarChart();
+            generateCategoryBubbles();
         });
     </script>
-<%@ include file="/includes/sidebar.jsp" %>
+
 </body>
+
 </html>
