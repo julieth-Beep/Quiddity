@@ -1,11 +1,14 @@
 package com.quiddity.dao;
 
-import com.quiddity.model.Catalogo;
-import com.quiddity.util.ConexionDB;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.quiddity.model.Catalogo;
+import com.quiddity.util.ConexionDB;
 
 public class CatalogoDAO {
 
@@ -223,7 +226,7 @@ public class CatalogoDAO {
                 rs.getString("imagen"),
                 rs.getString("categoria"),
                 rs.getString("marca"),
-                rs.getBoolean("meGusta")
+                rs.getBoolean("me_gusta")
         );
     }
 }

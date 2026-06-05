@@ -1,21 +1,26 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.quiddity.model.Usuario" %>
 <%@ page import="com.quiddity.model.Carrito" %>
-<%@ page import="com.quiddity.dao.CarritoDAO" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.text.DecimalFormat" %>
 <%
     Usuario user = (Usuario) session.getAttribute("usuario");
-    // Solo usuarios logueados (compradores o usuarios) pueden ver carrito
     if (user == null) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/login");
         return;
     }
     String ctx = request.getContextPath();
     DecimalFormat df = new DecimalFormat("#,###");
-    CarritoDAO carritoDAO = new CarritoDAO();
-    List<Carrito> items = carritoDAO.getCarritoByUsuario(user.getId());
-    double totalGeneral = carritoDAO.getTotalCarrito(user.getId());
+
+    // Leer lo que el servlet ya cargó
+    List<Carrito> items = (List<Carrito>) request.getAttribute("items");
+    Double totalGeneral = (Double) request.getAttribute("total");
+    if (items == null) items = new java.util.ArrayList<Carrito>();
+    if (totalGeneral == null) totalGeneral = 0.0;
+
+    // Mensajes flash
+    String msgExito = request.getParameter("exito");
+    String msgError = request.getParameter("error");
 %>
 <!DOCTYPE html>
 <html class="light" lang="es">
@@ -28,17 +33,14 @@
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">
+    <script>
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
                         "primary": "#9a3a5a",
-                        "secondary": "#516617",
                         "tertiary": "#88495a",
-                        "background": "#ffffff",
-                        "surface": "#ffffff",
                         "on-surface": "#1c1b1d",
                         "on-surface-variant": "#544246",
                         "outline": "#877276",
@@ -47,24 +49,17 @@
                     borderRadius: { DEFAULT: "0px", lg: "0px", xl: "0px", full: "9999px" },
                     spacing: {
                         "container-margin": "80px",
-                        "element-gap": "24px",
-                        "gutter": "32px",
                         "section-gap": "120px"
                     },
                     fontFamily: {
-                        "headline-md": ["EB Garamond"],
                         "display-lg": ["EB Garamond"],
-                        "body-lg": ["Manrope"],
-                        "headline-lg": ["EB Garamond"],
-                        "body-md": ["Manrope"],
-                        "label-md": ["Manrope"]
+                        "headline-md": ["EB Garamond"],
+                        "label-md": ["Manrope"],
+                        "body-md": ["Manrope"]
                     },
                     fontSize: {
-                        "headline-md": ["32px", { lineHeight: "40px", fontWeight: "400" }],
-                        "display-lg": ["64px", { lineHeight: "72px", letterSpacing: "-0.01em", fontWeight: "400" }],
-                        "body-lg": ["20px", { lineHeight: "32px", fontWeight: "400" }],
-                        "headline-lg": ["48px", { lineHeight: "56px", fontWeight: "400" }],
-                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "headline-md": ["32px", { lineHeight: "40px" }],
+                        "display-lg": ["64px", { lineHeight: "72px" }],
                         "label-md": ["13px", { lineHeight: "20px", letterSpacing: "0.1em", fontWeight: "600" }]
                     }
                 }
@@ -73,182 +68,278 @@
     </script>
     <style>
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #ffffff; }
-        ::-webkit-scrollbar-thumb { background: #e6e1e4; }
         #announcement-bar { background-color: #c4a9a2; height: 42px; }
-        .quantity-input {
-            width: 60px;
+        .qty-input {
+            width: 56px; height: 36px;
             text-align: center;
-            border: 1px solid #e6e1e4;
-            padding: 6px;
-            font-size: 14px;
+            border: 1px solid rgba(135,114,118,0.35);
+            font-family: 'Manrope', sans-serif;
+            font-size: 14px; font-weight: 600;
         }
+        .qty-input:focus { outline: none; border-color: #9a3a5a; }
+        .flash { padding: 12px 20px; font-family: 'Manrope', sans-serif; font-size: 12px;
+                 letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 24px; }
+        .flash-ok  { background: #f0fdf4; color: #166534; border-left: 3px solid #166534; }
+        .flash-err { background: #fff1f2; color: #9a3a5a; border-left: 3px solid #9a3a5a; }
     </style>
 </head>
-<body class="bg-white font-body-md text-on-surface">
+<body class="bg-white text-on-surface" style="font-family:'Manrope',sans-serif;">
 
-    <!-- ANNOUNCEMENT BAR -->
-    <div id="announcement-bar" class="fixed top-0 w-full z-[60] flex items-center justify-center px-8">
-        <p class="font-label-md text-[11px] tracking-[0.3em] text-white uppercase">NUEVOS ARRIVALES — ENVÍO GRATIS EN PEDIDOS MAYORES A $150.000</p>
-        <button onclick="closeAnnouncementBar()" class="absolute right-6 text-white/60 hover:text-white">
-            <span class="material-symbols-outlined" style="font-size:18px;">close</span>
-        </button>
+<!-- ANNOUNCEMENT BAR -->
+<div id="announcement-bar" class="fixed top-0 w-full z-[60] flex items-center justify-center px-8">
+    <p style="font-family:'Manrope',sans-serif; font-size:11px; letter-spacing:0.3em; color:white; text-transform:uppercase;">
+        NUEVOS ARRIVALES — ENVÍO GRATIS EN PEDIDOS MAYORES A $150.000
+    </p>
+    <button onclick="document.getElementById('announcement-bar').style.display='none'; document.getElementById('main-header').style.top='0'"
+            class="absolute right-6 text-white/60 hover:text-white">
+        <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+    </button>
+</div>
+
+<!-- HEADER -->
+<header id="main-header" class="fixed w-full z-50 bg-white/90 backdrop-blur-md flex justify-between items-center px-container-margin py-4 border-b border-on-surface/5" style="top:42px;">
+    <div class="flex items-center gap-12">
+        <a href="<%= ctx %>/index.jsp">
+            <h1 style="font-family:'EB Garamond',serif; font-size:24px; letter-spacing:0.2em; color:#9a3a5a; text-transform:uppercase;">Quiddity</h1>
+        </a>
+        <nav class="hidden md:flex gap-8">
+            <a style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;"
+               class="hover:text-primary transition-colors"
+               href="<%= ctx %>/catalogo">Shop</a>
+            <a style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;"
+               class="hover:text-primary transition-colors" href="#">Nuestra historia</a>
+        </nav>
     </div>
-
-    <!-- HEADER (versión comprador, igual que en otras páginas) -->
-    <header id="main-header" class="fixed w-full z-50 bg-white/90 backdrop-blur-md flex justify-between items-center px-container-margin py-4 border-b border-on-surface/5 transition-all duration-300" style="top: 42px;">
-        <div class="flex items-center gap-12">
-            <a href="<%= ctx %>/index.jsp"><h1 class="font-display-lg text-headline-md tracking-[0.2em] text-primary uppercase">Quiddity</h1></a>
-            <nav class="hidden md:flex gap-8">
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="<%= ctx %>/comprador/catalogo.jsp">Shop</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="#">Nuestra historia</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="#">Apothecary</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="#">Blog</a>
-            </nav>
-        </div>
-        <div class="flex items-center gap-6">
-            <button class="text-on-surface hover:text-primary"><span class="material-symbols-outlined">search</span></button>
-            <a href="<%= ctx %>/comprador/favoritos.jsp" class="text-on-surface hover:text-primary relative">
-                <span class="material-symbols-outlined">favorite</span>
-                <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full">3</span>
-            </a>
-            <a href="<%= ctx %>/carrito.jsp" class="text-primary relative">
-                <span class="material-symbols-outlined">shopping_bag</span>
-                <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full"><%= items.size() %></span>
-            </a>
-            <div class="relative group">
-                <button class="flex items-center gap-2 font-label-md uppercase tracking-widest text-on-surface hover:text-primary">
-                    <%= user.getNombre() %> <span class="material-symbols-outlined text-sm">expand_more</span>
-                </button>
-                <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
-                    <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm hover:bg-surface-variant">Mi Perfil</a>
-                    <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm hover:bg-surface-variant">Mis Compras</a>
-                    <div class="border-t my-1"></div>
-                    <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
-                </div>
+    <div class="flex items-center gap-6">
+        <a href="<%= ctx %>/catalogo" class="text-on-surface hover:text-primary transition-colors">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <a href="<%= ctx %>/carrito" class="text-primary relative">
+            <span class="material-symbols-outlined">shopping_bag</span>
+            <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center"><%= items.size() %></span>
+        </a>
+        <div class="relative group">
+            <button class="flex items-center gap-2 hover:text-primary"
+                    style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">
+                <%= user.getNombre() %>
+                <span class="material-symbols-outlined text-sm">expand_more</span>
+            </button>
+            <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
+                <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
             </div>
         </div>
-    </header>
+    </div>
+</header>
 
-    <main class="pt-32 pb-section-gap px-container-margin">
-        <div class="max-w-6xl mx-auto">
-            <h1 class="font-display-lg text-4xl md:text-5xl italic mb-2">Carrito de compras</h1>
-            <p class="text-on-surface-variant mb-8">Revisa y modifica los productos que deseas adquirir.</p>
+<main class="pt-36 pb-24 px-container-margin">
+    <div class="max-w-5xl mx-auto">
 
-            <% if (items.isEmpty()) { %>
-                <div class="text-center py-16 border border-outline/20 bg-surface-variant/30">
-                    <span class="material-symbols-outlined text-5xl text-outline mb-4">shopping_bag</span>
-                    <p class="text-on-surface-variant">Tu carrito está vacío.</p>
-                    <a href="<%= ctx %>/comprador/catalogo.jsp" class="inline-block mt-4 text-primary underline">Seguir comprando →</a>
-                </div>
-            <% } else { %>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="border-b border-outline/20">
-                            <tr class="font-label-md text-xs uppercase text-on-surface-variant tracking-wider">
-                                <th class="pb-4">Producto</th>
-                                <th class="pb-4">Precio</th>
-                                <th class="pb-4">Cantidad</th>
-                                <th class="pb-4">Subtotal</th>
+        <!-- Título -->
+        <div class="mb-10 border-b border-outline/15 pb-6">
+            <span style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#9a3a5a;">
+                Mi selección
+            </span>
+            <h1 style="font-family:'EB Garamond',serif; font-size:clamp(32px,4vw,52px); font-style:italic;" class="mt-2">
+                Carrito de compras
+            </h1>
+        </div>
+
+        <!-- Mensajes flash -->
+        <% if (msgExito != null) { %>
+            <div class="flash flash-ok">✓ <%= msgExito %></div>
+        <% } %>
+        <% if (msgError != null) { %>
+            <div class="flash flash-err">✕ <%= msgError %></div>
+        <% } %>
+
+        <% if (items.isEmpty()) { %>
+            <!-- Carrito vacío -->
+            <div class="text-center py-24 border border-outline/15">
+                <span class="material-symbols-outlined text-6xl text-outline/40 block mb-4">shopping_bag</span>
+                <p style="font-family:'EB Garamond',serif; font-size:24px; font-style:italic;" class="text-on-surface-variant mb-2">
+                    Tu carrito está vacío
+                </p>
+                <p class="text-sm text-outline mb-8">Agrega productos desde el catálogo para comenzar.</p>
+                <a href="<%= ctx %>/catalogo"
+                   class="inline-block bg-primary text-white px-10 py-3"
+                   style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase;">
+                    Explorar Catálogo
+                </a>
+            </div>
+
+        <% } else { %>
+            <div class="flex flex-col lg:flex-row gap-12">
+
+                <!-- ── LISTA DE PRODUCTOS ─────────────────────────────── -->
+                <div class="flex-1">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="border-b border-outline/20">
+                                <th class="pb-4 text-left" style="font-family:'Manrope',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:#877276;">Producto</th>
+                                <th class="pb-4 text-right" style="font-family:'Manrope',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:#877276;">Precio</th>
+                                <th class="pb-4 text-center" style="font-family:'Manrope',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:#877276;">Cantidad</th>
+                                <th class="pb-4 text-right" style="font-family:'Manrope',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:#877276;">Subtotal</th>
                                 <th class="pb-4"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <% for (Carrito item : items) { 
-                                double subtotal = item.getSubtotal();
-                            %>
-                                <tr class="border-b border-outline/10 hover:bg-surface-variant/30 transition" id="fila-<%= item.getId() %>">
-                                    <td class="py-5">
-                                        <div class="flex gap-4 items-center">
-                                            <div class="w-20 h-20 bg-surface-variant overflow-hidden">
-                                                <img src="<%= ctx %>/<%= item.getProducto().getImagen() %>" alt="<%= item.getProducto().getNombre() %>" class="w-full h-full object-cover">
-                                            </div>
-                                            <div>
-                                                <h3 class="font-headline-md text-lg"><%= item.getProducto().getNombre() %></h3>
-                                                <p class="text-xs text-on-surface-variant"><%= item.getProducto().getCategoria() %></p>
-                                            </div>
+                        <% for (Carrito item : items) { %>
+                            <tr class="border-b border-outline/10 hover:bg-surface-variant/20 transition">
+
+                                <!-- Producto -->
+                                <td class="py-6 pr-4">
+                                    <div class="flex gap-4 items-center">
+                                        <div class="w-20 h-20 bg-surface-variant overflow-hidden flex-shrink-0">
+                                            <% if (item.getProducto().getImagen() != null && !item.getProducto().getImagen().isEmpty()) { %>
+                                                <img src="<%= ctx %>/uploads/catalogo/<%= item.getProducto().getImagen() %>"
+                                                     alt="<%= item.getProducto().getNombre() %>"
+                                                     class="w-full h-full object-cover" />
+                                            <% } else { %>
+                                                <div class="w-full h-full flex items-center justify-center text-outline">
+                                                    <span class="material-symbols-outlined">image</span>
+                                                </div>
+                                            <% } %>
                                         </div>
-                                    </td>
-                                    <td class="py-5">$<%= df.format(item.getProducto().getPrecio()) %></td>
-                                    <td class="py-5">
-                                        <form action="<%= ctx %>/carrito/actualizar" method="post" class="flex items-center gap-2">
-                                            <input type="hidden" name="itemId" value="<%= item.getId() %>">
-                                            <input type="number" name="cantidad" value="<%= item.getCantidad() %>" min="1" max="<%= item.getProducto().getStock() %>" class="quantity-input border-outline/30 focus:border-primary">
-                                            <button type="submit" class="text-primary hover:bg-primary/10 p-1 rounded-full">
-                                                <span class="material-symbols-outlined text-sm">refresh</span>
-                                            </button>
-                                        </form>
-                                    </td>
-                                    <td class="py-5 font-medium">$<%= df.format(subtotal) %></td>
-                                    <td class="py-5">
-                                        <a href="<%= ctx %>/carrito/eliminar?itemId=<%= item.getId() %>" class="text-on-surface-variant hover:text-red-500 transition" onclick="return confirm('¿Eliminar este producto?')">
-                                            <span class="material-symbols-outlined">delete</span>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <% } %>
+                                        <div>
+                                            <p class="text-xs text-outline mb-1" style="letter-spacing:0.1em; text-transform:uppercase;">
+                                                <%= item.getProducto().getCategoria() != null ? item.getProducto().getCategoria() : "" %>
+                                            </p>
+                                            <h3 style="font-family:'EB Garamond',serif; font-size:18px;">
+                                                <%= item.getProducto().getNombre() %>
+                                            </h3>
+                                            <% if (item.getProducto().getMarca() != null && !item.getProducto().getMarca().isEmpty()) { %>
+                                                <p class="text-xs text-outline/70 mt-1"><%= item.getProducto().getMarca() %></p>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Precio unitario -->
+                                <td class="py-6 text-right text-sm text-on-surface-variant whitespace-nowrap">
+                                    $<%= df.format(item.getProducto().getPrecio()) %>
+                                </td>
+
+                                <!-- Cantidad — form POST a /carrito?accion=actualizar -->
+                                <td class="py-6 text-center">
+                                    <form action="<%= ctx %>/carrito" method="post"
+                                          class="flex items-center justify-center gap-2">
+                                        <input type="hidden" name="accion" value="actualizar">
+                                        <input type="hidden" name="itemId" value="<%= item.getId() %>">
+                                        <input type="number" name="cantidad"
+                                               value="<%= item.getCantidad() %>"
+                                               min="0" max="<%= item.getProducto().getStock() %>"
+                                               class="qty-input" />
+                                        <button type="submit"
+                                                class="text-on-surface-variant hover:text-primary transition"
+                                                title="Actualizar cantidad">
+                                            <span class="material-symbols-outlined" style="font-size:18px;">refresh</span>
+                                        </button>
+                                    </form>
+                                </td>
+
+                                <!-- Subtotal -->
+                                <td class="py-6 text-right font-semibold whitespace-nowrap">
+                                    $<%= df.format(item.getSubtotal()) %>
+                                </td>
+
+                                <!-- Eliminar — form POST a /carrito?accion=eliminar -->
+                                <td class="py-6 text-center">
+                                    <form action="<%= ctx %>/carrito" method="post"
+                                          onsubmit="return confirm('¿Eliminar este producto del carrito?')">
+                                        <input type="hidden" name="accion" value="eliminar">
+                                        <input type="hidden" name="itemId" value="<%= item.getId() %>">
+                                        <button type="submit"
+                                                class="text-outline/60 hover:text-red-500 transition"
+                                                title="Eliminar">
+                                            <span class="material-symbols-outlined" style="font-size:20px;">delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% } %>
                         </tbody>
                     </table>
-                </div>
 
-                <!-- Resumen y totales -->
-                <div class="mt-10 flex flex-col md:flex-row justify-end border-t border-outline/20 pt-8">
-                    <div class="w-full md:w-80 p-6 bg-surface-variant/30">
-                        <h3 class="font-headline-md text-2xl mb-4">Resumen</h3>
-                        <div class="flex justify-between py-2">
-                            <span>Subtotal</span>
-                            <span>$<%= df.format(totalGeneral) %></span>
-                        </div>
-                        <div class="flex justify-between py-2 border-b border-outline/10 mb-4">
-                            <span>Envío</span>
-                            <span>Calculado en checkout</span>
-                        </div>
-                        <div class="flex justify-between font-bold text-lg">
-                            <span>Total</span>
-                            <span>$<%= df.format(totalGeneral) %></span>
-                        </div>
-                        <div class="mt-6 flex gap-3">
-                            <a href="<%= ctx %>/carrito/vaciar" class="flex-1 text-center border border-outline text-on-surface-variant font-label-md text-xs uppercase py-3 hover:border-red-400 hover:text-red-500 transition" onclick="return confirm('¿Vaciar todo el carrito?')">
-                                Vaciar
-                            </a>
-                            <a href="<%= ctx %>/checkout" class="flex-1 text-center bg-primary text-white font-label-md text-xs uppercase py-3 hover:bg-tertiary transition">
-                                Proceder al pago
-                            </a>
-                        </div>
+                    <!-- Botón seguir comprando -->
+                    <div class="mt-6">
+                        <a href="<%= ctx %>/catalogo"
+                           class="inline-flex items-center gap-2 text-primary hover:underline"
+                           style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase;">
+                            <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>
+                            Seguir comprando
+                        </a>
                     </div>
                 </div>
-                <div class="mt-6 text-center">
-                    <a href="<%= ctx %>/comprador/catalogo.jsp" class="inline-flex items-center gap-2 text-primary font-label-md text-xs uppercase tracking-wider hover:underline">
-                        <span class="material-symbols-outlined text-sm">arrow_back</span>
-                        Seguir comprando
-                    </a>
+
+                <!-- ── RESUMEN / CHECKOUT ──────────────────────────────── -->
+                <div class="w-full lg:w-80 flex-shrink-0">
+                    <div class="border border-outline/20 p-8">
+                        <h3 style="font-family:'EB Garamond',serif; font-size:24px; font-style:italic;" class="mb-6">
+                            Resumen del pedido
+                        </h3>
+
+                        <!-- Desglose de ítems -->
+                        <div class="space-y-3 mb-5 max-h-48 overflow-y-auto pr-1">
+                        <% for (Carrito item : items) { %>
+                            <div class="flex justify-between text-sm text-on-surface-variant">
+                                <span class="truncate max-w-[160px]">
+                                    <%= item.getProducto().getNombre() %>
+                                    <span class="text-outline">× <%= item.getCantidad() %></span>
+                                </span>
+                                <span class="ml-2 whitespace-nowrap">$<%= df.format(item.getSubtotal()) %></span>
+                            </div>
+                        <% } %>
+                        </div>
+
+                        <div class="border-t border-outline/15 pt-4 mb-2">
+                            <div class="flex justify-between text-sm text-on-surface-variant mb-2">
+                                <span>Subtotal</span>
+                                <span>$<%= df.format(totalGeneral) %></span>
+                            </div>
+                            <div class="flex justify-between text-sm text-on-surface-variant mb-4">
+                                <span>Envío</span>
+                                <span class="text-outline">Calculado en checkout</span>
+                            </div>
+                            <div class="flex justify-between font-semibold text-lg border-t border-outline/15 pt-4">
+                                <span style="font-family:'EB Garamond',serif;">Total</span>
+                                <span style="color:#9a3a5a;">$<%= df.format(totalGeneral) %></span>
+                            </div>
+                        </div>
+
+                        <!-- Confirmar compra — POST a /carrito?accion=confirmar -->
+                        <form action="<%= ctx %>/carrito" method="post" class="mt-6"
+                              onsubmit="return confirm('¿Confirmar la compra? Se descontará el stock.')">
+                            <input type="hidden" name="accion" value="confirmar">
+                            <button type="submit"
+                                    class="w-full py-4 bg-primary text-white hover:bg-tertiary transition"
+                                    style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase;">
+                                Confirmar compra
+                            </button>
+                        </form>
+
+                        <!-- Vaciar carrito -->
+                        <form action="<%= ctx %>/carrito" method="post" class="mt-3"
+                              onsubmit="return confirm('¿Vaciar todo el carrito?')">
+                            <input type="hidden" name="accion" value="vaciar">
+                            <button type="submit"
+                                    class="w-full py-3 border border-outline/30 text-on-surface-variant hover:border-red-400 hover:text-red-500 transition"
+                                    style="font-family:'Manrope',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase;">
+                                Vaciar carrito
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            <% } %>
-        </div>
-    </main>
 
-    <footer class="bg-white border-t border-on-surface/5 py-16 px-container-margin">
-        <div class="max-w-[1440px] mx-auto text-center text-on-surface-variant text-xs">
-            <p>© 2026 QUIDDITY SKINCARE. ALL RIGHTS RESERVED.</p>
-        </div>
-    </footer>
+            </div>
+        <% } %>
+    </div>
+</main>
 
-    <script>
-        function closeAnnouncementBar() {
-            document.getElementById('announcement-bar').style.display = 'none';
-            document.getElementById('main-header').style.top = '0px';
-        }
-        window.addEventListener('scroll', () => {
-            const header = document.getElementById('main-header');
-            if (window.scrollY > 10) {
-                header.classList.add('py-2');
-                header.classList.remove('py-4');
-            } else {
-                header.classList.remove('py-2');
-                header.classList.add('py-4');
-            }
-        });
-    </script>
+<footer class="border-t border-outline/10 py-10 px-container-margin text-center">
+    <p style="font-family:'Manrope',sans-serif; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:#877276;">
+        © 2026 QUIDDITY SKINCARE. ALL RIGHTS RESERVED.
+    </p>
+</footer>
+
 </body>
 </html>

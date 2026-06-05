@@ -17,13 +17,14 @@ import java.util.List;
  *
  * Accesible por ROL_USUARIO (3) y ROL_COMPRADOR (2).
  *
- * GET  /carrito              → muestra el carrito del usuario
+ * GET  /carrito                   → muestra el carrito del usuario
+ * GET  /compraExitosa             → página de confirmación post-compra
  * POST /carrito?accion=agregar    → agrega producto al carrito
  * POST /carrito?accion=actualizar → cambia cantidad de un ítem
  * POST /carrito?accion=eliminar   → elimina un ítem del carrito
  * POST /carrito?accion=confirmar  → confirma la compra, descuenta stock y vacía carrito
  */
-@WebServlet("/carrito")
+@WebServlet(urlPatterns = {"/carrito", "/compraExitosa"})
 public class CarritoServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -34,11 +35,32 @@ public class CarritoServlet extends HttpServlet {
     private final CarritoDAO  carritoDAO  = new CarritoDAO();
     private final CatalogoDAO catalogoDAO = new CatalogoDAO();
 
-    // ── GET: mostrar carrito ──────────────────────────────────────────────────
+    // ── GET ───────────────────────────────────────────────────────────────────
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        String uri = req.getRequestURI();
+
+        // ── GET /compraExitosa ────────────────────────────────────────────────
+        if (uri.endsWith("/compraExitosa")) {
+            HttpSession session = req.getSession(false);
+            if (session == null || session.getAttribute("usuario") == null) {
+                resp.sendRedirect(req.getContextPath() + "/login");
+                return;
+            }
+            // Pasar los datos guardados por accionConfirmar a la vista
+            req.setAttribute("total",      session.getAttribute("ultimaCompraTotal"));
+            req.setAttribute("numItems",   session.getAttribute("ultimaCompraItems"));
+            // Limpiar de la sesión para que no reaparezcan si recarga
+            session.removeAttribute("ultimaCompraTotal");
+            session.removeAttribute("ultimaCompraItems");
+
+            req.getRequestDispatcher("/compraExitosa.jsp").forward(req, resp);
+            return;
+        }
+
+        // ── GET /carrito ──────────────────────────────────────────────────────
         Usuario usuario = usuarioAutenticado(req, resp);
         if (usuario == null) return;
 
@@ -89,14 +111,13 @@ public class CarritoServlet extends HttpServlet {
             return;
         }
 
-        // Verificar que el producto exista y tenga stock suficiente
         Catalogo producto = catalogoDAO.obtenerPorId(catalogoId);
         if (producto == null) {
-            redirigirConMensaje(req, resp, "/catalogo", "error", "Producto no encontrado.");
+            redirigirConMensaje(req, resp, "/comprador/catalogo.jsp", "error", "Producto no encontrado.");
             return;
         }
         if (producto.getStock() < cantidad) {
-            redirigirConMensaje(req, resp, "/catalogo", "error",
+            redirigirConMensaje(req, resp, "/comprador/catalogo.jsp", "error",
                     "Stock insuficiente. Solo hay " + producto.getStock() + " unidades disponibles.");
             return;
         }
@@ -105,7 +126,7 @@ public class CarritoServlet extends HttpServlet {
         if (ok) {
             redirigirConMensaje(req, resp, "/carrito", "exito", "Producto agregado al carrito.");
         } else {
-            redirigirConMensaje(req, resp, "/catalogo", "error", "No se pudo agregar el producto.");
+            redirigirConMensaje(req, resp, "/comprador/catalogo.jsp", "error", "No se pudo agregar el producto.");
         }
     }
 
@@ -118,14 +139,15 @@ public class CarritoServlet extends HttpServlet {
         int itemId   = parseInt(req.getParameter("itemId"), 0);
         int cantidad = parseInt(req.getParameter("cantidad"), 0);
 
-        if (itemId <= 0 || cantidad <= 0) {
-            // Si cantidad = 0, eliminar el ítem directamente
-            if (itemId > 0 && cantidad == 0) {
-                carritoDAO.eliminarItem(itemId);
-                redirigirConMensaje(req, resp, "/carrito", "exito", "Producto eliminado del carrito.");
-                return;
-            }
+        if (itemId <= 0) {
             redirigirConMensaje(req, resp, "/carrito", "error", "Datos inválidos.");
+            return;
+        }
+
+        // cantidad = 0 → eliminar directamente
+        if (cantidad == 0) {
+            carritoDAO.eliminarItem(itemId);
+            redirigirConMensaje(req, resp, "/carrito", "exito", "Producto eliminado del carrito.");
             return;
         }
 
@@ -191,7 +213,6 @@ public class CarritoServlet extends HttpServlet {
         for (Carrito item : items) {
             boolean descontado = catalogoDAO.descontarStock(item.getCatalogoId(), item.getCantidad());
             if (!descontado) {
-                // Fallo inesperado al descontar — detener sin vaciar carrito
                 redirigirConMensaje(req, resp, "/carrito", "error",
                         "Error al procesar la compra. Inténtalo de nuevo.");
                 return;
@@ -201,7 +222,7 @@ public class CarritoServlet extends HttpServlet {
         // 3. Vaciar el carrito
         carritoDAO.vaciarCarrito(usuario.getId());
 
-        // 4. Guardar total en sesión para mostrarlo en la página de confirmación
+        // 4. Guardar datos de la compra en sesión para la página de confirmación
         double total = items.stream().mapToDouble(Carrito::getSubtotal).sum();
         req.getSession().setAttribute("ultimaCompraTotal", total);
         req.getSession().setAttribute("ultimaCompraItems", items.size());
@@ -213,11 +234,6 @@ public class CarritoServlet extends HttpServlet {
     // HELPERS
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Valida sesión y rol (USUARIO=3 o COMPRADOR=2).
-     * Redirige al login si no hay sesión, o a inicio si no tiene rol válido.
-     * Devuelve null si no debe continuar.
-     */
     private Usuario usuarioAutenticado(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
@@ -229,13 +245,12 @@ public class CarritoServlet extends HttpServlet {
 
         Usuario u = (Usuario) session.getAttribute("usuario");
         if (u.getIdRol() != ROL_USUARIO && u.getIdRol() != ROL_COMPRADOR) {
-            resp.sendRedirect(req.getContextPath() + "/inicio");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return null;
         }
         return u;
     }
 
-    /** Redirige con un parámetro de mensaje en la URL. */
     private void redirigirConMensaje(HttpServletRequest req, HttpServletResponse resp,
                                      String destino, String tipo, String mensaje)
             throws IOException {

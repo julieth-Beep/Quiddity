@@ -126,12 +126,6 @@
                         <span class="nav-text">Face Scan</span>
                     </a>
                 </li>
-                <li class="nav-item ${activePage == 'chatbot' ? 'active' : ''}">
-                    <a href="${pageContext.request.contextPath}/chatbot" class="nav-link">
-                        <span class="material-symbols-outlined nav-icon">chat</span>
-                        <span class="nav-text">Chatbot</span>
-                    </a>
-                </li>
             </c:if>
 
         </ul>

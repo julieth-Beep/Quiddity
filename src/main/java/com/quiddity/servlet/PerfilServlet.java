@@ -1,10 +1,11 @@
 package com.quiddity.servlet;
 
-import com.quiddity.dao.UsuarioDAO;
-import com.quiddity.model.Usuario;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -12,12 +13,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import com.quiddity.dao.UsuarioDAO;
+import com.quiddity.model.Usuario;
 
 @WebServlet("/perfil")
 public class PerfilServlet extends HttpServlet {
@@ -85,13 +87,19 @@ public class PerfilServlet extends HttpServlet {
 
         req.setCharacterEncoding("UTF-8");
         String accion = req.getParameter("accion");
-        if (accion == null)
+        if (accion == null) {
             accion = "";
+        }
 
         switch (accion) {
-            case "actualizarInfo" -> actualizarInfo(req, resp, sesionUsuario);
-            case "cambiarPassword" -> cambiarPassword(req, resp, sesionUsuario);
-            default -> resp.sendRedirect(req.getContextPath() + "/perfil");
+            case "actualizarInfo" ->
+                actualizarInfo(req, resp, sesionUsuario);
+            case "cambiarPassword" ->
+                cambiarPassword(req, resp, sesionUsuario);
+            case "cambiarRol" ->
+                cambiarRol(req, resp, sesionUsuario);
+            default ->
+                resp.sendRedirect(req.getContextPath() + "/perfil");
         }
     }
 
@@ -115,7 +123,7 @@ public class PerfilServlet extends HttpServlet {
         if (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN) {
             u.setDocumento(req.getParameter("documento"));
         }
-        
+
         u.setUserName(req.getParameter("userName"));
 
         // Cambio de rol: solo permitido entre Usuario(3) y Comprador(2), nunca a
@@ -133,7 +141,10 @@ public class PerfilServlet extends HttpServlet {
         } else {
             req.getSession().setAttribute("mensajeError", "No se pudo actualizar. Inténtalo de nuevo.");
         }
-        resp.sendRedirect(req.getContextPath() + "/perfil");
+        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
+                ? "/perfil"
+                : "/comprador/perfil.jsp";
+        resp.sendRedirect(req.getContextPath() + destino);
     }
 
     // ─────────────────────────────────────────────
@@ -176,7 +187,10 @@ public class PerfilServlet extends HttpServlet {
             req.getSession().setAttribute("mensajeError", "No se pudo cambiar la contraseña.");
         }
         req.getSession().setAttribute("tabActiva", "seguridad");
-        resp.sendRedirect(req.getContextPath() + "/perfil");
+        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
+                ? "/perfil"
+                : "/comprador/perfil.jsp";
+        resp.sendRedirect(req.getContextPath() + destino);
     }
 
     // ─────────────────────────────────────────────
@@ -264,7 +278,39 @@ public class PerfilServlet extends HttpServlet {
             System.err.println("[PerfilServlet] Error al subir foto: " + e.getMessage());
             req.getSession().setAttribute("mensajeError", "Error al procesar la imagen: " + e.getMessage());
         }
+        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
+                ? "/perfil"
+                : "/comprador/perfil.jsp";
+        resp.sendRedirect(req.getContextPath() + destino);
 
-        resp.sendRedirect(req.getContextPath() + "/perfil");
+    }
+    // Nuevo método:
+
+    private void cambiarRol(HttpServletRequest req, HttpServletResponse resp, Usuario sesion)
+            throws IOException {
+
+        if (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN) {
+            resp.sendRedirect(req.getContextPath() + "/perfil");
+            return;
+        }
+
+        String nuevoRolParam = req.getParameter("nuevoRol");
+        int nuevoRol = "3".equals(nuevoRolParam) ? UsuarioDAO.ROL_USUARIO : UsuarioDAO.ROL_COMPRADOR;
+
+        boolean ok = usuarioDAO.cambiarRol(sesion.getId(), nuevoRol);
+        if (ok) {
+            Usuario u = usuarioDAO.obtenerPorId(sesion.getId());
+            req.getSession().setAttribute("usuario", u);
+            req.getSession().setAttribute("mensajeExito",
+                    nuevoRol == UsuarioDAO.ROL_USUARIO
+                            ? "Ahora eres Usuario. Ya no tienes acceso al carrito."
+                            : "Ahora eres Comprador. Ya puedes agregar al carrito.");
+        } else {
+            req.getSession().setAttribute("mensajeError", "No se pudo cambiar el rol.");
+        }
+        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
+                ? "/perfil"
+                : "/comprador/perfil.jsp";
+        resp.sendRedirect(req.getContextPath() + destino);
     }
 }
