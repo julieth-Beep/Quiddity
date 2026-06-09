@@ -34,92 +34,13 @@
             min-height: 100vh;
         }
 
-        .layout-wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
+        /* El layout-wrapper y main-content vienen de sidebar.jsp */
+        /* Solo agregamos estilos específicos del contenido */
 
-        .sidebar {
-            width: 260px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border);
-            padding: 1.5rem 1rem;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0 0.5rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 1.5rem;
-        }
-
-        .sidebar-brand i {
-            font-size: 1.75rem;
-            color: var(--primary);
-        }
-
-        .sidebar-brand h4 {
-            font-weight: 700;
-            color: var(--text-light);
-            margin: 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            margin-bottom: 0.25rem;
-            transition: all 0.2s;
-        }
-
-        .nav-item:hover, .nav-item.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .nav-item i { width: 20px; text-align: center; }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 1rem;
-            left: 1rem;
-            right: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .user-mini {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .user-mini img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .user-mini .info { flex: 1; }
-        .user-mini .name { font-size: 0.875rem; font-weight: 600; color: var(--text-light); }
-        .user-mini .role { font-size: 0.75rem; color: var(--text-muted); }
-
-        .main-content {
-            flex: 1;
-            margin-left: 260px;
+        .form-content {
             padding: 2rem;
+            background: var(--bg-dark);
+            min-height: 100vh;
         }
 
         .page-header {
@@ -354,220 +275,192 @@
         .role-option.user label i { color: var(--info); }
 
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 1rem; }
             .form-row { grid-template-columns: 1fr; }
-        }
-
-        .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1001;
-            background: var(--primary);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 0.5rem;
-            cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+            .form-content { padding: 1rem; padding-top: 64px; }
         }
     </style>
 </head>
 <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-    </button>
-
     <div class="layout-wrapper">
-        <!-- Main Content -->
+        <%@ include file="/includes/sidebar.jsp" %>
+
         <main class="main-content">
-            <div class="page-header">
-                <div>
-                    <a href="${pageContext.request.contextPath}/usuarios" class="back-btn">
-                        <i class="fas fa-arrow-left"></i> Volver al listado
-                    </a>
-                    <h2 style="margin-top: 0.5rem;">
-                        <i class="fas ${empty usuario ? 'fa-user-plus' : 'fa-user-edit'}" style="color: var(--primary); margin-right: 0.5rem;"></i>
-                        ${empty usuario ? 'Nuevo Usuario' : 'Editar Usuario'}
-                    </h2>
+            <div class="form-content">
+                <div class="page-header">
+                    <div>
+                        <a href="${pageContext.request.contextPath}/usuarios" class="back-btn">
+                            <i class="fas fa-arrow-left"></i> Volver al listado
+                        </a>
+                        <h2 style="margin-top: 0.5rem;">
+                            <i class="fas ${empty usuario ? 'fa-user-plus' : 'fa-user-edit'}" style="color: var(--primary); margin-right: 0.5rem;"></i>
+                            ${empty usuario ? 'Nuevo Usuario' : 'Editar Usuario'}
+                        </h2>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-card">
-                <div class="form-card-header">
-                    <h3>
-                        <i class="fas ${empty usuario ? 'fa-plus-circle' : 'fa-edit'}"></i>
-                        ${empty usuario ? 'Crear nuevo usuario' : 'Editar información de '.concat(usuario.nombre).concat(' ').concat(usuario.apellido)}
-                    </h3>
-                </div>
-                <div class="form-card-body">
-                    <c:if test="${not empty error}">
-                        <div class="alert-error">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>${error}</span>
-                        </div>
-                    </c:if>
-
-                    <form method="post" action="${pageContext.request.contextPath}/usuarios">
-                        <input type="hidden" name="action" value="${empty usuario ? 'crear' : 'editar'}">
-                        <c:if test="${not empty usuario}">
-                            <input type="hidden" name="id" value="${usuario.id}">
-                        </c:if>
-
-                        <!-- Avatar Preview -->
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <c:choose>
-                                <c:when test="${not empty usuario.fotoPerfil}">
-                                    <img src="${pageContext.request.contextPath}/uploads/${usuario.fotoPerfil}" alt="Avatar" class="avatar-preview" id="avatarPreview">
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="avatar-default" id="avatarPreview">
-                                        <c:choose>
-                                            <c:when test="${not empty usuario}">
-                                                ${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}
-                                            </c:when>
-                                            <c:otherwise>?</c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Nombre <span class="required">*</span></label>
-                                <div class="input-icon-wrapper">
-                                    <i class="fas fa-user"></i>
-                                    <input type="text" name="nombre" class="form-control-custom" 
-                                           value="${usuario.nombre}" required placeholder="Ej: Juan">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Apellido <span class="required">*</span></label>
-                                <div class="input-icon-wrapper">
-                                    <i class="fas fa-user"></i>
-                                    <input type="text" name="apellido" class="form-control-custom" 
-                                           value="${usuario.apellido}" required placeholder="Ej: Pérez">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Email <span class="required">*</span></label>
-                                <div class="input-icon-wrapper">
-                                    <i class="fas fa-envelope"></i>
-                                    <input type="email" name="email" class="form-control-custom" 
-                                           value="${usuario.email}" required placeholder="ejemplo@correo.com">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Documento <span class="required">*</span></label>
-                                <div class="input-icon-wrapper">
-                                    <i class="fas fa-id-card"></i>
-                                    <input type="text" name="documento" class="form-control-custom" 
-                                           value="${usuario.documento}" required placeholder="Número de documento">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Nombre de usuario <span class="required">*</span></label>
-                                <div class="input-icon-wrapper">
-                                    <i class="fas fa-at"></i>
-                                    <input type="text" name="username" class="form-control-custom" 
-                                           value="${usuario.userName}" required placeholder="@username">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Foto de perfil (URL)</label>
-                                <div class="input-icon-wrapper">
-                                    <i class="fas fa-image"></i>
-                                    <input type="text" name="fotoperfil" class="form-control-custom" 
-                                           value="${usuario.fotoPerfil}" placeholder="nombre_archivo.jpg">
-                                </div>
-                            </div>
-                        </div>
-
-                        <c:if test="${empty usuario}">
-                            <div class="form-group">
-                                <label class="form-label">Contraseña <span class="required">*</span></label>
-                                <div class="input-icon-wrapper">
-                                    <i class="fas fa-lock"></i>
-                                    <input type="password" name="contrasena" class="form-control-custom" 
-                                           required placeholder="Mínimo 6 caracteres">
-                                </div>
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3>
+                            <i class="fas ${empty usuario ? 'fa-plus-circle' : 'fa-edit'}"></i>
+                            ${empty usuario ? 'Crear nuevo usuario' : 'Editar información de '.concat(usuario.nombre).concat(' ').concat(usuario.apellido)}
+                        </h3>
+                    </div>
+                    <div class="form-card-body">
+                        <c:if test="${not empty error}">
+                            <div class="alert-error">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>${error}</span>
                             </div>
                         </c:if>
 
-                        <!-- Role Selector -->
-                        <div class="form-group">
-                            <label class="form-label">Rol <span class="required">*</span></label>
-                            <div class="role-selector">
-                                <div class="role-option admin">
-                                    <input type="radio" name="idrol" id="rolAdmin" value="1" 
-                                           ${usuario.idRol == 1 ? 'checked' : ''} ${not empty usuario && sessionScope.usuario.idRol != 1 ? 'disabled' : ''}>
-                                    <label for="rolAdmin">
-                                        <i class="fas fa-shield-alt"></i>
-                                        <span>Administrador</span>
-                                        <small style="color: var(--text-muted); font-size: 0.75rem;">Control total</small>
-                                    </label>
-                                </div>
-                                <div class="role-option buyer">
-                                    <input type="radio" name="idrol" id="rolBuyer" value="2" 
-                                           ${usuario.idRol == 2 ? 'checked' : ''} ${not empty usuario && sessionScope.usuario.idRol != 1 ? 'disabled' : ''}>
-                                    <label for="rolBuyer">
-                                        <i class="fas fa-shopping-bag"></i>
-                                        <span>Comprador</span>
-                                        <small style="color: var(--text-muted); font-size: 0.75rem;">Puede comprar</small>
-                                    </label>
-                                </div>
-                                <div class="role-option user">
-                                    <input type="radio" name="idrol" id="rolUser" value="3" 
-                                           ${empty usuario || usuario.idRol == 3 ? 'checked' : ''} ${not empty usuario && sessionScope.usuario.idRol != 1 ? 'disabled' : ''}>
-                                    <label for="rolUser">
-                                        <i class="fas fa-user"></i>
-                                        <span>Usuario</span>
-                                        <small style="color: var(--text-muted); font-size: 0.75rem;">Acceso básico</small>
-                                    </label>
-                                </div>
-                            </div>
-                            <c:if test="${not empty usuario && sessionScope.usuario.idRol != 1}">
-                                <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
-                                    <i class="fas fa-info-circle"></i> Solo los administradores pueden cambiar el rol.
-                                </small>
+                        <form method="post" action="${pageContext.request.contextPath}/usuarios">
+                            <input type="hidden" name="action" value="${empty usuario ? 'crear' : 'editar'}">
+                            <c:if test="${not empty usuario}">
+                                <input type="hidden" name="id" value="${usuario.id}">
                             </c:if>
-                        </div>
 
-                        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-                            <a href="${pageContext.request.contextPath}/usuarios" class="btn-cancel">
-                                <i class="fas fa-times"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn-submit">
-                                <i class="fas ${empty usuario ? 'fa-plus' : 'fa-save'}"></i>
-                                ${empty usuario ? 'Crear Usuario' : 'Guardar Cambios'}
-                            </button>
-                        </div>
-                    </form>
+                            <!-- Avatar Preview -->
+                            <div style="text-align: center; margin-bottom: 2rem;">
+                                <c:choose>
+                                    <c:when test="${not empty usuario.fotoPerfil}">
+                                        <img src="${pageContext.request.contextPath}/uploads/${usuario.fotoPerfil}" alt="Avatar" class="avatar-preview" id="avatarPreview">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="avatar-default" id="avatarPreview">
+                                            <c:choose>
+                                                <c:when test="${not empty usuario}">
+                                                    ${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}
+                                                </c:when>
+                                                <c:otherwise>?</c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nombre <span class="required">*</span></label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" name="nombre" class="form-control-custom" 
+                                               value="${usuario.nombre}" required placeholder="Ej: Juan">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Apellido <span class="required">*</span></label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" name="apellido" class="form-control-custom" 
+                                               value="${usuario.apellido}" required placeholder="Ej: Pérez">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Email <span class="required">*</span></label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" name="email" class="form-control-custom" 
+                                               value="${usuario.email}" required placeholder="ejemplo@correo.com">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Documento <span class="required">*</span></label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-id-card"></i>
+                                        <input type="text" name="documento" class="form-control-custom" 
+                                               value="${usuario.documento}" required placeholder="Número de documento">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Nombre de usuario <span class="required">*</span></label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-at"></i>
+                                        <input type="text" name="username" class="form-control-custom" 
+                                               value="${usuario.userName}" required placeholder="@username">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Foto de perfil (URL)</label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-image"></i>
+                                        <input type="text" name="fotoperfil" class="form-control-custom" 
+                                               value="${usuario.fotoPerfil}" placeholder="nombre_archivo.jpg">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <c:if test="${empty usuario}">
+                                <div class="form-group">
+                                    <label class="form-label">Contraseña <span class="required">*</span></label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" name="contrasena" class="form-control-custom" 
+                                               required placeholder="Mínimo 6 caracteres">
+                                    </div>
+                                </div>
+                            </c:if>
+
+                            <!-- Role Selector -->
+                            <div class="form-group">
+                                <label class="form-label">Rol <span class="required">*</span></label>
+                                <div class="role-selector">
+                                    <div class="role-option admin">
+                                        <input type="radio" name="idrol" id="rolAdmin" value="1" 
+                                               ${usuario.idRol == 1 ? 'checked' : ''} ${not empty usuario && sessionScope.usuario.idRol != 1 ? 'disabled' : ''}>
+                                        <label for="rolAdmin">
+                                            <i class="fas fa-shield-alt"></i>
+                                            <span>Administrador</span>
+                                            <small style="color: var(--text-muted); font-size: 0.75rem;">Control total</small>
+                                        </label>
+                                    </div>
+                                    <div class="role-option buyer">
+                                        <input type="radio" name="idrol" id="rolBuyer" value="2" 
+                                               ${usuario.idRol == 2 ? 'checked' : ''} ${not empty usuario && sessionScope.usuario.idRol != 1 ? 'disabled' : ''}>
+                                        <label for="rolBuyer">
+                                            <i class="fas fa-shopping-bag"></i>
+                                            <span>Comprador</span>
+                                            <small style="color: var(--text-muted); font-size: 0.75rem;">Puede comprar</small>
+                                        </label>
+                                    </div>
+                                    <div class="role-option user">
+                                        <input type="radio" name="idrol" id="rolUser" value="3" 
+                                               ${empty usuario || usuario.idRol == 3 ? 'checked' : ''} ${not empty usuario && sessionScope.usuario.idRol != 1 ? 'disabled' : ''}>
+                                        <label for="rolUser">
+                                            <i class="fas fa-user"></i>
+                                            <span>Usuario</span>
+                                            <small style="color: var(--text-muted); font-size: 0.75rem;">Acceso básico</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <c:if test="${not empty usuario && sessionScope.usuario.idRol != 1}">
+                                    <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                                        <i class="fas fa-info-circle"></i> Solo los administradores pueden cambiar el rol.
+                                    </small>
+                                </c:if>
+                            </div>
+
+                            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                                <a href="${pageContext.request.contextPath}/usuarios" class="btn-cancel">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn-submit">
+                                    <i class="fas ${empty usuario ? 'fa-plus' : 'fa-save'}"></i>
+                                    ${empty usuario ? 'Crear Usuario' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-    </script>
-    <%@ include file="/includes/sidebar.jsp" %>
 </body>
 </html>

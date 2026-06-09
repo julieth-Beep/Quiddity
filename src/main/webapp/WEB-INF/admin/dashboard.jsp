@@ -1,24 +1,32 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="java.sql.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    // Página activa para resaltar en el sidebar
     request.setAttribute("activePage", "dashboard");
 
-    // Datos de ejemplo para el dashboard (reemplazar con datos reales de BD)
-    int totalUsuarios = 1248;
-    int nuevosHoy = 23;
-    int totalProductos = 456;
-    int productosBajos = 12;
-    int totalPedidos = 389;
-    double ingresosMes = 28450.75;
-    int citasHoy = 18;
-    int citasPendientes = 7;
+    Map<String, Object> kpis = (Map<String, Object>) request.getAttribute("kpis");
+    List<Map<String, Object>> heatmap = (List<Map<String, Object>>) request.getAttribute("heatmap");
+    List<Map<String, Object>> livefeed = (List<Map<String, Object>>) request.getAttribute("livefeed");
+    List<Map<String, Object>> topProducts = (List<Map<String, Object>>) request.getAttribute("topProducts");
+    List<Map<String, Object>> salesCalendar = (List<Map<String, Object>>) request.getAttribute("salesCalendar");
+    List<Map<String, Object>> categories = (List<Map<String, Object>>) request.getAttribute("categories");
+    Map<String, Object> healthRadar = (Map<String, Object>) request.getAttribute("healthRadar");
+    List<Map<String, Object>> actividadReciente = (List<Map<String, Object>>) request.getAttribute("actividadReciente");
 
-    // Simulación de usuario en sesión
+    int totalUsuarios = kpis != null ? (Integer) kpis.get("totalUsuarios") : 0;
+    int nuevosHoy = kpis != null ? (Integer) kpis.get("nuevosHoy") : 0;
+    int totalProductos = kpis != null ? (Integer) kpis.get("totalProductos") : 0;
+    int productosBajos = kpis != null ? (Integer) kpis.get("productosBajos") : 0;
+    int totalPedidos = kpis != null ? (Integer) kpis.get("totalPedidos") : 0;
+    double ingresosMes = kpis != null ? (Double) kpis.get("ingresosMes") : 0.0;
+    double tendenciaPedidos = kpis != null ? (Double) kpis.get("tendenciaPedidos") : 0.0;
+    double tendenciaIngresos = kpis != null ? (Double) kpis.get("tendenciaIngresos") : 0.0;
+
     Object usuario = session.getAttribute("usuario");
-    String nombreUsuario = "María García";
+    String nombreUsuario = "Administrador";
     String rolUsuario = "admin";
     if (usuario != null) {
         try {
@@ -33,222 +41,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Belleza</title>
-
-    <!-- Google Fonts -->
+    <title>Dashboard — Quiddity</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* ═══════════════════════════════════════════════
-           VARIABLES DEL TEMA
-           ═══════════════════════════════════════════════ */
         :root {
-            --primary: #9a3a5a;
-            --primary-light: rgba(154, 58, 90, 0.08);
-            --primary-medium: rgba(154, 58, 90, 0.15);
-            --secondary: #516617;
-            --tertiary: #88495a;
-            --background: #ffffff;
-            --surface: #ffffff;
-            --on-surface: #1c1b1d;
-            --on-surface-variant: #544246;
-            --outline: #877276;
-            --surface-container-low: #ffffff;
-            --surface-container-lowest: #ffffff;
-            --surface-variant: #f1ecef;
-            --surface-variant-hover: #e8e3e6;
-            --success: #516617;
-            --warning: #c47e00;
-            --error: #b3261e;
-            --element-gap: 24px;
-            --gutter: 32px;
-            --section-gap: 120px;
-            --radius: 0px;
-            --radius-full: 9999px;
+            /* ELEGANTE - Tonos neutros con acentos pastel suaves */
+            --bg: #F8F9FA;
+            --bg-soft: #FFFFFF;
+            --surface: #FFFFFF;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6c757d;
+            --text-tertiary: #adb5bd;
+            --border: #e9ecef;
+            --border-light: #f1f3f5;
+
+            /* Pasteles elegantes y sutiles */
+            --pastel-sky: #e3f2fd;
+            --pastel-sky-dark: #bbdefb;
+            --pastel-mint: #e8f5e9;
+            --pastel-mint-dark: #c8e6c9;
+            --pastel-lavender: #f3e5f5;
+            --pastel-lavender-dark: #e1bee7;
+            --pastel-cream: #fff3e0;
+            --pastel-cream-dark: #ffe0b2;
+            --pastel-coral: #fce4ec;
+            --pastel-coral-dark: #f8bbd0;
+            --pastel-sage: #f1f8e9;
+            --pastel-sage-dark: #dcedc8;
+
+            /* Acentos elegantes */
+            --accent-sky: #1976d2;
+            --accent-mint: #388e3c;
+            --accent-lavender: #7b1fa2;
+            --accent-cream: #f57c00;
+            --accent-coral: #c2185b;
+            --accent-sage: #689f38;
+
+            --success: #388e3c;
+            --warning: #f57c00;
+            --error: #c2185b;
+
+            --radius-sm: 12px;
+            --radius-md: 14px;
+            --radius-lg: 16px;
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Manrope', sans-serif;
-            background: var(--background);
-            color: var(--on-surface);
-            line-height: 1.5;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.4;
             -webkit-font-smoothing: antialiased;
+            font-size: 12px;
+            overflow: hidden;
+            height: 100vh;
         }
 
-        /* ═══════════════════════════════════════════════
-           LAYOUT CON SIDEBAR
-           ═══════════════════════════════════════════════ */
         .layout-wrapper {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* MAIN CONTENT */
         .main-content {
             flex: 1;
-            margin-left: 280px;
-            min-height: 100vh;
-            background: var(--background);
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: max-width 0.3s ease;
         }
 
-        /* ── Toggle móvil ── */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 998;
-            width: 44px;
-            height: 44px;
+        .main-content.sidebar-open {
+            max-width: calc(100% - 320px);
+        }
+
+        .main-content.sidebar-closed {
+            max-width: 100%;
+        }
+
+
+
+        /* RIGHT SIDEBAR */
+        .right-sidebar {
+            width: 320px;
+            min-width: 320px;
             background: var(--surface);
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface);
+            border-left: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: -2px 0 12px rgba(0,0,0,0.04);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+        }
+
+        .right-sidebar.hidden {
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+        }
+
+        .right-sidebar::-webkit-scrollbar { width: 3px; }
+        .right-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .sidebar-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: none;
+            background: var(--pastel-coral);
+            color: var(--accent-coral);
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
         }
 
-        /* ═══════════════════════════════════════════════
-           HEADER DEL DASHBOARD
-           ═══════════════════════════════════════════════ */
-        .dashboard-header {
-            padding: 40px var(--gutter) 0;
-            max-width: 1400px;
-            margin: 0 auto;
+        .sidebar-close:hover {
+            background: var(--pastel-coral-dark);
+            transform: scale(1.1);
         }
 
-        .header-breadcrumb {
+        /* WELCOME - Elegante y sobrio */
+        .welcome-section {
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--outline);
-            letter-spacing: 0.02em;
-            margin-bottom: 16px;
-        }
-
-        .header-breadcrumb .material-symbols-outlined {
-            font-size: 16px;
-        }
-
-        .header-breadcrumb a {
-            color: var(--outline);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .header-breadcrumb a:hover {
-            color: var(--primary);
-        }
-
-        .header-title-row {
-            display: flex;
-            align-items: flex-end;
             justify-content: space-between;
-            gap: var(--element-gap);
-            flex-wrap: wrap;
-            margin-bottom: 40px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
 
-        .header-title h1 {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 48px;
-            font-weight: 400;
-            line-height: 56px;
-            color: var(--on-surface);
-            margin-bottom: 8px;
+        .welcome-content { flex: 1; }
+
+        .welcome-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 3px 0;
+            letter-spacing: -0.3px;
         }
 
-        .header-subtitle {
-            font-size: 16px;
-            color: var(--on-surface-variant);
-            line-height: 24px;
+        .welcome-title span {
+            color: var(--accent-sky);
         }
 
-        .header-actions {
+        .welcome-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .welcome-avatar {
             display: flex;
-            gap: 12px;
+            align-items: center;
+            gap: 10px;
         }
 
-        .btn {
-            display: inline-flex;
+        .avatar-ring {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pastel-sky), var(--pastel-lavender));
+            padding: 2px;
+        }
+
+        .avatar-ring img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        .avatar-info { text-align: right; }
+        .avatar-name { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+        .avatar-role { font-size: 11px; color: var(--text-tertiary); font-weight: 600; }
+
+        /* Toggle Orders Button en Welcome */
+        .welcome-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .toggle-orders-btn {
+            display: flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 24px;
-            font-family: 'Manrope', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            text-decoration: none;
-            border: none;
+            padding: 8px 16px;
+            background: var(--pastel-sky);
+            border: 1px solid var(--pastel-sky-dark);
+            border-radius: var(--radius-md);
             cursor: pointer;
-            transition: all 0.2s;
-            line-height: 20px;
+            transition: all 0.25s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-sky);
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background: #7a2e48;
+        .toggle-orders-btn:hover {
+            background: var(--pastel-sky-dark);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(154, 58, 90, 0.25);
+            box-shadow: var(--shadow);
         }
 
-        .btn-secondary {
-            background: var(--surface-variant);
-            color: var(--on-surface);
-            border: 1px solid var(--outline);
-        }
-
-        .btn-secondary:hover {
-            background: var(--surface-variant-hover);
-        }
-
-        .btn .material-symbols-outlined {
+        .toggle-orders-btn .material-symbols-rounded {
             font-size: 18px;
         }
 
-        /* ═══════════════════════════════════════════════
-           KPI CARDS
-           ═══════════════════════════════════════════════ */
-        .kpi-section {
-            padding: 0 var(--gutter) 48px;
-            max-width: 1400px;
-            margin: 0 auto;
+        .toggle-orders-btn .toggle-icon {
+            transition: transform 0.3s ease;
         }
 
+        .toggle-orders-btn.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .toggle-label {
+            white-space: nowrap;
+        }
+
+        /* KPI GRID - Compacto */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: var(--element-gap);
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
         .kpi-card {
             background: var(--surface);
-            border: 1px solid var(--surface-variant);
-            padding: 28px;
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
         }
 
         .kpi-card:hover {
-            border-color: var(--outline);
-            box-shadow: 0 4px 20px rgba(28, 27, 29, 0.06);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--pastel-sky-dark);
         }
 
         .kpi-card::before {
@@ -256,1461 +344,1010 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--primary);
-            opacity: 0;
-            transition: opacity 0.3s;
+            right: 0;
+            height: 3px;
+            background: var(--pastel-sky-dark);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
         }
 
-        .kpi-card:hover::before {
-            opacity: 1;
-        }
+        .kpi-card.sky::before { background: var(--accent-sky); }
+        .kpi-card.mint::before { background: var(--accent-mint); }
+        .kpi-card.lavender::before { background: var(--accent-lavender); }
+        .kpi-card.cream::before { background: var(--accent-cream); }
 
-        .kpi-card.success::before { background: var(--success); }
-        .kpi-card.warning::before { background: var(--warning); }
-        .kpi-card.info::before { background: var(--tertiary); }
+        .kpi-card:hover::before { transform: scaleX(1); }
 
         .kpi-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
         }
 
         .kpi-label {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            color: var(--outline);
-            line-height: 20px;
+            letter-spacing: 0.06em;
         }
 
         .kpi-icon {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--primary-light);
+            transition: all 0.3s ease;
         }
 
-        .kpi-icon .material-symbols-outlined {
-            font-size: 22px;
-            color: var(--primary);
+        .kpi-card:hover .kpi-icon {
+            transform: scale(1.1);
         }
 
-        .kpi-card.success .kpi-icon { background: rgba(81, 102, 23, 0.08); }
-        .kpi-card.success .kpi-icon .material-symbols-outlined { color: var(--success); }
-        .kpi-card.warning .kpi-icon { background: rgba(196, 126, 0, 0.08); }
-        .kpi-card.warning .kpi-icon .material-symbols-outlined { color: var(--warning); }
-        .kpi-card.info .kpi-icon { background: rgba(136, 73, 90, 0.08); }
-        .kpi-card.info .kpi-icon .material-symbols-outlined { color: var(--tertiary); }
+        .kpi-icon.sky { background: var(--pastel-sky); }
+        .kpi-icon.sky .material-symbols-rounded { color: var(--accent-sky); }
+        .kpi-icon.mint { background: var(--pastel-mint); }
+        .kpi-icon.mint .material-symbols-rounded { color: var(--accent-mint); }
+        .kpi-icon.lavender { background: var(--pastel-lavender); }
+        .kpi-icon.lavender .material-symbols-rounded { color: var(--accent-lavender); }
+        .kpi-icon.cream { background: var(--pastel-cream); }
+        .kpi-icon.cream .material-symbols-rounded { color: var(--accent-cream); }
+
+        .kpi-icon .material-symbols-rounded { font-size: 18px; }
 
         .kpi-value {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 40px;
-            font-weight: 400;
-            line-height: 48px;
-            color: var(--on-surface);
-            margin-bottom: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+            line-height: 1;
         }
 
         .kpi-trend {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .kpi-trend.up {
-            color: var(--success);
-        }
-
-        .kpi-trend.down {
-            color: var(--error);
-        }
-
-        .kpi-trend .material-symbols-outlined {
-            font-size: 16px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           SECCIONES DEL DASHBOARD
-           ═══════════════════════════════════════════════ */
-        .dashboard-section {
-            padding: 0 var(--gutter) 48px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
-
-        .section-title {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 32px;
-            font-weight: 400;
-            line-height: 40px;
-            color: var(--on-surface);
-        }
-
-        .section-link {
-            font-size: 14px;
+            gap: 3px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: gap 0.2s;
+            padding: 3px 8px;
+            border-radius: 12px;
         }
 
-        .section-link:hover {
-            gap: 8px;
-        }
+        .kpi-trend.up { background: var(--pastel-mint); color: var(--accent-mint); }
+        .kpi-trend.down { background: var(--pastel-coral); color: var(--accent-coral); }
+        .kpi-trend .material-symbols-rounded { font-size: 13px; }
 
-        .section-link .material-symbols-outlined {
-            font-size: 18px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           GRID DE CONTENIDO
-           ═══════════════════════════════════════════════ */
-        .content-grid {
+        /* DASHBOARD GRID */
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: var(--element-gap);
-        }
-
-        .content-grid.reverse {
-            grid-template-columns: 1fr 2fr;
-        }
-
-        .content-grid.equal {
             grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
         }
 
-        /* ═══════════════════════════════════════════════
-           CARDS / PANELES
-           ═══════════════════════════════════════════════ */
+        .dashboard-left {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        .dashboard-right {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        /* PANELS */
         .panel {
             background: var(--surface);
-            border: 1px solid var(--surface-variant);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
             overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .panel:hover {
+            box-shadow: var(--shadow);
+            border-color: var(--border);
         }
 
         .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-light);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 24px 28px;
-            border-bottom: 1px solid var(--surface-variant);
+            flex-shrink: 0;
         }
 
-        .panel-title {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 24px;
-            font-weight: 400;
-            line-height: 32px;
-            color: var(--on-surface);
-        }
-
-        .panel-actions {
+        .panel-title-group h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
             display: flex;
+            align-items: center;
             gap: 8px;
         }
 
-        .panel-action-btn {
-            width: 36px;
-            height: 36px;
+        .panel-title-group h3::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            border-radius: 2px;
+            background: var(--accent-sky);
+        }
+
+        .panel-title-group p {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            margin: 2px 0 0 11px;
+        }
+
+        .panel-actions { display: flex; gap: 6px; }
+
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--surface);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: none;
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface-variant);
-            cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            color: var(--text-tertiary);
         }
 
-        .panel-action-btn:hover {
-            background: var(--surface-variant);
-            color: var(--on-surface);
+        .icon-btn:hover {
+            background: var(--pastel-sky);
+            border-color: var(--pastel-sky-dark);
+            color: var(--accent-sky);
+            transform: translateY(-1px);
         }
 
-        .panel-action-btn .material-symbols-outlined {
-            font-size: 18px;
-        }
+        .icon-btn .material-symbols-rounded { font-size: 15px; }
 
         .panel-body {
-            padding: 24px 28px;
+            padding: 12px 16px;
+            flex: 1;
+            overflow: auto;
+            min-height: 0;
         }
 
-        /* ═══════════════════════════════════════════════
-           TABLA DE ACTIVIDAD
-           ═══════════════════════════════════════════════ */
-        .activity-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* HEATMAP - Compacto */
+        .heatmap-container { overflow-x: auto; }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: 28px repeat(24, 1fr);
+            gap: 2px;
+            min-width: 400px;
         }
 
-        .activity-table th {
-            text-align: left;
-            padding: 12px 0;
-            font-size: 11px;
+        .heatmap-label {
+            font-size: 9px;
             font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--outline);
-            border-bottom: 1px solid var(--surface-variant);
-        }
-
-        .activity-table td {
-            padding: 16px 0;
-            font-size: 14px;
-            color: var(--on-surface);
-            border-bottom: 1px solid var(--surface-variant);
-            vertical-align: middle;
-        }
-
-        .activity-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .activity-user {
+            color: var(--text-tertiary);
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: flex-end;
+            padding-right: 6px;
         }
 
-        .activity-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-full);
-            background: var(--surface-variant);
+        .heatmap-hour {
+            font-size: 8px;
+            color: var(--text-tertiary);
+            text-align: center;
+            padding-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            min-height: 14px;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.4);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+
+        .heatmap-cell::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: var(--text-primary);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            white-space: nowrap;
+            border-radius: 6px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.15s ease;
+        }
+
+        .heatmap-cell:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .hc-0 { background: #f1f3f5; }
+        .hc-1 { background: #e3f2fd; }
+        .hc-2 { background: #bbdefb; }
+        .hc-3 { background: #90caf9; }
+        .hc-4 { background: #64b5f6; }
+        .hc-5 { background: #42a5f5; }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            justify-content: center;
+        }
+
+        .heatmap-legend span { font-size: 9px; color: var(--text-tertiary); font-weight: 600; }
+        .legend-box { width: 12px; height: 12px; border-radius: 3px; }
+
+        /* LIVE FEED */
+        .feed-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feed-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg-soft);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .feed-item:hover {
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(2px);
+            border-color: var(--border);
+        }
+
+        .feed-item.alert {
+            border-left-color: var(--accent-coral);
+            background: var(--pastel-coral);
+        }
+
+        .feed-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pastel-lavender), var(--pastel-sky));
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            color: white;
+            font-weight: 700;
+            font-size: 11px;
         }
 
-        .activity-avatar .material-symbols-outlined {
-            font-size: 18px;
-            color: var(--primary);
+        .feed-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
-        .activity-user-info {
-            min-width: 0;
+        .feed-content { flex: 1; min-width: 0; }
+
+        .feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
         }
 
-        .activity-user-name {
-            font-weight: 600;
-            color: var(--on-surface);
+        .feed-name { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+
+        .feed-amount {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-coral);
+        }
+
+        .feed-product {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .activity-user-email {
-            font-size: 12px;
-            color: var(--outline);
-        }
+        .feed-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-        .activity-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+        .status-badge {
+            font-size: 9px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.03em;
+            padding: 2px 8px;
+            border-radius: 10px;
         }
 
-        .badge-success {
-            background: rgba(81, 102, 23, 0.08);
-            color: var(--success);
+        .status-pendiente { background: var(--pastel-cream); color: var(--accent-cream); }
+        .status-confirmado { background: var(--pastel-sky); color: var(--accent-sky); }
+        .status-en_preparacion { background: var(--pastel-lavender); color: var(--accent-lavender); }
+        .status-enviado { background: var(--pastel-sky); color: var(--accent-sky); }
+        .status-entregado { background: var(--pastel-mint); color: var(--accent-mint); }
+        .status-cancelado { background: var(--pastel-coral); color: var(--accent-coral); }
+
+        .feed-time { font-size: 10px; color: var(--text-tertiary); font-weight: 600; }
+
+        .alert-badge {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--accent-coral);
+            background: white;
+            padding: 2px 6px;
+            border-radius: 10px;
         }
 
-        .badge-warning {
-            background: rgba(196, 126, 0, 0.08);
-            color: var(--warning);
-        }
+        /* TOP PRODUCTS */
+        .product-list { display: flex; flex-direction: column; gap: 6px; }
 
-        .badge-info {
-            background: rgba(136, 73, 90, 0.08);
-            color: var(--tertiary);
-        }
-
-        .badge-primary {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        .activity-time {
-            font-size: 13px;
-            color: var(--outline);
-        }
-
-        /* ═══════════════════════════════════════════════
-           LISTA DE TAREAS / CITAS
-           ═══════════════════════════════════════════════ */
-        .task-list {
-            list-style: none;
-        }
-
-        .task-item {
+        .product-item {
             display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--surface-variant);
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: var(--bg-soft);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease;
         }
 
-        .task-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
+        .product-item:hover {
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            transform: translateX(2px);
         }
 
-        .task-item:first-child {
-            padding-top: 0;
-        }
-
-        .task-checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--outline);
-            flex-shrink: 0;
-            margin-top: 2px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .product-rank {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .task-checkbox:hover {
-            border-color: var(--primary);
-        }
-
-        .task-checkbox.checked {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .task-checkbox.checked .material-symbols-outlined {
-            font-size: 14px;
-            color: #ffffff;
-            display: block;
-        }
-
-        .task-checkbox .material-symbols-outlined {
-            display: none;
-        }
-
-        .task-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .task-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--on-surface);
-            margin-bottom: 4px;
-        }
-
-        .task-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 12px;
-            color: var(--outline);
-        }
-
-        .task-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .task-meta .material-symbols-outlined {
-            font-size: 14px;
-        }
-
-        .task-priority {
-            width: 8px;
-            height: 8px;
-            flex-shrink: 0;
-            margin-top: 8px;
-        }
-
-        .priority-high { background: var(--error); }
-        .priority-medium { background: var(--warning); }
-        .priority-low { background: var(--success); }
-
-        /* ═══════════════════════════════════════════════
-           GRÁFICO DE BARRAS (CSS puro)
-           ═══════════════════════════════════════════════ */
-        .chart-container {
-            padding: 20px 0;
-        }
-
-        .chart-bars {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 12px;
-            height: 200px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid var(--surface-variant);
-            position: relative;
-        }
-
-        .chart-bar-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chart-bar {
-            width: 100%;
-            max-width: 48px;
-            background: var(--surface-variant);
-            transition: background 0.3s, height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            position: relative;
-            cursor: pointer;
-        }
-
-        .chart-bar:hover {
-            background: var(--primary);
-        }
-
-        .chart-bar::after {
-            content: attr(data-value);
-            position: absolute;
-            top: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--on-surface);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .chart-bar:hover::after {
-            opacity: 1;
-        }
-
-        .chart-label {
-            font-size: 12px;
-            color: var(--outline);
-            font-weight: 500;
-        }
-
-        .chart-legend {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 20px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--on-surface-variant);
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-        }
-
-        .legend-dot.primary { background: var(--primary); }
-        .legend-dot.secondary { background: var(--secondary); }
-
-        /* ═══════════════════════════════════════════════
-           PRODUCTOS DESTACADOS
-           ═══════════════════════════════════════════════ */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .product-card {
-            border: 1px solid var(--surface-variant);
-            overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .product-card:hover {
-            border-color: var(--outline);
-            box-shadow: 0 4px 16px rgba(28, 27, 29, 0.06);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 160px;
-            background: var(--surface-variant);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .product-image .material-symbols-outlined {
-            font-size: 48px;
-            color: var(--outline);
-        }
-
-        .product-info {
-            padding: 16px 20px 20px;
-        }
-
-        .product-category {
+            font-family: 'DM Sans', sans-serif;
             font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 6px;
+            font-weight: 700;
+            background: white;
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+            border: 1px solid var(--border-light);
         }
+
+        .product-rank.gold { background: #fff8e1; color: #f9a825; border-color: #ffe082; }
+        .product-rank.silver { background: #eceff1; color: #607d8b; border-color: #cfd8dc; }
+        .product-rank.bronze { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
+
+        .product-info { flex: 1; min-width: 0; }
 
         .product-name {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 18px;
-            font-weight: 400;
-            line-height: 24px;
-            color: var(--on-surface);
-            margin-bottom: 8px;
-        }
-
-        .product-price {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--on-surface);
-        }
-
-        .product-stock {
             font-size: 12px;
-            color: var(--outline);
-            margin-top: 4px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        /* ═══════════════════════════════════════════════
-           CALENDARIO MINI
-           ═══════════════════════════════════════════════ */
-        .mini-calendar {
-            width: 100%;
-        }
-
-        .calendar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .calendar-month {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 20px;
-            font-weight: 400;
-            color: var(--on-surface);
-        }
-
-        .calendar-nav {
-            display: flex;
-            gap: 4px;
-        }
-
-        .calendar-nav-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface-variant);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .calendar-nav-btn:hover {
-            background: var(--surface-variant);
-            color: var(--on-surface);
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-        }
-
-        .calendar-day-header {
-            text-align: center;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+        .product-cat {
+            font-size: 9px;
+            color: var(--text-tertiary);
             text-transform: uppercase;
-            color: var(--outline);
-            padding: 8px 0;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--on-surface);
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .calendar-day:hover {
-            background: var(--surface-variant);
-        }
-
-        .calendar-day.today {
-            background: var(--primary);
-            color: #ffffff;
+            letter-spacing: 0.03em;
             font-weight: 600;
         }
 
-        .calendar-day.has-event::after {
-            content: '';
-            position: absolute;
-            bottom: 4px;
-            width: 4px;
-            height: 4px;
-            border-radius: var(--radius-full);
-            background: var(--primary);
-        }
-
-        .calendar-day.today.has-event::after {
-            background: #ffffff;
-        }
-
-        .calendar-day.other-month {
-            color: var(--outline);
-        }
-
-        /* ═══════════════════════════════════════════════
-           NOTIFICACIONES
-           ═══════════════════════════════════════════════ */
-        .notification-list {
-            list-style: none;
-        }
-
-        .notification-item {
+        .sparkline {
             display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--surface-variant);
+            align-items: flex-end;
+            gap: 2px;
+            height: 18px;
+            margin-right: 6px;
         }
 
-        .notification-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
+        .spark-bar { width: 3px; border-radius: 1px; }
+        .sparkline.up .spark-bar { background: var(--pastel-mint-dark); }
+        .sparkline.down .spark-bar { background: var(--pastel-coral-dark); }
+
+        .product-trend { font-size: 11px; font-weight: 700; }
+        .product-trend.up { color: var(--accent-mint); }
+        .product-trend.down { color: var(--accent-coral); }
+
+        .product-sold { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+
+        /* QUICK STATS */
+        .quick-stats { display: flex; flex-direction: column; gap: 8px; }
+
+        .quick-stat {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg-soft);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease;
         }
 
-        .notification-item:first-child {
-            padding-top: 0;
+        .quick-stat:hover {
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-2px);
         }
 
-        .notification-icon {
+        .quick-stat-icon {
             width: 36px;
             height: 36px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
         }
 
-        .notification-icon .material-symbols-outlined {
-            font-size: 20px;
-        }
+        .quick-stat-icon .material-symbols-rounded { font-size: 18px; }
 
-        .notification-icon.primary { background: var(--primary-light); }
-        .notification-icon.primary .material-symbols-outlined { color: var(--primary); }
-        .notification-icon.success { background: rgba(81, 102, 23, 0.08); }
-        .notification-icon.success .material-symbols-outlined { color: var(--success); }
-        .notification-icon.warning { background: rgba(196, 126, 0, 0.08); }
-        .notification-icon.warning .material-symbols-outlined { color: var(--warning); }
+        .quick-stat-info { flex: 1; }
 
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-text {
-            font-size: 14px;
-            color: var(--on-surface);
-            line-height: 20px;
-            margin-bottom: 4px;
-        }
-
-        .notification-text strong {
+        .quick-stat-label {
+            font-size: 10px;
+            color: var(--text-tertiary);
             font-weight: 600;
+            margin-bottom: 2px;
         }
 
-        .notification-time {
+        .quick-stat-value {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        /* DATA TABLE */
+        .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+
+        .data-table th {
+            text-align: left;
+            padding: 6px 0;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            border-bottom: 1.5px solid var(--border-light);
+        }
+
+        .data-table td {
+            padding: 8px 0;
             font-size: 12px;
-            color: var(--outline);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+            vertical-align: middle;
         }
 
-        /* ═══════════════════════════════════════════════
-           FOOTER
-           ═══════════════════════════════════════════════ */
-        .dashboard-footer {
-            padding: 32px var(--gutter);
-            max-width: 1400px;
-            margin: 0 auto;
-            border-top: 1px solid var(--surface-variant);
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tbody tr { transition: all 0.15s ease; }
+        .data-table tbody tr:hover { background: var(--bg-soft); }
+
+        .user-cell { display: flex; align-items: center; gap: 8px; }
+
+        .user-avatar-sm {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pastel-lavender), var(--pastel-sky));
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-            color: var(--outline);
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 11px;
+            flex-shrink: 0;
         }
 
-        .footer-links {
-            display: flex;
-            gap: 24px;
+        .user-avatar-sm img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
-        .footer-links a {
-            color: var(--outline);
-            text-decoration: none;
-            transition: color 0.2s;
+        .user-info { min-width: 0; }
+
+        .user-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .footer-links a:hover {
-            color: var(--primary);
+        .user-email { font-size: 10px; color: var(--text-tertiary); }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 10px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-radius: 10px;
         }
 
-        /* ═══════════════════════════════════════════════
-           ANIMACIONES
-           ═══════════════════════════════════════════════ */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .sp-success { background: var(--pastel-mint); color: var(--accent-mint); }
+        .sp-warning { background: var(--pastel-cream); color: var(--accent-cream); }
+        .sp-info { background: var(--pastel-sky); color: var(--accent-sky); }
+        .sp-primary { background: var(--pastel-lavender); color: var(--accent-lavender); }
+        .sp-error { background: var(--pastel-coral); color: var(--accent-coral); }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .animate-in {
-            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        .anim-fade-up {
+            animation: fadeUp 0.5s ease forwards;
             opacity: 0;
         }
 
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-        .delay-5 { animation-delay: 0.5s; }
+        .delay-1 { animation-delay: 0.04s; }
+        .delay-2 { animation-delay: 0.08s; }
+        .delay-3 { animation-delay: 0.12s; }
+        .delay-4 { animation-delay: 0.16s; }
 
-        /* ═══════════════════════════════════════════════
-           RESPONSIVE
-           ═══════════════════════════════════════════════ */
-        @media (max-width: 1200px) {
-            .kpi-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .content-grid,
-            .content-grid.reverse,
-            .content-grid.equal {
-                grid-template-columns: 1fr;
-            }
-            .product-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .stagger-children > * {
+            opacity: 0;
+            animation: fadeUp 0.4s ease forwards;
         }
 
-        @media (max-width: 1024px) {
-            .main-content {
-                margin-left: 0;
-            }
-            .sidebar-toggle {
-                display: flex;
-            }
+        .stagger-children > *:nth-child(1) { animation-delay: 0.03s; }
+        .stagger-children > *:nth-child(2) { animation-delay: 0.06s; }
+        .stagger-children > *:nth-child(3) { animation-delay: 0.09s; }
+        .stagger-children > *:nth-child(4) { animation-delay: 0.12s; }
+        .stagger-children > *:nth-child(5) { animation-delay: 0.15s; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1280px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .kpi-grid {
-                grid-template-columns: 1fr;
-            }
-            .header-title h1 {
-                font-size: 32px;
-                line-height: 40px;
-            }
-            .header-actions {
-                width: 100%;
-            }
-            .btn {
-                flex: 1;
-                justify-content: center;
-            }
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
-            .dashboard-footer {
-                flex-direction: column;
-                gap: 12px;
-                text-align: center;
-            }
+            .main-content { padding: 12px 16px; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .welcome-section { flex-direction: column; gap: 12px; text-align: center; }
+            .avatar-info { text-align: center; }
+            .right-sidebar { width: 280px; min-width: 280px; }
         }
 
-        @media (max-width: 480px) {
-            .dashboard-header,
-            .kpi-section,
-            .dashboard-section,
-            .dashboard-footer {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     </style>
 </head>
 <body>
+<div class="layout-wrapper">
+<%@ include file="/includes/sidebar.jsp" %>
 
-    <!-- Botón hamburguesa para móvil -->
-    <button type="button" class="sidebar-toggle" onclick="toggleSidebar()">
-        <span class="material-symbols-outlined">menu</span>
-    </button>
-
-    <div class="layout-wrapper">
-        <!-- Sidebar -->
-        <%@ include file="/includes/sidebar.jsp" %>
-
-        <!-- Contenido Principal -->
-        <main class="main-content">
-
-            <!-- ═══════════════════════════════════════════════
-                 HEADER
-                 ═══════════════════════════════════════════════ -->
-            <header class="dashboard-header animate-in">
-                <nav class="header-breadcrumb">
-                    <a href="${pageContext.request.contextPath}/dashboard.jsp">Inicio</a>
-                    <span class="material-symbols-outlined">chevron_right</span>
-                    <span>Dashboard</span>
-                </nav>
-
-                <div class="header-title-row">
-                    <div class="header-title">
-                        <h1>Panel de Control</h1>
-                        <p class="header-subtitle">
-                            Bienvenida de vuelta, <strong><%= nombreUsuario %></strong>. 
-                            Aquí tienes un resumen de la actividad de hoy.
-                        </p>
+    <!-- MAIN CONTENT -->
+    <main class="main-content sidebar-open" id="mainContent">
+        <!-- Welcome Section - Elegante -->
+        <div class="welcome-section anim-fade-up">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Welcome back, <span><%= nombreUsuario %></span>!</h1>
+                <p class="welcome-subtitle">Here's what's happening in your dashboard today.</p>
+            </div>
+            <div class="welcome-actions">
+                <button class="toggle-orders-btn" id="toggleOrdersBtn" onclick="toggleSidebar()">
+                    <span class="material-symbols-rounded">notifications_active</span>
+                    <span class="toggle-label">Live Orders</span>
+                    <span class="material-symbols-rounded toggle-icon" id="toggleIcon">chevron_left</span>
+                </button>
+                <div class="welcome-avatar">
+                    <div class="avatar-info">
+                        <div class="avatar-name"><%= nombreUsuario %></div>
+                        <div class="avatar-role"><%= rolUsuario %></div>
                     </div>
-                    <div class="header-actions">
-                        <a href="${pageContext.request.contextPath}/admin/reportes.jsp" class="btn btn-secondary">
-                            <span class="material-symbols-outlined">download</span>
-                            Exportar
-                        </a>
-                        <a href="${pageContext.request.contextPath}/usuario/caracteristicas.jsp" class="btn btn-primary">
-                            <span class="material-symbols-outlined">add</span>
-                            Nueva Cita
-                        </a>
+                    <div class="avatar-ring">
+                        <img src="https://ui-avatars.com/api/?name=<%= nombreUsuario %>&background=random&color=fff&size=128" alt="<%= nombreUsuario %>">
                     </div>
                 </div>
-            </header>
+            </div>
+        </div>
 
-            <!-- ═══════════════════════════════════════════════
-                 KPI CARDS
-                 ═══════════════════════════════════════════════ -->
-            <section class="kpi-section">
-                <div class="kpi-grid">
-                    <!-- Usuarios -->
-                    <article class="kpi-card animate-in delay-1">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Usuarios</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">group</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalUsuarios) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +<%= nuevosHoy %> hoy
-                        </div>
-                    </article>
-
-                    <!-- Productos -->
-                    <article class="kpi-card success animate-in delay-2">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Productos</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">inventory_2</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalProductos) %></div>
-                        <div class="kpi-trend down">
-                            <span class="material-symbols-outlined">trending_down</span>
-                            <%= productosBajos %> bajo stock
-                        </div>
-                    </article>
-
-                    <!-- Pedidos -->
-                    <article class="kpi-card warning animate-in delay-3">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Pedidos del Mes</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">shopping_bag</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalPedidos) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +12% vs mes pasado
-                        </div>
-                    </article>
-
-                    <!-- Ingresos -->
-                    <article class="kpi-card info animate-in delay-4">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Ingresos</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">payments</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value">$<%= String.format("%,.0f", ingresosMes) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +8.5% vs mes pasado
-                        </div>
-                    </article>
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card sky anim-fade-up delay-1">
+                <div class="kpi-header">
+                    <span class="kpi-label">Total Usuarios</span>
+                    <div class="kpi-icon sky">
+                        <span class="material-symbols-rounded">group</span>
+                    </div>
                 </div>
-            </section>
-
-            <!-- ═══════════════════════════════════════════════
-                 GRID PRINCIPAL: Actividad + Calendario
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid">
-                    <!-- Panel de Actividad Reciente -->
-                    <article class="panel animate-in delay-2">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Actividad Reciente</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Filtrar">
-                                    <span class="material-symbols-outlined">filter_list</span>
-                                </button>
-                                <button class="panel-action-btn" title="Ver todo">
-                                    <span class="material-symbols-outlined">open_in_new</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <table class="activity-table">
-                                <thead>
-                                    <tr>
-                                        <th>Usuario</th>
-                                        <th>Acción</th>
-                                        <th>Estado</th>
-                                        <th>Hora</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Laura Mendoza</div>
-                                                    <div class="activity-user-email">laura@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Nueva cita agendada</td>
-                                        <td><span class="activity-badge badge-success">Completado</span></td>
-                                        <td class="activity-time">Hace 10 min</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Carlos Ruiz</div>
-                                                    <div class="activity-user-email">carlos@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Compra de productos</td>
-                                        <td><span class="activity-badge badge-primary">En proceso</span></td>
-                                        <td class="activity-time">Hace 25 min</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Ana Torres</div>
-                                                    <div class="activity-user-email">ana@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Registro de características</td>
-                                        <td><span class="activity-badge badge-info">Nuevo</span></td>
-                                        <td class="activity-time">Hace 1 hora</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Pedro Gómez</div>
-                                                    <div class="activity-user-email">pedro@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Face Scan realizado</td>
-                                        <td><span class="activity-badge badge-success">Completado</span></td>
-                                        <td class="activity-time">Hace 2 horas</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Diana Flores</div>
-                                                    <div class="activity-user-email">diana@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Estado de ánimo registrado</td>
-                                        <td><span class="activity-badge badge-warning">Pendiente</span></td>
-                                        <td class="activity-time">Hace 3 horas</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Calendario -->
-                    <article class="panel animate-in delay-3">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Calendario</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Agregar evento">
-                                    <span class="material-symbols-outlined">add</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="mini-calendar">
-                                <div class="calendar-header">
-                                    <span class="calendar-month">Junio 2026</span>
-                                    <div class="calendar-nav">
-                                        <button class="calendar-nav-btn">
-                                            <span class="material-symbols-outlined">chevron_left</span>
-                                        </button>
-                                        <button class="calendar-nav-btn">
-                                            <span class="material-symbols-outlined">chevron_right</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="calendar-grid">
-                                    <div class="calendar-day-header">Dom</div>
-                                    <div class="calendar-day-header">Lun</div>
-                                    <div class="calendar-day-header">Mar</div>
-                                    <div class="calendar-day-header">Mié</div>
-                                    <div class="calendar-day-header">Jue</div>
-                                    <div class="calendar-day-header">Vie</div>
-                                    <div class="calendar-day-header">Sáb</div>
-
-                                    <div class="calendar-day other-month">31</div>
-                                    <div class="calendar-day">1</div>
-                                    <div class="calendar-day">2</div>
-                                    <div class="calendar-day has-event">3</div>
-                                    <div class="calendar-day">4</div>
-                                    <div class="calendar-day has-event">5</div>
-                                    <div class="calendar-day">6</div>
-                                    <div class="calendar-day">7</div>
-                                    <div class="calendar-day has-event">8</div>
-                                    <div class="calendar-day">9</div>
-                                    <div class="calendar-day">10</div>
-                                    <div class="calendar-day has-event">11</div>
-                                    <div class="calendar-day">12</div>
-                                    <div class="calendar-day">13</div>
-                                    <div class="calendar-day">14</div>
-                                    <div class="calendar-day has-event">15</div>
-                                    <div class="calendar-day">16</div>
-                                    <div class="calendar-day">17</div>
-                                    <div class="calendar-day has-event">18</div>
-                                    <div class="calendar-day">19</div>
-                                    <div class="calendar-day">20</div>
-                                    <div class="calendar-day">21</div>
-                                    <div class="calendar-day has-event">22</div>
-                                    <div class="calendar-day">23</div>
-                                    <div class="calendar-day">24</div>
-                                    <div class="calendar-day">25</div>
-                                    <div class="calendar-day has-event">26</div>
-                                    <div class="calendar-day">27</div>
-                                    <div class="calendar-day">28</div>
-                                    <div class="calendar-day">29</div>
-                                    <div class="calendar-day has-event">30</div>
-                                    <div class="calendar-day today has-event">2</div>
-                                    <div class="calendar-day other-month">3</div>
-                                    <div class="calendar-day other-month">4</div>
-                                    <div class="calendar-day other-month">5</div>
-                                    <div class="calendar-day other-month">6</div>
-                                </div>
-                            </div>
-
-                            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--surface-variant);">
-                                <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--outline); margin-bottom: 12px;">
-                                    Próximas Citas
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-variant);">
-                                        <div style="width: 40px; height: 40px; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600;">10:00</div>
-                                        <div>
-                                            <div style="font-weight: 600; font-size: 14px;">Facial Hidratante</div>
-                                            <div style="font-size: 12px; color: var(--outline);">Laura Mendoza</div>
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-variant);">
-                                        <div style="width: 40px; height: 40px; background: var(--tertiary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600;">14:30</div>
-                                        <div>
-                                            <div style="font-weight: 600; font-size: 14px;">Masaje Relajante</div>
-                                            <div style="font-size: 12px; color: var(--outline);">Carlos Ruiz</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
+                <div class="kpi-value"><%= String.format("%,d", totalUsuarios) %></div>
+                <div class="kpi-trend up">
+                    <span class="material-symbols-rounded">trending_up</span>
+                    +<%= nuevosHoy %> hoy
                 </div>
-            </section>
+            </div>
 
-            <!-- ═══════════════════════════════════════════════
-                 GRID: Gráfico + Tareas
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid reverse">
-                    <!-- Panel de Gráfico -->
-                    <article class="panel animate-in delay-3">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Ingresos Semanales</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Descargar">
-                                    <span class="material-symbols-outlined">download</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="chart-container">
-                                <div class="chart-bars">
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 45%;" data-value="$3,240"></div>
-                                        <span class="chart-label">Lun</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 62%;" data-value="$4,560"></div>
-                                        <span class="chart-label">Mar</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 38%;" data-value="$2,890"></div>
-                                        <span class="chart-label">Mié</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 75%;" data-value="$5,670"></div>
-                                        <span class="chart-label">Jue</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 55%;" data-value="$4,120"></div>
-                                        <span class="chart-label">Vie</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 88%;" data-value="$6,890"></div>
-                                        <span class="chart-label">Sáb</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 30%;" data-value="$2,100"></div>
-                                        <span class="chart-label">Dom</span>
-                                    </div>
-                                </div>
-                                <div class="chart-legend">
-                                    <div class="legend-item">
-                                        <div class="legend-dot primary"></div>
-                                        <span>Ingresos</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-dot secondary"></div>
-                                        <span>Meta</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Tareas -->
-                    <article class="panel animate-in delay-4">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Tareas Pendientes</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Nueva tarea">
-                                    <span class="material-symbols-outlined">add</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <ul class="task-list">
-                                <li class="task-item">
-                                    <div class="task-priority priority-high"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Revisar inventario de productos</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Hoy, 16:00</span>
-                                            <span><span class="material-symbols-outlined">inventory_2</span> Stock</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-medium"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Confirmar citas de mañana</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Hoy, 18:00</span>
-                                            <span><span class="material-symbols-outlined">event</span> Citas</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-low"></div>
-                                    <div class="task-checkbox checked" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title" style="text-decoration: line-through; color: var(--outline);">Actualizar catálogo de servicios</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Ayer</span>
-                                            <span><span class="material-symbols-outlined">check_circle</span> Completado</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-high"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Preparar reporte mensual</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Mañana, 09:00</span>
-                                            <span><span class="material-symbols-outlined">description</span> Reportes</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-medium"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Revisar feedback de clientes</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Viernes</span>
-                                            <span><span class="material-symbols-outlined">reviews</span> Clientes</span>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </article>
+            <div class="kpi-card mint anim-fade-up delay-2">
+                <div class="kpi-header">
+                    <span class="kpi-label">Productos</span>
+                    <div class="kpi-icon mint">
+                        <span class="material-symbols-rounded">inventory_2</span>
+                    </div>
                 </div>
-            </section>
+                <div class="kpi-value"><%= String.format("%,d", totalProductos) %></div>
+                <div class="kpi-trend <%= productosBajos > 0 ? "down" : "up" %>">
+                    <span class="material-symbols-rounded"><%= productosBajos > 0 ? "trending_down" : "trending_up" %></span>
+                    <%= productosBajos %> bajo stock
+                </div>
+            </div>
 
-            <!-- ═══════════════════════════════════════════════
-                 GRID: Productos + Notificaciones
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid equal">
-                    <!-- Panel de Productos Destacados -->
-                    <article class="panel animate-in delay-4">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Productos Destacados</h2>
-                            <a href="${pageContext.request.contextPath}/catalogo/index.jsp" class="section-link">
-                                Ver catálogo <span class="material-symbols-outlined">arrow_forward</span>
-                            </a>
+            <div class="kpi-card lavender anim-fade-up delay-3">
+                <div class="kpi-header">
+                    <span class="kpi-label">Pedidos del Mes</span>
+                    <div class="kpi-icon lavender">
+                        <span class="material-symbols-rounded">shopping_bag</span>
+                    </div>
+                </div>
+                <div class="kpi-value"><%= String.format("%,d", totalPedidos) %></div>
+                <div class="kpi-trend <%= tendenciaPedidos >= 0 ? "up" : "down" %>">
+                    <span class="material-symbols-rounded"><%= tendenciaPedidos >= 0 ? "trending_up" : "trending_down" %></span>
+                    <%= String.format("%.1f", Math.abs(tendenciaPedidos)) %>%
+                </div>
+            </div>
+
+            <div class="kpi-card cream anim-fade-up delay-4">
+                <div class="kpi-header">
+                    <span class="kpi-label">Ingresos</span>
+                    <div class="kpi-icon cream">
+                        <span class="material-symbols-rounded">payments</span>
+                    </div>
+                </div>
+                <div class="kpi-value">$<%= String.format("%,.0f", ingresosMes) %></div>
+                <div class="kpi-trend <%= tendenciaIngresos >= 0 ? "up" : "down" %>">
+                    <span class="material-symbols-rounded"><%= tendenciaIngresos >= 0 ? "trending_up" : "trending_down" %></span>
+                    <%= String.format("%.1f", Math.abs(tendenciaIngresos)) %>%
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div class="dashboard-left">
+                <!-- Heatmap Compacto -->
+                <div class="panel anim-fade-up delay-2">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Activity Heatmap</h3>
+                            <p>Traffic last 7 days</p>
                         </div>
-                        <div class="panel-body">
-                            <div class="product-grid">
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">spa</span>
-                                    </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Cuidado Facial</div>
-                                        <div class="product-name">Serum Hidratante</div>
-                                        <div class="product-price">$45.00</div>
-                                        <div class="product-stock">Stock: 24 unidades</div>
-                                    </div>
+                        <div class="panel-actions">
+                            <button class="icon-btn"><span class="material-symbols-rounded">filter_list</span></button>
+                            <button class="icon-btn"><span class="material-symbols-rounded">more_vert</span></button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="heatmap-container">
+                            <div class="heatmap-grid">
+                                <div></div>
+                                <% for (int h = 0; h < 24; h += 3) { %><div class="heatmap-hour" style="grid-column:<%= h + 2 %>"><%= h %>h</div><% } %>
+                                <% String[] dias = {"Dom","Lun","Mar","Mié","Jue","Vie","Sáb"};
+                                int[][] matriz = new int[7][24]; int heatMax = 1;
+                                if (heatmap != null) { for (Map<String, Object> f : heatmap) { int d = (Integer)f.get("dia"); int h = (Integer)f.get("hora"); int t = (Integer)f.get("total"); if (d>=0&&d<7&&h>=0&&h<24){matriz[d][h]+=t; if(matriz[d][h]>heatMax)heatMax=matriz[d][h];} } }
+                                for (int d = 0; d < 7; d++) { %>
+                                    <div class="heatmap-label"><%= dias[d] %></div>
+                                    <% for (int h = 0; h < 24; h++) { int v = matriz[d][h]; int inten = v==0?0:Math.min(5,(int)Math.ceil((double)v/heatMax*5)); %>
+                                        <div class="heatmap-cell hc-<%= inten %>" data-tip="<%= dias[d] %> <%= h %>:00 — <%= v %> actividades"></div>
+                                    <% } %>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="heatmap-legend">
+                            <span>Less</span>
+                            <% for (int i=0;i<=5;i++){%><div class="legend-box hc-<%= i %>"></div><%}%>
+                            <span>More</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Table -->
+                <div class="panel anim-fade-up delay-3">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Recent Activity</h3>
+                            <p>Latest movements</p>
+                        </div>
+                        <div class="panel-actions">
+                            <button class="icon-btn"><span class="material-symbols-rounded">filter_list</span></button>
+                            <button class="icon-btn"><span class="material-symbols-rounded">open_in_new</span></button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody class="stagger-children">
+                                <% if (actividadReciente != null && !actividadReciente.isEmpty()) { for (Map<String, Object> act : actividadReciente) { String avatar=(String)act.get("avatar"); String estado=(String)act.get("estado"); String bc="sp-info"; if("completado".equalsIgnoreCase(estado)||"entregado".equalsIgnoreCase(estado))bc="sp-success"; else if("pendiente".equalsIgnoreCase(estado))bc="sp-warning"; else if("cancelado".equalsIgnoreCase(estado))bc="sp-primary"; %>
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="user-avatar-sm">
+                                                <% if(avatar!=null&&!avatar.isEmpty()){%><img src="<%= avatar %>" alt=""><%}else{%><span><%= ((String)act.get("usuario")).substring(0,1).toUpperCase() %></span><%}%>
+                                            </div>
+                                            <div class="user-info">
+                                                <div class="user-name"><%= act.get("usuario") %></div>
+                                                <div class="user-email"><%= act.get("email") %></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><%= act.get("accion") %></td>
+                                    <td><span class="status-pill <%= bc %>"><%= estado %></span></td>
+                                    <td style="color:var(--text-tertiary);font-weight:600;font-size:10px;"><%= act.get("tiempo") %></td>
+                                </tr>
+                                <% }} else { %><tr><td colspan="4" style="text-align:center;color:var(--text-tertiary);padding:20px;font-size:11px;">No recent activity</td></tr><% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="dashboard-right">
+                <!-- Top Products -->
+                <div class="panel anim-fade-up delay-2">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Top Products</h3>
+                            <p>Best sellers this week</p>
+                        </div>
+                        <div class="panel-actions">
+                            <button class="icon-btn"><span class="material-symbols-rounded">trending_up</span></button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="product-list stagger-children">
+                            <% if (topProducts != null && !topProducts.isEmpty()) { int rk = 1; for (Map<String, Object> prod : topProducts) { List<Integer> tend = (List<Integer>)prod.get("tendencia"); String dir = (String)prod.get("tendenciaDireccion"); int maxT = 1; if (tend!=null) for (Integer v:tend) if (v>maxT) maxT=v; String rankClass = rk==1?"gold":(rk==2?"silver":(rk==3?"bronze":"")); %>
+                            <div class="product-item">
+                                <div class="product-rank <%= rankClass %>"><%= rk %></div>
+                                <div class="product-info">
+                                    <div class="product-name"><%= prod.get("nombre") %></div>
+                                    <div class="product-cat"><%= prod.get("categoria")!=null?prod.get("categoria"):"Category" %></div>
                                 </div>
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">face</span>
-                                    </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Maquillaje</div>
-                                        <div class="product-name">Base Líquida Premium</div>
-                                        <div class="product-price">$38.50</div>
-                                        <div class="product-stock">Stock: 18 unidades</div>
-                                    </div>
+                                <div class="sparkline <%= dir %>">
+                                    <% if (tend!=null){for(Integer v:tend){int h=maxT>0?(int)((double)v/maxT*16)+2:2;%>
+                                        <div class="spark-bar" style="height:<%= h %>px;"></div>
+                                    <%}}%>
                                 </div>
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">self_care</span>
-                                    </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Corporal</div>
-                                        <div class="product-name">Aceite Esencial</div>
-                                        <div class="product-price">$28.00</div>
-                                        <div class="product-stock">Stock: 32 unidades</div>
-                                    </div>
+                                <span class="product-trend <%= dir %>">
+                                    <span class="material-symbols-rounded" style="font-size:13px;"><%= "up".equals(dir)?"trending_up":"trending_down" %></span>
+                                </span>
+                                <span class="product-sold"><%= prod.get("totalVendido") %></span>
+                            </div>
+                            <% rk++; }} else { %><div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:11px;">No sales data</div><% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="panel anim-fade-up delay-3">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Quick Stats</h3>
+                            <p>Key metrics</p>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="quick-stats stagger-children">
+                            <div class="quick-stat">
+                                <div class="quick-stat-icon" style="background:var(--pastel-sky);">
+                                    <span class="material-symbols-rounded" style="color:var(--accent-sky);">trending_up</span>
+                                </div>
+                                <div class="quick-stat-info">
+                                    <div class="quick-stat-label">Sales Today</div>
+                                    <div class="quick-stat-value">$<%= String.format("%,.0f", ingresosMes/30) %></div>
+                                </div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="quick-stat-icon" style="background:var(--pastel-mint);">
+                                    <span class="material-symbols-rounded" style="color:var(--accent-mint);">group</span>
+                                </div>
+                                <div class="quick-stat-info">
+                                    <div class="quick-stat-label">New Users</div>
+                                    <div class="quick-stat-value">+<%= nuevosHoy %> today</div>
+                                </div>
+                            </div>
+                            <div class="quick-stat">
+                                <div class="quick-stat-icon" style="background:var(--pastel-cream);">
+                                    <span class="material-symbols-rounded" style="color:var(--accent-cream);">inventory_2</span>
+                                </div>
+                                <div class="quick-stat-info">
+                                    <div class="quick-stat-label">Low Stock</div>
+                                    <div class="quick-stat-value"><%= productosBajos %> products</div>
                                 </div>
                             </div>
                         </div>
-                    </article>
-
-                    <!-- Panel de Notificaciones -->
-                    <article class="panel animate-in delay-5">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Notificaciones</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Marcar todo como leído">
-                                    <span class="material-symbols-outlined">done_all</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <ul class="notification-list">
-                                <li class="notification-item">
-                                    <div class="notification-icon primary">
-                                        <span class="material-symbols-outlined">person_add</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            <strong>Nuevo usuario</strong> registrado: Sofía Herrera
-                                        </div>
-                                        <div class="notification-time">Hace 15 minutos</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon success">
-                                        <span class="material-symbols-outlined">check_circle</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Pedido <strong>#2847</strong> completado exitosamente
-                                        </div>
-                                        <div class="notification-time">Hace 45 minutos</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon warning">
-                                        <span class="material-symbols-outlined">warning</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Stock bajo: <strong>Crema Anti-edad</strong> (5 unidades)
-                                        </div>
-                                        <div class="notification-time">Hace 2 horas</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon primary">
-                                        <span class="material-symbols-outlined">event</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            <strong>3 citas</strong> confirmadas para mañana
-                                        </div>
-                                        <div class="notification-time">Hace 3 horas</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon success">
-                                        <span class="material-symbols-outlined">trending_up</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Ingresos del día superaron la meta en <strong>12%</strong>
-                                        </div>
-                                        <div class="notification-time">Hace 5 horas</div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </article>
+                    </div>
                 </div>
-            </section>
+            </div>
+        </div>
+    </main>
 
-            <!-- ═══════════════════════════════════════════════
-                 FOOTER
-                 ═══════════════════════════════════════════════ -->
-            <footer class="dashboard-footer">
-                <span> 2026 Belleza. Todos los derechos reservados.</span>
-                <div class="footer-links">
-                    <a href="#">Ayuda</a>
-                    <a href="#">Privacidad</a>
-                    <a href="#">Términos</a>
+    <!-- RIGHT SIDEBAR FIJO - Toggleable -->
+    <aside class="right-sidebar" id="rightSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">
+                <span class="material-symbols-rounded" style="color:var(--accent-sky);font-size:20px;">notifications_active</span>
+                Live Orders
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">
+                <span class="material-symbols-rounded" style="font-size:16px;">close</span>
+            </button>
+        </div>
+
+        <div class="feed-list stagger-children">
+            <% if (livefeed != null && !livefeed.isEmpty()) { for (Map<String, Object> p : livefeed) { boolean alerta = p.get("alerta")!=null?(Boolean)p.get("alerta"):false; String av=(String)p.get("usuarioAvatar"); %>
+            <div class="feed-item <%= alerta?"alert":"" %>">
+                <div class="feed-avatar">
+                    <% if (av!=null&&!av.isEmpty()){%><img src="<%= av %>" alt=""><%}else{%><span><%= ((String)p.get("usuarioNombre")).substring(0,1).toUpperCase() %></span><%}%>
                 </div>
-            </footer>
+                <div class="feed-content">
+                    <div class="feed-header">
+                        <span class="feed-name"><%= p.get("usuarioNombre") %></span>
+                        <span class="feed-amount">$<%= String.format("%,.0f",(Double)p.get("total")) %></span>
+                    </div>
+                    <div class="feed-product"><%= p.get("productoPrincipal")!=null?p.get("productoPrincipal"):"Producto" %></div>
+                    <div class="feed-meta">
+                        <span class="status-badge status-<%= ((String)p.get("estado")).toLowerCase() %>"><%= p.get("estado") %></span>
+                        <span class="feed-time"><%= p.get("tiempoLegible") %></span>
+                        <% if (alerta) {%><span class="alert-badge">+2h</span><%}%>
+                    </div>
+                </div>
+            </div>
+            <% }} else { %><div style="text-align:center;padding:30px 16px;color:var(--text-tertiary);font-size:12px;background:var(--bg-soft);border-radius:12px;border:1px dashed var(--border);">
+                <span class="material-symbols-rounded" style="font-size:32px;color:var(--text-tertiary);margin-bottom:8px;display:block;">inbox</span>
+                No recent orders
+            </div><% } %>
+        </div>
+        
+    </aside>
 
-        </main>
-    </div>
 
+</div>
     <script>
-        // Animación de entrada para las barras del gráfico
+        let sidebarOpen = true;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('rightSidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const ordersBtn = document.getElementById('toggleOrdersBtn');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            sidebarOpen = !sidebarOpen;
+
+            if (sidebarOpen) {
+                sidebar.classList.remove('hidden');
+                mainContent.classList.remove('sidebar-closed');
+                mainContent.classList.add('sidebar-open');
+                if (toggleBtn) toggleBtn.classList.add('active');
+                if (toggleBtn) toggleBtn.querySelector('.material-symbols-rounded').textContent = 'chevron_left';
+                if (ordersBtn) ordersBtn.classList.add('active');
+                if (toggleIcon) toggleIcon.textContent = 'chevron_left';
+            } else {
+                sidebar.classList.add('hidden');
+                mainContent.classList.remove('sidebar-open');
+                mainContent.classList.add('sidebar-closed');
+                if (toggleBtn) toggleBtn.classList.remove('active');
+                if (toggleBtn) toggleBtn.querySelector('.material-symbols-rounded').textContent = 'chevron_right';
+                if (ordersBtn) ordersBtn.classList.remove('active');
+                if (toggleIcon) toggleIcon.textContent = 'chevron_right';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            const bars = document.querySelectorAll('.chart-bar');
-            bars.forEach((bar, index) => {
-                const finalHeight = bar.style.height;
-                bar.style.height = '0%';
-                setTimeout(() => {
-                    bar.style.height = finalHeight;
-                }, 600 + (index * 100));
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -20px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.anim-fade-up').forEach(el => {
+                observer.observe(el);
+            });
+
+            const kpiValues = document.querySelectorAll('.kpi-value');
+            kpiValues.forEach(el => {
+                const finalValue = el.textContent;
+                const isMoney = finalValue.includes('$');
+                const numericValue = parseFloat(finalValue.replace(/[^0-9.]/g, ''));
+
+                if (!isNaN(numericValue)) {
+                    let current = 0;
+                    const increment = numericValue / 40;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= numericValue) {
+                            current = numericValue;
+                            clearInterval(timer);
+                        }
+                        if (isMoney) {
+                            el.textContent = '$' + Math.floor(current).toLocaleString();
+                        } else {
+                            el.textContent = Math.floor(current).toLocaleString();
+                        }
+                    }, 25);
+                }
             });
         });
     </script>
-<%@ include file="/includes/sidebar.jsp" %>
 </body>
 </html>

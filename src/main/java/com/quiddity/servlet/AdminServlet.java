@@ -18,13 +18,11 @@ import com.quiddity.model.Usuario;
  *
  * Rutas:
  *   GET  /admin/dashboard  → panel principal del admin
- *   GET  /admin/usuarios   → listado de todos los usuarios (por rol opcional)
  *   GET  /admin/reportes   → vista de reportes
  *
  * NOTA: el control de acceso (solo ROL_ADMIN) ya lo aplica AuthFilter.
- *       Este servlet añade una segunda verificación como defensa en profundidad.
  */
-@WebServlet(urlPatterns = {"/admin/dashboard", "/admin/usuarios", "/admin/reportes"})
+@WebServlet(urlPatterns = {"/admin/usuarios", "/admin/reportes"})
 public class AdminServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -46,9 +44,7 @@ public class AdminServlet extends HttpServlet {
         String uri  = req.getRequestURI();
         String base = req.getContextPath();
 
-        if (uri.endsWith("/admin/dashboard")) {
-            mostrarDashboard(req, resp);
-        } else if (uri.endsWith("/admin/usuarios")) {
+        if (uri.endsWith("/admin/usuarios")) {
             listarUsuarios(req, resp);
         } else if (uri.endsWith("/admin/reportes")) {
             mostrarReportes(req, resp);
@@ -60,22 +56,6 @@ public class AdminServlet extends HttpServlet {
     // ─────────────────────────────────────────────
     // VISTAS
     // ─────────────────────────────────────────────
-
-    /** Dashboard principal: resumen de usuarios por rol. */
-    private void mostrarDashboard(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
-        List<Usuario> todosUsuarios  = usuarioDAO.listarTodos();
-        List<Usuario> usuarios       = usuarioDAO.listarPorRol(UsuarioDAO.ROL_USUARIO);
-        List<Usuario> compradores    = usuarioDAO.listarPorRol(UsuarioDAO.ROL_COMPRADOR);
-
-        req.setAttribute("totalUsuarios",   todosUsuarios.size());
-        req.setAttribute("totalClientes",   usuarios.size());
-        req.setAttribute("totalCompradores",compradores.size());
-        req.setAttribute("ultimosUsuarios", todosUsuarios.subList(0, Math.min(5, todosUsuarios.size())));
-
-        req.getRequestDispatcher("/WEB-INF/admin/dashboard.jsp").forward(req, resp);
-    }
 
     /** Listado de usuarios — puede filtrar por ?rol=1|2|3. */
     private void listarUsuarios(HttpServletRequest req, HttpServletResponse resp)

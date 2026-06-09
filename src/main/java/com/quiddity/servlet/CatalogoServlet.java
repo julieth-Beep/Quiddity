@@ -4,10 +4,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
@@ -20,105 +24,262 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
 import com.quiddity.dao.CatalogoDAO;
+import com.quiddity.dao.CatalogoEstadisticasDAO;
+import com.quiddity.dao.PedidoDAO;
 import com.quiddity.model.Catalogo;
+import com.quiddity.model.Pedido;
 import com.quiddity.model.Usuario;
 
 /**
- * CatalogoServlet - GET /catalogo → muestra el catálogo (ROL_USUARIO=3 y
- * ROL_COMPRADOR=2) - GET /admin/catalogo → panel de administración
- * (ROL_ADMIN=1) - POST /admin/catalogo → acciones: agregar, actualizar,
- * eliminar (solo admin)
+ * CatalogoServlet
+ *
+ * GET /catalogo → catálogo para compradores/usuarios
+ * GET /admin/catalogo → panel de productos (admin)
+ * POST /admin/catalogo → acciones: agregar, actualizar, eliminar, stock,
+ * toggleActivo
+ * GET /admin/pedidos → panel de pedidos (admin)
+ * POST /admin/pedidos → acción: avanzarEstado
+ * GET /admin/pedidos/detalle → detalle de un pedido (admin)
+ * GET /admin/estadisticas → panel de estadísticas (admin)
  */
-@WebServlet(urlPatterns = {"/catalogo", "/admin/catalogo"})
-@MultipartConfig(
-        fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-        maxFileSize = 1024 * 1024 * 10, // 10MB
-        maxRequestSize = 1024 * 1024 * 50 // 50MB
+@WebServlet(urlPatterns = {
+        "/catalogo",
+        "/admin/catalogo",
+        "/admin/pedidos",
+        "/admin/pedidos/detalle",
+        "/admin/estadisticas",
+        "/uploads/catalogo/*"
+})
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2 MB
+        maxFileSize = 1024 * 1024 * 10, // 10 MB
+        maxRequestSize = 1024 * 1024 * 50 // 50 MB
 )
 public class CatalogoServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
+
     private static final int ROL_ADMIN = 1;
     private static final int ROL_COMPRADOR = 2;
     private static final int ROL_USUARIO = 3;
 
+    // Directorio raíz para imágenes de catálogo. Las imágenes se guardan en
+    // uploads/catalogo/<categoria>/<uuid>_<filename>
+    private static final String UPLOAD_ROOT = "uploads/catalogo";
+
     private final CatalogoDAO catalogoDAO = new CatalogoDAO();
+    private final CatalogoEstadisticasDAO estadisticasDAO = new CatalogoEstadisticasDAO();
+    private final PedidoDAO pedidoDAO = new PedidoDAO();
 
-    // Directorio donde se guardarán las imágenes
-    private static final String UPLOAD_DIR = "uploads/catalogo";
-
-    // ── GET ──────────────────────────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════════════════
+    // GET
+    // ═════════════════════════════════════════════════════════════════════════
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         String uri = req.getRequestURI();
-        String contextPath = req.getContextPath();
 
-        // ── GET /admin/catalogo ───────────────────────────────────────
+        if (uri.startsWith(req.getContextPath() + "/uploads/catalogo/")) {
+            servirImagen(req, resp);
+            return;
+        }
         if (uri.endsWith("/admin/catalogo")) {
-            Usuario admin = verificarAdmin(req, resp);
-            if (admin == null) {
-                return;
+            adminCatalogoGet(req, resp);
+        } else if (uri.endsWith("/admin/pedidos/detalle")) {
+            adminPedidoDetalleGet(req, resp);
+        } else if (uri.endsWith("/admin/pedidos")) {
+            adminPedidosGet(req, resp);
+        } else if (uri.endsWith("/admin/estadisticas")) {
+            adminEstadisticasGet(req, resp);
+        } else {
+            // /catalogo — vista pública para compradores y usuarios
+            catalogoUsuarioGet(req, resp);
+        }
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // POST
+    // ═════════════════════════════════════════════════════════════════════════
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        req.setCharacterEncoding("UTF-8");
+        String uri = req.getRequestURI();
+
+        if (uri.endsWith("/admin/catalogo")) {
+            adminCatalogoPost(req, resp);
+        } else if (uri.contains("/admin/pedidos")) {
+            adminPedidosPost(req, resp);
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/admin/catalogo");
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /catalogo — vista comprador/usuario
+    // ─────────────────────────────────────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════════════════
+    // SERVIR IMÁGENES
+    // ═════════════════════════════════════════════════════════════════════════
+    private void servirImagen(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        // Obtener la ruta relativa después de /uploads/catalogo/
+        String relativePath = req.getPathInfo(); // ej: /belleza/uuid_file.jpg
+
+        if (relativePath == null || relativePath.isEmpty()) {
+            resp.sendError(404);
+            return;
+        }
+
+        // Construir ruta física
+        String basePath = getServletContext().getRealPath("") + File.separator + UPLOAD_ROOT;
+        Path filePath = Paths.get(basePath, relativePath);
+
+        // Verificar que el archivo existe y servirlo
+        if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+            String contentType = getServletContext().getMimeType(filePath.toString());
+            if (contentType == null) {
+                contentType = "application/octet-stream";
             }
 
-            // Listar todos los productos para el panel admin
-            List<Catalogo> productos = catalogoDAO.listarTodos();
-            req.setAttribute("productos", productos);
-            req.getRequestDispatcher("/admin/catalogo-admin.jsp").forward(req, resp);
-            return;
-        }
+            resp.setContentType(contentType);
+            resp.setContentLengthLong(Files.size(filePath));
 
-        // ── GET /catalogo (para compradores/usuarios) ───────────────
-        Usuario usuario = usuarioAutenticado(req, resp);
+            // Copiar archivo al response
+            try (InputStream input = Files.newInputStream(filePath);
+                    OutputStream output = resp.getOutputStream()) {
+                byte[] buffer = new byte[4096];
+                int len;
+                while ((len = input.read(buffer)) > 0) {
+                    output.write(buffer, 0, len);
+                }
+                output.flush();
+            }
+        } else {
+            // Imagen por defecto si no existe
+            Path defaultImg = Paths.get(basePath, "default.jpg");
+            if (Files.exists(defaultImg)) {
+                resp.setContentType("image/jpeg");
+                try (InputStream input = Files.newInputStream(defaultImg);
+                        OutputStream output = resp.getOutputStream()) {
+                    byte[] buffer = new byte[4096];
+                    int len;
+                    while ((len = input.read(buffer)) > 0) {
+                        output.write(buffer, 0, len);
+                    }
+                }
+            } else {
+                resp.sendError(404, "Image not found");
+            }
+        }
+    }
+
+    private void catalogoUsuarioGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        HttpSession session = req.getSession(false);
+        Usuario usuario = session != null ? (Usuario) session.getAttribute("usuario") : null;
+
         if (usuario == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        if (usuario.getIdRol() == ROL_ADMIN) {
+            resp.sendRedirect(req.getContextPath() + "/admin/catalogo");
             return;
         }
 
-        // Obtener parámetros de filtrado
         String categoria = req.getParameter("categoria");
         String marca = req.getParameter("marca");
         String buscar = req.getParameter("buscar");
 
         List<Catalogo> productos;
-
-        if (buscar != null && !buscar.trim().isEmpty()) {
+        if (buscar != null && !buscar.isBlank()) {
             productos = catalogoDAO.buscarPorNombre(buscar);
-        } else if (categoria != null && !categoria.trim().isEmpty()) {
+        } else if (categoria != null && !categoria.isBlank()) {
             productos = catalogoDAO.listarPorCategoria(categoria);
-        } else if (marca != null && !marca.trim().isEmpty()) {
+        } else if (marca != null && !marca.isBlank()) {
             productos = catalogoDAO.listarPorMarca(marca);
         } else {
-            productos = catalogoDAO.listarConStock(); // Solo productos disponibles
+            // Solo productos activos con stock
+            productos = catalogoDAO.listarActivos();
         }
 
-        System.out.println(">>> [DEBUG] productos cargados: " + productos.size());
-        if (productos.isEmpty()) {
-            try (java.sql.Connection con = com.quiddity.util.ConexionDB.getConnection()) {
-                System.out.println(">>> [DEBUG] conexión OK: " + con.getMetaData().getURL());
-            } catch (Exception ex) {
-                System.out.println(">>> [DEBUG] ERROR conexión: " + ex.getMessage());
-            }
-        }
-        
         req.setAttribute("productos", productos);
         req.setAttribute("categoriaActual", categoria);
         req.setAttribute("marcaActual", marca);
         req.getRequestDispatcher("/comprador/catalogo.jsp").forward(req, resp);
     }
 
-    // ── POST: acciones de administración ────────────────────────────────
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /admin/catalogo — panel de administración de productos
+    // ─────────────────────────────────────────────────────────────────────────
+    private void adminCatalogoGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        req.setCharacterEncoding("UTF-8");
-
-        // Verificar que sea admin
-        Usuario admin = verificarAdmin(req, resp);
-        if (admin == null) {
+        if (verificarAdmin(req, resp) == null)
             return;
+
+        // ── Filtros opcionales ──────────────────────────────────────────────
+        String categoria = req.getParameter("categoria");
+        String estado = req.getParameter("estado"); // activo|inactivo|bajo_stock|sin_stock
+        String buscar = req.getParameter("buscar");
+
+        List<Catalogo> productos;
+        if ((categoria != null && !categoria.isBlank())
+                || (estado != null && !estado.isBlank())
+                || (buscar != null && !buscar.isBlank())) {
+            productos = catalogoDAO.buscarConFiltros(categoria, estado, buscar);
+        } else {
+            // Vista por defecto: activos primero, luego inactivos
+            productos = catalogoDAO.listarTodosAdmin();
         }
+
+        // ── Contadores para tarjetas resumen ────────────────────────────────
+        List<Catalogo> todos = catalogoDAO.listarTodos();
+        List<Catalogo> activos = catalogoDAO.listarActivos();
+        List<Catalogo> bajoStock = catalogoDAO.listarBajoStock(10);
+        List<Catalogo> sinStock = catalogoDAO.listarSinStock();
+
+        req.setAttribute("productos", productos);
+        req.setAttribute("totalProductos", todos.size());
+        req.setAttribute("productosActivos", activos.size());
+        req.setAttribute("productosBajoStock", bajoStock.size());
+        req.setAttribute("productosSinStock", sinStock.size());
+
+        // ── Árbol de categorías con contadores ──────────────────────────────
+        List<Map<String, Object>> arbolCategorias = catalogoDAO.getCategoriaConConteo();
+        req.setAttribute("arbolCategorias", arbolCategorias);
+
+        // ── Estadísticas rápidas para el panel ──────────────────────────────
+        double ingresosTotales = estadisticasDAO.getIngresosTotales();
+        List<Map<String, Object>> topVendidos = estadisticasDAO.getTopVendidos(10);
+        List<Map<String, Object>> ventasPorCategoria = estadisticasDAO.getVentasPorCategoria();
+        List<Catalogo> sinVentas = estadisticasDAO.getProductosSinVentas(30);
+
+        req.setAttribute("ingresosTotales", ingresosTotales);
+        req.setAttribute("topVendidos", topVendidos);
+        req.setAttribute("ventasPorCategoria", ventasPorCategoria);
+        req.setAttribute("sinVentas", sinVentas);
+
+        // Pasar filtros activos de vuelta a la vista
+        req.setAttribute("filtroCategoria", categoria);
+        req.setAttribute("filtroEstado", estado);
+        req.setAttribute("filtroBuscar", buscar);
+
+        req.getRequestDispatcher("/WEB-INF/admin/catalogo.jsp").forward(req, resp);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /admin/catalogo — acciones CRUD + stock
+    // ─────────────────────────────────────────────────────────────────────────
+    private void adminCatalogoPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        if (verificarAdmin(req, resp) == null)
+            return;
 
         String accion = req.getParameter("accion");
         if (accion == null) {
@@ -127,297 +288,489 @@ public class CatalogoServlet extends HttpServlet {
         }
 
         switch (accion) {
-            case "agregar" ->
-                accionAgregar(req, resp);
-            case "actualizar" ->
-                accionActualizar(req, resp);
-            case "eliminar" ->
-                accionEliminar(req, resp);
-            default ->
-                resp.sendRedirect(req.getContextPath() + "/admin/catalogo");
+            case "agregar" -> accionAgregar(req, resp);
+            case "actualizar" -> accionActualizar(req, resp);
+            case "eliminar" -> accionEliminar(req, resp);
+            case "stock" -> accionStock(req, resp);
+            case "toggleActivo" -> accionToggleActivo(req, resp);
+            default -> resp.sendRedirect(req.getContextPath() + "/admin/catalogo");
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // AGREGAR PRODUCTO (con subida de imagen)
-    // ────────────────────────────────────────────────────────────────────
+    // ── Agregar producto ────────────────────────────────────────────────────
     private void accionAgregar(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
 
-        // Obtener datos del formulario
-        String nombre = getParameter(req, "nombre");
-        String descripcion = getParameter(req, "descripcion");
-        String componentes = getParameter(req, "componentes");
-        String categoria = getParameter(req, "categoria");
-        String marca = getParameter(req, "marca");
+        String nombre = getParam(req, "nombre");
+        String descripcion = getParam(req, "descripcion");
+        String componentes = getParam(req, "componentes");
+        String categoria = getParam(req, "categoria");
+        String marca = getParam(req, "marca");
         double precio = parseDouble(req.getParameter("precio"), 0);
         int stock = parseInt(req.getParameter("stock"), 0);
 
-        // Validar datos básicos
-        if (nombre == null || nombre.trim().isEmpty() || precio <= 0) {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "error",
-                    "Nombre y precio son obligatorios.");
+        if (nombre == null || nombre.isBlank() || precio <= 0) {
+            redirigir(req, resp, "/admin/catalogo", "error", "Nombre y precio son obligatorios.");
             return;
         }
 
-        // Procesar imagen si se subió
         String imagenNombre = null;
         Part filePart = req.getPart("imagen");
-
         if (filePart != null && filePart.getSize() > 0) {
-            imagenNombre = procesarImagen(filePart);
+            imagenNombre = guardarImagen(filePart, categoria);
             if (imagenNombre == null) {
-                redirigirConMensaje(req, resp, "/admin/catalogo", "error",
-                        "Error al subir la imagen. Verifique el formato y tamaño.");
+                redirigir(req, resp, "/admin/catalogo", "error",
+                        "Imagen inválida. Use JPG, PNG o GIF (máx. 10 MB).");
                 return;
             }
         }
 
-        // Crear objeto Catalogo
-        Catalogo catalogo = new Catalogo();
-        catalogo.setNombre(nombre.trim());
-        catalogo.setDescripcion(descripcion != null ? descripcion.trim() : "");
-        catalogo.setComponentes(componentes != null ? componentes.trim() : "");
-        catalogo.setPrecio(precio);
-        catalogo.setStock(stock);
-        catalogo.setImagen(imagenNombre);
-        catalogo.setCategoria(categoria != null ? categoria.trim() : "");
-        catalogo.setMarca(marca != null ? marca.trim() : "");
+        Catalogo c = new Catalogo();
+        c.setNombre(nombre);
+        c.setDescripcion(nvl(descripcion));
+        c.setComponentes(nvl(componentes));
+        c.setPrecio(precio);
+        c.setStock(stock);
+        c.setImagen(imagenNombre);
+        c.setCategoria(nvl(categoria));
+        c.setMarca(nvl(marca));
+        c.setActivo(true);
 
-        // Guardar en BD
-        boolean ok = catalogoDAO.crear(catalogo);
-
-        if (ok) {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "exito",
-                    "Producto agregado correctamente.");
-        } else {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "error",
-                    "No se pudo agregar el producto.");
-        }
+        boolean ok = catalogoDAO.crear(c);
+        redirigir(req, resp, "/admin/catalogo",
+                ok ? "exito" : "error",
+                ok ? "Producto agregado correctamente." : "No se pudo agregar el producto.");
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // ACTUALIZAR PRODUCTO (con opción de cambiar imagen)
-    // ────────────────────────────────────────────────────────────────────
+    // ── Actualizar producto ─────────────────────────────────────────────────
     private void accionActualizar(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
 
         int id = parseInt(req.getParameter("id"), 0);
         if (id <= 0) {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "error", "ID inválido.");
+            redirigir(req, resp, "/admin/catalogo", "error", "ID inválido.");
             return;
         }
 
-        // Obtener datos
-        String nombre = getParameter(req, "nombre");
-        String descripcion = getParameter(req, "descripcion");
-        String componentes = getParameter(req, "componentes");
-        String categoria = getParameter(req, "categoria");
-        String marca = getParameter(req, "marca");
+        Catalogo actual = catalogoDAO.obtenerPorId(id);
+        if (actual == null) {
+            redirigir(req, resp, "/admin/catalogo", "error", "Producto no encontrado.");
+            return;
+        }
+
+        String nombre = getParam(req, "nombre");
+        String descripcion = getParam(req, "descripcion");
+        String componentes = getParam(req, "componentes");
+        String categoria = getParam(req, "categoria");
+        String marca = getParam(req, "marca");
         double precio = parseDouble(req.getParameter("precio"), 0);
         int stock = parseInt(req.getParameter("stock"), 0);
 
-        // Obtener producto actual para conservar imagen si no se sube nueva
-        Catalogo productoActual = catalogoDAO.obtenerPorId(id);
-        if (productoActual == null) {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "error",
-                    "Producto no encontrado.");
-            return;
-        }
-
-        String imagenNombre = productoActual.getImagen();
-
-        // Procesar nueva imagen si se subió
+        // Nueva imagen opcional
+        String imagenNombre = actual.getImagen();
         Part filePart = req.getPart("imagen");
         if (filePart != null && filePart.getSize() > 0) {
-            // Eliminar imagen anterior si existe
-            if (imagenNombre != null && !imagenNombre.isEmpty()) {
-                eliminarImagen(imagenNombre);
+            // Borrar imagen anterior del disco
+            if (imagenNombre != null && !imagenNombre.isBlank()) {
+                borrarImagenDisco(imagenNombre, actual.getCategoria());
             }
-            imagenNombre = procesarImagen(filePart);
+            imagenNombre = guardarImagen(filePart, categoria);
         }
 
-        // Actualizar objeto
-        productoActual.setNombre(nombre.trim());
-        productoActual.setDescripcion(descripcion != null ? descripcion.trim() : "");
-        productoActual.setComponentes(componentes != null ? componentes.trim() : "");
-        productoActual.setPrecio(precio);
-        productoActual.setStock(stock);
-        productoActual.setImagen(imagenNombre);
-        productoActual.setCategoria(categoria != null ? categoria.trim() : "");
-        productoActual.setMarca(marca != null ? marca.trim() : "");
+        actual.setNombre(nvl(nombre));
+        actual.setDescripcion(nvl(descripcion));
+        actual.setComponentes(nvl(componentes));
+        actual.setPrecio(precio);
+        actual.setStock(stock);
+        actual.setImagen(imagenNombre);
+        actual.setCategoria(nvl(categoria));
+        actual.setMarca(nvl(marca));
 
-        boolean ok = catalogoDAO.actualizar(productoActual);
-
-        if (ok) {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "exito",
-                    "Producto actualizado correctamente.");
-        } else {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "error",
-                    "No se pudo actualizar el producto.");
-        }
+        boolean ok = catalogoDAO.actualizar(actual);
+        redirigir(req, resp, "/admin/catalogo",
+                ok ? "exito" : "error",
+                ok ? "Producto actualizado." : "No se pudo actualizar el producto.");
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // ELIMINAR PRODUCTO
-    // ────────────────────────────────────────────────────────────────────
+    // ── Eliminar producto (soft o hard) ─────────────────────────────────────
     private void accionEliminar(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
         int id = parseInt(req.getParameter("id"), 0);
         if (id <= 0) {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "error", "ID inválido.");
+            redirigir(req, resp, "/admin/catalogo", "error", "ID inválido.");
             return;
         }
 
-        // Obtener producto para eliminar su imagen
         Catalogo producto = catalogoDAO.obtenerPorId(id);
-        if (producto != null) {
-            if (producto.getImagen() != null && !producto.getImagen().isEmpty()) {
-                eliminarImagen(producto.getImagen());
-            }
-            catalogoDAO.eliminar(id);
-            redirigirConMensaje(req, resp, "/admin/catalogo", "exito",
-                    "Producto eliminado correctamente.");
+        if (producto == null) {
+            redirigir(req, resp, "/admin/catalogo", "error", "Producto no encontrado.");
+            return;
+        }
+
+        String deleteType = req.getParameter("deleteType"); // "soft" | "hard"
+        boolean esSoft = "soft".equalsIgnoreCase(deleteType);
+
+        boolean ok;
+        if (esSoft) {
+            // Soft delete: marcar inactivo, conservar imagen
+            ok = catalogoDAO.desactivar(id);
+            redirigir(req, resp, "/admin/catalogo",
+                    ok ? "exito" : "error",
+                    ok ? "Producto marcado como inactivo." : "No se pudo desactivar el producto.");
         } else {
-            redirigirConMensaje(req, resp, "/admin/catalogo", "error",
-                    "Producto no encontrado.");
+            // Hard delete: eliminar imagen del disco y registro de BD
+            if (producto.getImagen() != null && !producto.getImagen().isBlank()) {
+                borrarImagenDisco(producto.getImagen(), producto.getCategoria());
+            }
+            ok = catalogoDAO.eliminar(id);
+            redirigir(req, resp, "/admin/catalogo",
+                    ok ? "exito" : "error",
+                    ok ? "Producto eliminado definitivamente." : "No se pudo eliminar el producto.");
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // PROCESAR IMAGEN (guardar en servidor)
-    // ────────────────────────────────────────────────────────────────────
-    private String procesarImagen(Part filePart) throws IOException, ServletException {
+    // ── Actualizar stock inline ──────────────────────────────────────────────
+    private void accionStock(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
 
-        // Validar tipo de archivo
-        String contentType = filePart.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            return null;
+        int id = parseInt(req.getParameter("id"), 0);
+        String operacion = req.getParameter("operacion"); // "set" | "aumentar" | "disminuir"
+        int cantidad = parseInt(req.getParameter("cantidad"), 1);
+        int nuevoStock = parseInt(req.getParameter("stock"), -1);
+
+        if (id <= 0) {
+            redirigir(req, resp, "/admin/catalogo", "error", "ID inválido.");
+            return;
         }
 
-        // Obtener nombre del archivo
-        String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+        boolean ok;
+        if ("set".equalsIgnoreCase(operacion) && nuevoStock >= 0) {
+            ok = catalogoDAO.actualizarStock(id, nuevoStock);
+        } else if ("aumentar".equalsIgnoreCase(operacion)) {
+            ok = catalogoDAO.aumentarStock(id, cantidad);
+        } else if ("disminuir".equalsIgnoreCase(operacion)) {
+            ok = catalogoDAO.disminuirStock(id, cantidad);
+        } else {
+            // Por defecto: tratar "stock" como valor directo (compatibilidad con
+            // formularios simples)
+            ok = catalogoDAO.actualizarStock(id, Math.max(0, nuevoStock >= 0 ? nuevoStock : cantidad));
+        }
+
+        redirigir(req, resp, "/admin/catalogo",
+                ok ? "exito" : "error",
+                ok ? "Stock actualizado." : "No se pudo actualizar el stock.");
+    }
+
+    // ── Activar / desactivar toggle ─────────────────────────────────────────
+    private void accionToggleActivo(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        int id = parseInt(req.getParameter("id"), 0);
+        if (id <= 0) {
+            redirigir(req, resp, "/admin/catalogo", "error", "ID inválido.");
+            return;
+        }
+
+        Catalogo producto = catalogoDAO.obtenerPorId(id);
+        if (producto == null) {
+            redirigir(req, resp, "/admin/catalogo", "error", "Producto no encontrado.");
+            return;
+        }
+
+        boolean ok;
+        String mensaje;
+        if (producto.isActivo()) {
+            ok = catalogoDAO.desactivar(id);
+            mensaje = ok ? "Producto desactivado." : "No se pudo desactivar.";
+        } else {
+            ok = catalogoDAO.activar(id);
+            mensaje = ok ? "Producto activado." : "No se pudo activar.";
+        }
+
+        redirigir(req, resp, "/admin/catalogo", ok ? "exito" : "error", mensaje);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /admin/pedidos — listado de pedidos con filtros
+    // ─────────────────────────────────────────────────────────────────────────
+    private void adminPedidosGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        if (verificarAdmin(req, resp) == null)
+            return;
+
+        String estadoParam = req.getParameter("estado");
+        String desdeParam = req.getParameter("desde");
+        String hastaParam = req.getParameter("hasta");
+        String usuarioParam = req.getParameter("usuario"); // nombre/email para búsqueda libre
+        String idUsuParam = req.getParameter("usuarioId");
+
+        LocalDate desde = parseFecha(desdeParam);
+        LocalDate hasta = parseFecha(hastaParam);
+
+        List<Pedido> pedidos;
+
+        // Si se busca por nombre/email de usuario, usar ese método
+        if (usuarioParam != null && !usuarioParam.isBlank()) {
+            pedidos = pedidoDAO.buscarPorNombreUsuario(usuarioParam);
+        } else {
+            Integer usuarioId = null;
+            if (idUsuParam != null && !idUsuParam.isBlank()) {
+                try {
+                    usuarioId = Integer.parseInt(idUsuParam);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            pedidos = pedidoDAO.buscarConFiltros(
+                    (estadoParam != null && !estadoParam.isBlank()) ? estadoParam : null,
+                    desde, hasta, usuarioId);
+        }
+
+        // Contadores por estado para tarjetas resumen
+        Map<String, Integer> conteoPorEstado = pedidoDAO.getConteoPorEstado();
+
+        req.setAttribute("pedidos", pedidos);
+        req.setAttribute("conteoPorEstado", conteoPorEstado);
+        req.setAttribute("filtroEstado", estadoParam);
+        req.setAttribute("filtroDesde", desdeParam);
+        req.setAttribute("filtroHasta", hastaParam);
+        req.setAttribute("filtroUsuario", usuarioParam);
+
+        req.getRequestDispatcher("/WEB-INF/admin/pedidos.jsp").forward(req, resp);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /admin/pedidos/detalle?id=N — detalle de un pedido
+    // ─────────────────────────────────────────────────────────────────────────
+    private void adminPedidoDetalleGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        if (verificarAdmin(req, resp) == null)
+            return;
+
+        int pedidoId = parseInt(req.getParameter("id"), 0);
+        if (pedidoId <= 0) {
+            resp.sendRedirect(req.getContextPath() + "/admin/pedidos");
+            return;
+        }
+
+        Pedido pedido = pedidoDAO.getDetallePedidoAdmin(pedidoId);
+        if (pedido == null) {
+            redirigir(req, resp, "/admin/pedidos", "error", "Pedido no encontrado.");
+            return;
+        }
+
+        req.setAttribute("pedido", pedido);
+        req.getRequestDispatcher("/WEB-INF/admin/detallePedido.jsp").forward(req, resp);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /admin/pedidos — avanzar estado
+    // ─────────────────────────────────────────────────────────────────────────
+    private void adminPedidosPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        if (verificarAdmin(req, resp) == null)
+            return;
+
+        String accion = req.getParameter("accion");
+        int pedidoId = parseInt(req.getParameter("id"), 0);
+
+        if (pedidoId <= 0) {
+            redirigir(req, resp, "/admin/pedidos", "error", "ID de pedido inválido.");
+            return;
+        }
+
+        if ("avanzarEstado".equalsIgnoreCase(accion)) {
+            boolean ok = pedidoDAO.avanzarEstado(pedidoId);
+            redirigir(req, resp, "/admin/pedidos/detalle?id=" + pedidoId,
+                    ok ? "exito" : "error",
+                    ok ? "Estado actualizado correctamente."
+                            : "No se pudo avanzar el estado (verifique que el pedido permita transición).");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/admin/pedidos");
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /admin/estadisticas — panel de estadísticas con rango de fechas
+    // ─────────────────────────────────────────────────────────────────────────
+    private void adminEstadisticasGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        if (verificarAdmin(req, resp) == null)
+            return;
+
+        // Rango de fechas — por defecto el mes actual
+        String desdeParam = req.getParameter("desde");
+        String hastaParam = req.getParameter("hasta");
+
+        LocalDate desde = parseFecha(desdeParam);
+        LocalDate hasta = parseFecha(hastaParam);
+
+        if (desde == null)
+            desde = LocalDate.now().withDayOfMonth(1);
+        if (hasta == null)
+            hasta = LocalDate.now();
+
+        // Top 10 más vendidos en el período
+        List<Map<String, Object>> topVendidos = estadisticasDAO.getTopVendidosPorPeriodo(10, desde, hasta);
+
+        // Ventas por categoría en el período
+        List<Map<String, Object>> ventasPorCategoria = estadisticasDAO.getVentasPorCategoriaPeriodo(desde, hasta);
+
+        // Resumen (ingresos totales, pedidos, clientes) en el período
+        Map<String, Object> resumen = estadisticasDAO.getResumenPeriodo(desde, hasta);
+
+        // Productos sin ventas en los últimos 30 días (siempre fijo)
+        List<Catalogo> sinVentas = estadisticasDAO.getProductosSinVentas(30);
+
+        req.setAttribute("topVendidos", topVendidos);
+        req.setAttribute("ventasPorCategoria", ventasPorCategoria);
+        req.setAttribute("resumen", resumen);
+        req.setAttribute("sinVentas", sinVentas);
+        req.setAttribute("filtroDesde", desde.toString());
+        req.setAttribute("filtroHasta", hasta.toString());
+
+        req.getRequestDispatcher("/WEB-INF/admin/estadisticas.jsp").forward(req, resp);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // MANEJO DE IMÁGENES
+    // ═════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Guarda la imagen en uploads/catalogo/<categoria>/<uuid>_<filename>.
+     * Devuelve la ruta relativa guardada en BD (categoria/<uuid>_<filename>)
+     * o null si hay error.
+     */
+    private String guardarImagen(Part filePart, String categoria) throws IOException {
+        // Validar tipo MIME
+        String contentType = filePart.getContentType();
+        if (contentType == null || !contentType.startsWith("image/"))
+            return null;
 
         // Validar extensión
-        String extension = getFileExtension(fileName).toLowerCase();
+        String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+        String extension = getExtension(fileName).toLowerCase();
         if (!extension.equals("jpg") && !extension.equals("jpeg")
                 && !extension.equals("png") && !extension.equals("gif")) {
             return null;
         }
 
-        // Generar nombre único para evitar colisiones
-        String uniqueName = UUID.randomUUID().toString() + "_" + fileName;
+        // Carpeta según categoría (sanitizar para que sea nombre de directorio válido)
+        String carpetaCategoria = sanitizarNombreDir(categoria != null ? categoria : "general");
+        String uniqueName = UUID.randomUUID() + "_" + fileName;
 
-        // Crear directorio si no existe
-        String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) {
+        // Ruta física en el servidor
+        String basePath = getServletContext().getRealPath("") + File.separator + UPLOAD_ROOT;
+        String catPath = basePath + File.separator + carpetaCategoria;
+        File uploadDir = new File(catPath);
+        if (!uploadDir.exists())
             uploadDir.mkdirs();
-        }
 
         // Guardar archivo
-        String filePath = uploadPath + File.separator + uniqueName;
-        try (InputStream input = filePart.getInputStream(); FileOutputStream output = new FileOutputStream(filePath)) {
-
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = input.read(buffer)) > 0) {
-                output.write(buffer, 0, length);
-            }
+        String filePath = catPath + File.separator + uniqueName;
+        try (InputStream input = filePart.getInputStream();
+                FileOutputStream output = new FileOutputStream(filePath)) {
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = input.read(buffer)) > 0)
+                output.write(buffer, 0, len);
         }
 
-        return uniqueName;
+        // Valor guardado en BD: "categoria/uuid_filename" para construir la URL en el
+        // JSP
+        return carpetaCategoria + "/" + uniqueName;
     }
 
-    // ────────────────────────────────────────────────────────────────────
-    // ELIMINAR IMAGEN DEL DISCO
-    // ────────────────────────────────────────────────────────────────────
-    private void eliminarImagen(String imageName) {
-        if (imageName == null || imageName.isEmpty()) {
+    /**
+     * Borra la imagen del disco.
+     * imagenRelativa tiene el formato "categoria/uuid_filename" tal como se guardó
+     * en BD.
+     */
+    private void borrarImagenDisco(String imagenRelativa, String categoriaActual) {
+        if (imagenRelativa == null || imagenRelativa.isBlank())
             return;
-        }
-
-        String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
-        Path filePath = Paths.get(uploadPath, imageName);
-
+        String basePath = getServletContext().getRealPath("") + File.separator + UPLOAD_ROOT;
+        Path filePath = Paths.get(basePath, imagenRelativa);
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            System.err.println("[CatalogoServlet] Error al eliminar imagen: " + e.getMessage());
+            System.err.println("[CatalogoServlet] No se pudo borrar imagen: " + filePath + " → " + e.getMessage());
         }
     }
 
-    // ────────────────────────────────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════════════════
     // HELPERS
-    // ────────────────────────────────────────────────────────────────────
+    // ═════════════════════════════════════════════════════════════════════════
+
     private Usuario verificarAdmin(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-
         HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("usuario") == null) {
+        Usuario u = session != null ? (Usuario) session.getAttribute("usuario") : null;
+        if (u == null || u.getIdRol() != ROL_ADMIN) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return null;
         }
-
-        Usuario u = (Usuario) session.getAttribute("usuario");
-        if (u.getIdRol() != ROL_ADMIN) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return null;
-        }
-
         return u;
     }
 
-    private Usuario usuarioAutenticado(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    private String getParam(HttpServletRequest req, String name) {
+        String v = req.getParameter(name);
+        return v != null ? v.trim() : null;
+    }
 
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("usuario") == null) {
-            resp.sendRedirect(req.getContextPath() + "/login");
+    private String nvl(String s) {
+        return s != null ? s : "";
+    }
+
+    private int parseInt(String val, int def) {
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException | NullPointerException e) {
+            return def;
+        }
+    }
+
+    private double parseDouble(String val, double def) {
+        try {
+            return Double.parseDouble(val);
+        } catch (NumberFormatException | NullPointerException e) {
+            return def;
+        }
+    }
+
+    private LocalDate parseFecha(String val) {
+        if (val == null || val.isBlank())
+            return null;
+        try {
+            return LocalDate.parse(val);
+        } catch (DateTimeParseException e) {
             return null;
         }
-
-        Usuario u = (Usuario) session.getAttribute("usuario");
-        if (u.getIdRol() != ROL_USUARIO && u.getIdRol() != ROL_COMPRADOR) {
-            resp.sendRedirect(req.getContextPath() + "/login");
-            return null;
-        }
-
-        return u;
     }
 
-    private String getParameter(HttpServletRequest req, String name) {
-        String value = req.getParameter(name);
-        return value != null ? value.trim() : null;
+    private String getExtension(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        return dot == -1 ? "" : fileName.substring(dot + 1);
     }
 
-    private int parseInt(String valor, int defecto) {
-        try {
-            return Integer.parseInt(valor);
-        } catch (NumberFormatException | NullPointerException e) {
-            return defecto;
-        }
+    /** Convierte "Cuidado Facial" → "cuidado_facial" para nombre de carpeta. */
+    private String sanitizarNombreDir(String nombre) {
+        return nombre.trim()
+                .toLowerCase()
+                .replaceAll("[^a-z0-9áéíóúüñ]", "_")
+                .replaceAll("_+", "_");
     }
 
-    private double parseDouble(String valor, double defecto) {
-        try {
-            return Double.parseDouble(valor);
-        } catch (NumberFormatException | NullPointerException e) {
-            return defecto;
-        }
-    }
-
-    private String getFileExtension(String fileName) {
-        int lastDot = fileName.lastIndexOf('.');
-        return (lastDot == -1) ? "" : fileName.substring(lastDot + 1);
-    }
-
-    private void redirigirConMensaje(HttpServletRequest req, HttpServletResponse resp,
+    private void redirigir(HttpServletRequest req, HttpServletResponse resp,
             String destino, String tipo, String mensaje)
             throws IOException {
-
         String encoded = java.net.URLEncoder.encode(mensaje, "UTF-8");
-        resp.sendRedirect(req.getContextPath() + destino + "?" + tipo + "=" + encoded);
+        // Si el destino ya tiene parámetros (ej: /admin/pedidos/detalle?id=5)
+        String sep = destino.contains("?") ? "&" : "?";
+        resp.sendRedirect(req.getContextPath() + destino + sep + tipo + "=" + encoded);
     }
 }

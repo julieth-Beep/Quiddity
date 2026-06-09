@@ -8,7 +8,9 @@ import com.quiddity.util.ConexionDB;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PedidoDAO {
 
@@ -24,12 +26,14 @@ public class PedidoDAO {
         p.setNotas(rs.getString("notas"));
 
         Timestamp creadoEn = rs.getTimestamp("creado_en");
-        if (creadoEn != null) p.setCreadoEn(creadoEn.toInstant()
-                .atZone(java.time.ZoneId.of("America/Bogota")));
+        if (creadoEn != null)
+            p.setCreadoEn(creadoEn.toInstant()
+                    .atZone(java.time.ZoneId.of("America/Bogota")));
 
         Timestamp actualizadoEn = rs.getTimestamp("actualizado_en");
-        if (actualizadoEn != null) p.setActualizadoEn(actualizadoEn.toInstant()
-                .atZone(java.time.ZoneId.of("America/Bogota")));
+        if (actualizadoEn != null)
+            p.setActualizadoEn(actualizadoEn.toInstant()
+                    .atZone(java.time.ZoneId.of("America/Bogota")));
 
         return p;
     }
@@ -85,11 +89,13 @@ public class PedidoDAO {
                 ps.executeUpdate();
 
                 try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) pedidoId = keys.getInt(1);
+                    if (keys.next())
+                        pedidoId = keys.getInt(1);
                 }
             }
 
-            if (pedidoId == -1) throw new SQLException("No se obtuvo el id del pedido generado.");
+            if (pedidoId == -1)
+                throw new SQLException("No se obtuvo el id del pedido generado.");
 
             // 2. Insertar ítems y descontar stock
             for (PedidoItem item : pedido.getItems()) {
@@ -106,8 +112,9 @@ public class PedidoDAO {
                     psStock.setInt(2, item.getCatalogoId());
                     psStock.setInt(3, item.getCantidad()); // evita stock negativo
                     int filas = psStock.executeUpdate();
-                    if (filas == 0) throw new SQLException(
-                        "Stock insuficiente para el producto id=" + item.getCatalogoId());
+                    if (filas == 0)
+                        throw new SQLException(
+                                "Stock insuficiente para el producto id=" + item.getCatalogoId());
                 }
             }
 
@@ -116,10 +123,20 @@ public class PedidoDAO {
 
         } catch (SQLException e) {
             System.err.println("[PedidoDAO] Error al crear pedido: " + e.getMessage());
-            try { if (con != null) con.rollback(); } catch (SQLException ex) { /* ignorar */ }
+            try {
+                if (con != null)
+                    con.rollback();
+            } catch (SQLException ex) {
+                /* ignorar */ }
             return -1;
         } finally {
-            try { if (con != null) { con.setAutoCommit(true); con.close(); } } catch (SQLException ex) { /* ignorar */ }
+            try {
+                if (con != null) {
+                    con.setAutoCommit(true);
+                    con.close();
+                }
+            } catch (SQLException ex) {
+                /* ignorar */ }
         }
     }
 
@@ -136,7 +153,7 @@ public class PedidoDAO {
                 ORDER BY p.creado_en DESC
                 """;
         try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, usuarioId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -203,12 +220,14 @@ public class PedidoDAO {
                 }
             }
 
-            if (pedido == null) return null;
+            if (pedido == null)
+                return null;
 
             try (PreparedStatement ps = con.prepareStatement(sqlItems)) {
                 ps.setInt(1, pedidoId);
                 try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) pedido.getItems().add(mapearItem(rs));
+                    while (rs.next())
+                        pedido.getItems().add(mapearItem(rs));
                 }
             }
 
@@ -226,10 +245,11 @@ public class PedidoDAO {
         List<Pedido> lista = new ArrayList<>();
         String sql = "SELECT * FROM pedido ORDER BY creado_en DESC";
         try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) lista.add(mapearPedido(rs));
+            while (rs.next())
+                lista.add(mapearPedido(rs));
 
         } catch (SQLException e) {
             System.err.println("[PedidoDAO] Error al listar todos: " + e.getMessage());
@@ -243,11 +263,12 @@ public class PedidoDAO {
         List<Pedido> lista = new ArrayList<>();
         String sql = "SELECT * FROM pedido WHERE estado = ? ORDER BY creado_en DESC";
         try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, estado.name());
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) lista.add(mapearPedido(rs));
+                while (rs.next())
+                    lista.add(mapearPedido(rs));
             }
 
         } catch (SQLException e) {
@@ -261,7 +282,7 @@ public class PedidoDAO {
     public boolean cambiarEstado(int pedidoId, Pedido.Estado nuevoEstado) {
         String sql = "UPDATE pedido SET estado = ? WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, nuevoEstado.name());
             ps.setInt(2, pedidoId);
@@ -278,9 +299,9 @@ public class PedidoDAO {
 
     public boolean cancelarPedido(int pedidoId, int usuarioId) {
         String sqlVerificar = "SELECT estado FROM pedido WHERE id = ? AND usuarioid = ?";
-        String sqlCancelar  = "UPDATE pedido SET estado = 'CANCELADO' WHERE id = ?";
+        String sqlCancelar = "UPDATE pedido SET estado = 'CANCELADO' WHERE id = ?";
         String sqlRestaurar = "UPDATE catalogo SET stock = stock + ? WHERE id = ?";
-        String sqlItems     = "SELECT catalogoid, cantidad FROM pedido_item WHERE pedidoid = ?";
+        String sqlItems = "SELECT catalogoid, cantidad FROM pedido_item WHERE pedidoid = ?";
 
         Connection con = null;
         try {
@@ -292,7 +313,8 @@ public class PedidoDAO {
                 ps.setInt(1, pedidoId);
                 ps.setInt(2, usuarioId);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (!rs.next()) throw new SQLException("Pedido no encontrado.");
+                    if (!rs.next())
+                        throw new SQLException("Pedido no encontrado.");
                     Pedido.Estado estadoActual = Pedido.Estado.valueOf(rs.getString("estado"));
                     if (estadoActual == Pedido.Estado.ENVIADO
                             || estadoActual == Pedido.Estado.ENTREGADO
@@ -328,10 +350,256 @@ public class PedidoDAO {
 
         } catch (SQLException e) {
             System.err.println("[PedidoDAO] Error al cancelar pedido: " + e.getMessage());
-            try { if (con != null) con.rollback(); } catch (SQLException ex) { /* ignorar */ }
+            try {
+                if (con != null)
+                    con.rollback();
+            } catch (SQLException ex) {
+                /* ignorar */ }
             return false;
         } finally {
-            try { if (con != null) { con.setAutoCommit(true); con.close(); } } catch (SQLException ex) { /* ignorar */ }
+            try {
+                if (con != null) {
+                    con.setAutoCommit(true);
+                    con.close();
+                }
+            } catch (SQLException ex) {
+                /* ignorar */ }
         }
+    }
+    // ─── FILTROS COMBINADOS
+    // ────────────────────────────────────────────────────────
+    // estado, fechaInicio, fechaFin y usuarioId pueden ser null para ignorarlos
+
+    public List<Pedido> buscarConFiltros(String estado, java.time.LocalDate fechaInicio,
+            java.time.LocalDate fechaFin, Integer usuarioId) {
+        List<Pedido> lista = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+                SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido,
+                       u.email AS usu_email,
+                       d.departamento, d.ciudad, d.barrio,
+                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
+                FROM pedido p
+                JOIN usuario u ON p.usuarioid = u.id
+                JOIN direccion d ON p.direccionid = d.id
+                WHERE 1=1
+                """);
+
+        if (estado != null && !estado.isBlank())
+            sql.append(" AND p.estado = ?");
+        if (fechaInicio != null)
+            sql.append(" AND p.creado_en >= ?");
+        if (fechaFin != null)
+            sql.append(" AND p.creado_en <= ?");
+        if (usuarioId != null)
+            sql.append(" AND p.usuarioid = ?");
+
+        sql.append(" ORDER BY p.creado_en DESC");
+
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            int idx = 1;
+            if (estado != null && !estado.isBlank())
+                ps.setString(idx++, estado);
+            if (fechaInicio != null)
+                ps.setTimestamp(idx++,
+                        Timestamp.valueOf(fechaInicio.atStartOfDay()));
+            if (fechaFin != null)
+                ps.setTimestamp(idx++,
+                        Timestamp.valueOf(fechaFin.atTime(23, 59, 59)));
+            if (usuarioId != null)
+                ps.setInt(idx++, usuarioId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Pedido p = mapearPedido(rs);
+                    // Usuario resumido
+                    p.setNombreUsuario(rs.getString("usu_nombre") + " " + rs.getString("usu_apellido"));
+                    p.setEmailUsuario(rs.getString("usu_email"));
+                    // Dirección
+                    Direccion d = new Direccion();
+                    d.setId(p.getDireccionId());
+                    d.setDepartamento(rs.getString("departamento"));
+                    d.setCiudad(rs.getString("ciudad"));
+                    d.setBarrio(rs.getString("barrio"));
+                    d.setDireccion(rs.getString("dir_direccion"));
+                    d.setEsRural(rs.getBoolean("es_rural"));
+                    d.setDescripcionRural(rs.getString("descripcion_rural"));
+                    p.setDireccion(d);
+                    lista.add(p);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[PedidoDAO] Error al buscar con filtros: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    // ─── DETALLE COMPLETO (admin — sin validar usuarioId)
+    // ─────────────────────────
+
+    public Pedido getDetallePedidoAdmin(int pedidoId) {
+        String sqlPedido = """
+                SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido,
+                       u.email AS usu_email, u.documento AS usu_documento,
+                       d.departamento, d.ciudad, d.barrio,
+                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
+                FROM pedido p
+                JOIN usuario u ON p.usuarioid = u.id
+                JOIN direccion d ON p.direccionid = d.id
+                WHERE p.id = ?
+                """;
+        String sqlItems = """
+                SELECT pi.id AS item_id, pi.pedidoid, pi.catalogoid,
+                       pi.cantidad, pi.precio_unitario,
+                       c.nombre AS prod_nombre, c.imagen AS prod_imagen,
+                       c.categoria AS prod_categoria, c.marca AS prod_marca
+                FROM pedido_item pi
+                JOIN catalogo c ON pi.catalogoid = c.id
+                WHERE pi.pedidoid = ?
+                """;
+
+        try (Connection con = ConexionDB.getConnection()) {
+
+            Pedido pedido = null;
+
+            try (PreparedStatement ps = con.prepareStatement(sqlPedido)) {
+                ps.setInt(1, pedidoId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        pedido = mapearPedido(rs);
+                        pedido.setNombreUsuario(rs.getString("usu_nombre") + " " + rs.getString("usu_apellido"));
+                        pedido.setEmailUsuario(rs.getString("usu_email"));
+                        pedido.setDocumentoUsuario(rs.getString("usu_documento"));
+
+                        Direccion d = new Direccion();
+                        d.setId(pedido.getDireccionId());
+                        d.setDepartamento(rs.getString("departamento"));
+                        d.setCiudad(rs.getString("ciudad"));
+                        d.setBarrio(rs.getString("barrio"));
+                        d.setDireccion(rs.getString("dir_direccion"));
+                        d.setEsRural(rs.getBoolean("es_rural"));
+                        d.setDescripcionRural(rs.getString("descripcion_rural"));
+                        pedido.setDireccion(d);
+                    }
+                }
+            }
+
+            if (pedido == null)
+                return null;
+
+            try (PreparedStatement ps = con.prepareStatement(sqlItems)) {
+                ps.setInt(1, pedidoId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next())
+                        pedido.getItems().add(mapearItem(rs));
+                }
+            }
+
+            return pedido;
+
+        } catch (SQLException e) {
+            System.err.println("[PedidoDAO] Error al obtener detalle admin: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // ─── AVANZAR ESTADO (solo permite la transición válida)
+    // ───────────────────────
+    // PENDIENTE → EN_PROCESO → ENTREGADO
+
+    public boolean avanzarEstado(int pedidoId) {
+        String sqlConsulta = "SELECT estado FROM pedido WHERE id = ?";
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sqlConsulta)) {
+
+            ps.setInt(1, pedidoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next())
+                    return false;
+
+                Pedido.Estado estadoActual = Pedido.Estado.valueOf(rs.getString("estado"));
+                Pedido.Estado siguienteEstado = switch (estadoActual) {
+                    case PENDIENTE -> Pedido.Estado.EN_PROCESO;
+                    case EN_PROCESO -> Pedido.Estado.ENTREGADO;
+                    default -> null; // ENTREGADO, CANCELADO, DEVUELTO no avanzan
+                };
+
+                if (siguienteEstado == null)
+                    return false;
+
+                return cambiarEstado(pedidoId, siguienteEstado);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[PedidoDAO] Error al avanzar estado: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ─── CONTEO POR ESTADO (para tarjetas de resumen en el panel)
+    // ─────────────────
+
+    public Map<String, Integer> getConteoPorEstado() {
+        Map<String, Integer> conteo = new LinkedHashMap<>();
+        String sql = "SELECT estado, COUNT(*) AS total FROM pedido GROUP BY estado";
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next())
+                conteo.put(rs.getString("estado"), rs.getInt("total"));
+        } catch (SQLException e) {
+            System.err.println("[PedidoDAO] Error al contar por estado: " + e.getMessage());
+        }
+        return conteo;
+    }
+
+    // ─── BUSCAR USUARIO POR NOMBRE O EMAIL (para el filtro de usuario)
+    // ────────────
+
+    public List<Pedido> buscarPorNombreUsuario(String termino) {
+        List<Pedido> lista = new ArrayList<>();
+        String sql = """
+                SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido,
+                       u.email AS usu_email,
+                       d.departamento, d.ciudad, d.barrio,
+                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
+                FROM pedido p
+                JOIN usuario u ON p.usuarioid = u.id
+                JOIN direccion d ON p.direccionid = d.id
+                WHERE LOWER(u.nombre || ' ' || u.apellido) LIKE LOWER(?)
+                   OR LOWER(u.email) LIKE LOWER(?)
+                ORDER BY p.creado_en DESC
+                """;
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+
+            String like = "%" + termino + "%";
+            ps.setString(1, like);
+            ps.setString(2, like);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Pedido p = mapearPedido(rs);
+                    p.setNombreUsuario(rs.getString("usu_nombre") + " " + rs.getString("usu_apellido"));
+                    p.setEmailUsuario(rs.getString("usu_email"));
+                    Direccion d = new Direccion();
+                    d.setId(p.getDireccionId());
+                    d.setDepartamento(rs.getString("departamento"));
+                    d.setCiudad(rs.getString("ciudad"));
+                    d.setBarrio(rs.getString("barrio"));
+                    d.setDireccion(rs.getString("dir_direccion"));
+                    d.setEsRural(rs.getBoolean("es_rural"));
+                    d.setDescripcionRural(rs.getString("descripcion_rural"));
+                    p.setDireccion(d);
+                    lista.add(p);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[PedidoDAO] Error al buscar por nombre usuario: " + e.getMessage());
+        }
+        return lista;
     }
 }
