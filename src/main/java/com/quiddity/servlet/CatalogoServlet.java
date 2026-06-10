@@ -145,7 +145,7 @@ public class CatalogoServlet extends HttpServlet {
             }
 
             resp.setContentType(contentType);
-            resp.setContentLengthLong(Files.size(filePath));
+            resp.setContentLength((int) Files.size(filePath));
 
             // Copiar archivo al response
             try (InputStream input = Files.newInputStream(filePath);
