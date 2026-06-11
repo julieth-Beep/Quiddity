@@ -233,21 +233,24 @@ public class CatalogoServlet extends HttpServlet {
                 || (buscar != null && !buscar.isBlank())) {
             productos = catalogoDAO.buscarConFiltros(categoria, estado, buscar);
         } else {
-            // Vista por defecto: activos primero, luego inactivos
             productos = catalogoDAO.listarTodosAdmin();
         }
 
-        // ── Contadores para tarjetas resumen ────────────────────────────────
-        List<Catalogo> todos = catalogoDAO.listarTodos();
-        List<Catalogo> activos = catalogoDAO.listarActivos();
-        List<Catalogo> bajoStock = catalogoDAO.listarBajoStock(10);
-        List<Catalogo> sinStock = catalogoDAO.listarSinStock();
+        // ── Contadores reutilizando la lista ya cargada (evita 4 queries extra) ──
+        List<Catalogo> todos = catalogoDAO.listarTodosAdmin();
+
+        long totalProductos = todos.size();
+        long productosActivos = todos.stream().filter(Catalogo::isActivo).count();
+        long productosBajoStock = todos.stream()
+                .filter(p -> p.isActivo() && p.getStock() > 0 && p.getStock() < 10).count();
+        long productosSinStock = todos.stream()
+                .filter(p -> p.getStock() == 0).count();
 
         req.setAttribute("productos", productos);
-        req.setAttribute("totalProductos", todos.size());
-        req.setAttribute("productosActivos", activos.size());
-        req.setAttribute("productosBajoStock", bajoStock.size());
-        req.setAttribute("productosSinStock", sinStock.size());
+        req.setAttribute("totalProductos", totalProductos);
+        req.setAttribute("productosActivos", productosActivos);
+        req.setAttribute("productosBajoStock", productosBajoStock);
+        req.setAttribute("productosSinStock", productosSinStock);
 
         // ── Árbol de categorías con contadores ──────────────────────────────
         List<Map<String, Object>> arbolCategorias = catalogoDAO.getCategoriaConConteo();
@@ -264,7 +267,7 @@ public class CatalogoServlet extends HttpServlet {
         req.setAttribute("ventasPorCategoria", ventasPorCategoria);
         req.setAttribute("sinVentas", sinVentas);
 
-        // Pasar filtros activos de vuelta a la vista
+        // ── Filtros activos de vuelta a la vista ────────────────────────────
         req.setAttribute("filtroCategoria", categoria);
         req.setAttribute("filtroEstado", estado);
         req.setAttribute("filtroBuscar", buscar);

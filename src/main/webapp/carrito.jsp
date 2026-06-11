@@ -12,13 +12,11 @@
     String ctx = request.getContextPath();
     DecimalFormat df = new DecimalFormat("#,###");
 
-    // Leer lo que el servlet ya cargó
     List<Carrito> items = (List<Carrito>) request.getAttribute("items");
     Double totalGeneral = (Double) request.getAttribute("total");
     if (items == null) items = new java.util.ArrayList<Carrito>();
     if (totalGeneral == null) totalGeneral = 0.0;
 
-    // Mensajes flash
     String msgExito = request.getParameter("exito");
     String msgError = request.getParameter("error");
 %>
@@ -219,7 +217,7 @@
                                     $<%= df.format(item.getProducto().getPrecio()) %>
                                 </td>
 
-                                <!-- Cantidad — form POST a /carrito?accion=actualizar -->
+                                <!-- Cantidad -->
                                 <td class="py-6 text-center">
                                     <form action="<%= ctx %>/carrito" method="post"
                                           class="flex items-center justify-center gap-2">
@@ -242,7 +240,7 @@
                                     $<%= df.format(item.getSubtotal()) %>
                                 </td>
 
-                                <!-- Eliminar — form POST a /carrito?accion=eliminar -->
+                                <!-- Eliminar -->
                                 <td class="py-6 text-center">
                                     <form action="<%= ctx %>/carrito" method="post"
                                           onsubmit="return confirm('¿Eliminar este producto del carrito?')">
@@ -271,7 +269,7 @@
                     </div>
                 </div>
 
-                <!-- ── RESUMEN / CHECKOUT ──────────────────────────────── -->
+                <!-- ── RESUMEN / IR A CHECKOUT ──────────────────────────────── -->
                 <div class="w-full lg:w-80 flex-shrink-0">
                     <div class="border border-outline/20 p-8">
                         <h3 style="font-family:'EB Garamond',serif; font-size:24px; font-style:italic;" class="mb-6">
@@ -306,16 +304,13 @@
                             </div>
                         </div>
 
-                        <!-- Confirmar compra — POST a /carrito?accion=confirmar -->
-                        <form action="<%= ctx %>/carrito" method="post" class="mt-6"
-                              onsubmit="return confirm('¿Confirmar la compra? Se descontará el stock.')">
-                            <input type="hidden" name="accion" value="confirmar">
-                            <button type="submit"
-                                    class="w-full py-4 bg-primary text-white hover:bg-tertiary transition"
-                                    style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase;">
-                                Confirmar compra
-                            </button>
-                        </form>
+                        <!-- IR AL CHECKOUT -->
+                        <a href="<%= ctx %>/checkout"
+                           class="block w-full py-4 bg-primary text-white hover:bg-tertiary transition text-center"
+                           style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase;">
+                            <span class="material-symbols-outlined inline-block mr-2" style="font-size:16px;vertical-align:middle;">lock</span>
+                            Hacer pedido
+                        </a>
 
                         <!-- Vaciar carrito -->
                         <form action="<%= ctx %>/carrito" method="post" class="mt-3"

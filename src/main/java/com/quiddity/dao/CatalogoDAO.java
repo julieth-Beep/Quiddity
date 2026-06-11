@@ -233,10 +233,10 @@ public class CatalogoDAO {
                 rs.getString("imagen"),
                 rs.getString("categoria"),
                 rs.getString("marca"),
-                rs.getBoolean("activo"),
-                rs.getBoolean("me_gusta"));
+                rs.getBoolean("me_gusta"), 
+                rs.getBoolean("activo") 
+        );
     }
-
     // ─── SOFT DELETE
     // ───────────────────────────────────────────────────────────────
 

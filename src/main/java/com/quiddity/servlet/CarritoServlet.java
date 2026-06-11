@@ -92,7 +92,7 @@ public class CarritoServlet extends HttpServlet {
             case "agregar"    -> accionAgregar(req, resp, usuario);
             case "actualizar" -> accionActualizar(req, resp, usuario);
             case "eliminar"   -> accionEliminar(req, resp);
-            case "confirmar"  -> accionConfirmar(req, resp, usuario);
+            case "confirmar" -> resp.sendRedirect(req.getContextPath() + "/checkout");
             default           -> resp.sendRedirect(req.getContextPath() + "/carrito");
         }
     }
