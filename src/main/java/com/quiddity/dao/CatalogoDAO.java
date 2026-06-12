@@ -477,4 +477,46 @@ public class CatalogoDAO {
         }
         return lista;
     }
+
+      /**
+     * Obtiene productos por lista de IDs
+     */
+    public List<Catalogo> obtenerPorIds(List<Integer> ids) {
+        List<Catalogo> resultado = new ArrayList<>();
+        if (ids == null || ids.isEmpty()) {
+            return resultado;
+        }
+
+        String placeholders = String.join(",", java.util.Collections.nCopies(ids.size(), "?"));
+        String sql = "SELECT * FROM catalogo WHERE id IN (" + placeholders + ") AND activo = 1";
+
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            for (int i = 0; i < ids.size(); i++) {
+                stmt.setInt(i + 1, ids.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Catalogo c = new Catalogo();
+                    c.setId(rs.getInt("id"));
+                    c.setNombre(rs.getString("nombre"));
+                    c.setDescripcion(rs.getString("descripcion"));
+                    c.setComponentes(rs.getString("componentes"));
+                    c.setPrecio(rs.getDouble("precio"));
+                    c.setStock(rs.getInt("stock"));
+                    c.setImagen(rs.getString("imagen"));
+                    c.setCategoria(rs.getString("categoria"));
+                    c.setMarca(rs.getString("marca"));
+                    c.setActivo(rs.getBoolean("activo"));
+                    resultado.add(c);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultado;
+    }
+
 }

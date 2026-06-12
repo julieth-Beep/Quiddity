@@ -17,22 +17,23 @@ import java.util.List;
  *
  * Accesible por ROL_USUARIO (3) y ROL_COMPRADOR (2).
  *
- * GET  /carrito                   → muestra el carrito del usuario
- * GET  /compraExitosa             → página de confirmación post-compra
- * POST /carrito?accion=agregar    → agrega producto al carrito
+ * GET /carrito → muestra el carrito del usuario
+ * GET /compraExitosa → página de confirmación post-compra
+ * POST /carrito?accion=agregar → agrega producto al carrito
  * POST /carrito?accion=actualizar → cambia cantidad de un ítem
- * POST /carrito?accion=eliminar   → elimina un ítem del carrito
- * POST /carrito?accion=confirmar  → confirma la compra, descuenta stock y vacía carrito
+ * POST /carrito?accion=eliminar → elimina un ítem del carrito
+ * POST /carrito?accion=confirmar → confirma la compra, descuenta stock y vacía
+ * carrito
  */
-@WebServlet(urlPatterns = {"/carrito", "/compraExitosa"})
+@WebServlet(urlPatterns = { "/carrito", "/compraExitosa" })
 public class CarritoServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
-    private static final int ROL_USUARIO   = 3;
+    private static final int ROL_USUARIO = 3;
     private static final int ROL_COMPRADOR = 2;
 
-    private final CarritoDAO  carritoDAO  = new CarritoDAO();
+    private final CarritoDAO carritoDAO = new CarritoDAO();
     private final CatalogoDAO catalogoDAO = new CatalogoDAO();
 
     // ── GET ───────────────────────────────────────────────────────────────────
@@ -50,8 +51,8 @@ public class CarritoServlet extends HttpServlet {
                 return;
             }
             // Pasar los datos guardados por accionConfirmar a la vista
-            req.setAttribute("total",      session.getAttribute("ultimaCompraTotal"));
-            req.setAttribute("numItems",   session.getAttribute("ultimaCompraItems"));
+            req.setAttribute("total", session.getAttribute("ultimaCompraTotal"));
+            req.setAttribute("numItems", session.getAttribute("ultimaCompraItems"));
             // Limpiar de la sesión para que no reaparezcan si recarga
             session.removeAttribute("ultimaCompraTotal");
             session.removeAttribute("ultimaCompraItems");
@@ -62,10 +63,11 @@ public class CarritoServlet extends HttpServlet {
 
         // ── GET /carrito ──────────────────────────────────────────────────────
         Usuario usuario = usuarioAutenticado(req, resp);
-        if (usuario == null) return;
+        if (usuario == null)
+            return;
 
         List<Carrito> items = carritoDAO.getCarritoByUsuario(usuario.getId());
-        double total        = carritoDAO.getTotalCarrito(usuario.getId());
+        double total = carritoDAO.getTotalCarrito(usuario.getId());
 
         req.setAttribute("items", items);
         req.setAttribute("total", total);
@@ -80,7 +82,8 @@ public class CarritoServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
 
         Usuario usuario = usuarioAutenticado(req, resp);
-        if (usuario == null) return;
+        if (usuario == null)
+            return;
 
         String accion = req.getParameter("accion");
         if (accion == null) {
@@ -89,11 +92,11 @@ public class CarritoServlet extends HttpServlet {
         }
 
         switch (accion) {
-            case "agregar"    -> accionAgregar(req, resp, usuario);
+            case "agregar" -> accionAgregar(req, resp, usuario);
             case "actualizar" -> accionActualizar(req, resp, usuario);
-            case "eliminar"   -> accionEliminar(req, resp);
+            case "eliminar" -> accionEliminar(req, resp);
             case "confirmar" -> resp.sendRedirect(req.getContextPath() + "/checkout");
-            default           -> resp.sendRedirect(req.getContextPath() + "/carrito");
+            default -> resp.sendRedirect(req.getContextPath() + "/carrito");
         }
     }
 
@@ -104,7 +107,7 @@ public class CarritoServlet extends HttpServlet {
             throws IOException {
 
         int catalogoId = parseInt(req.getParameter("catalogoId"), 0);
-        int cantidad   = parseInt(req.getParameter("cantidad"), 1);
+        int cantidad = parseInt(req.getParameter("cantidad"), 1);
 
         if (catalogoId <= 0 || cantidad <= 0) {
             redirigirConMensaje(req, resp, "/carrito", "error", "Datos inválidos.");
@@ -136,7 +139,7 @@ public class CarritoServlet extends HttpServlet {
     private void accionActualizar(HttpServletRequest req, HttpServletResponse resp, Usuario usuario)
             throws IOException {
 
-        int itemId   = parseInt(req.getParameter("itemId"), 0);
+        int itemId = parseInt(req.getParameter("itemId"), 0);
         int cantidad = parseInt(req.getParameter("cantidad"), 0);
 
         if (itemId <= 0) {
@@ -176,12 +179,13 @@ public class CarritoServlet extends HttpServlet {
             throws IOException {
 
         int itemId = parseInt(req.getParameter("itemId"), 0);
-        if (itemId > 0) carritoDAO.eliminarItem(itemId);
+        if (itemId > 0)
+            carritoDAO.eliminarItem(itemId);
         resp.sendRedirect(req.getContextPath() + "/carrito");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // CONFIRMAR COMPRA: verifica stock → descuenta → vacía carrito
+    // CONFIRMAR → ahora solo redirige al checkout
     // ─────────────────────────────────────────────────────────────────────────
     private void accionConfirmar(HttpServletRequest req, HttpServletResponse resp, Usuario usuario)
             throws ServletException, IOException {
@@ -193,41 +197,21 @@ public class CarritoServlet extends HttpServlet {
             return;
         }
 
-        // 1. Verificar stock de todos los productos antes de tocar nada
+        // Verificación rápida de stock antes de ir al checkout
         for (Carrito item : items) {
             Catalogo producto = catalogoDAO.obtenerPorId(item.getCatalogoId());
-            if (producto == null) {
-                redirigirConMensaje(req, resp, "/carrito", "error",
-                        "El producto \"" + item.getCatalogoId() + "\" ya no está disponible.");
-                return;
-            }
-            if (producto.getStock() < item.getCantidad()) {
-                redirigirConMensaje(req, resp, "/carrito", "error",
-                        "Stock insuficiente para \"" + producto.getNombre() +
-                        "\". Disponible: " + producto.getStock() + " unidades.");
+            if (producto == null || producto.getStock() < item.getCantidad()) {
+                String msg = producto == null
+                        ? "Un producto ya no está disponible."
+                        : "Stock insuficiente para \"" + producto.getNombre() + "\". Disponible: "
+                                + producto.getStock();
+                redirigirConMensaje(req, resp, "/carrito", "error", msg);
                 return;
             }
         }
 
-        // 2. Descontar stock de cada producto
-        for (Carrito item : items) {
-            boolean descontado = catalogoDAO.descontarStock(item.getCatalogoId(), item.getCantidad());
-            if (!descontado) {
-                redirigirConMensaje(req, resp, "/carrito", "error",
-                        "Error al procesar la compra. Inténtalo de nuevo.");
-                return;
-            }
-        }
-
-        // 3. Vaciar el carrito
-        carritoDAO.vaciarCarrito(usuario.getId());
-
-        // 4. Guardar datos de la compra en sesión para la página de confirmación
-        double total = items.stream().mapToDouble(Carrito::getSubtotal).sum();
-        req.getSession().setAttribute("ultimaCompraTotal", total);
-        req.getSession().setAttribute("ultimaCompraItems", items.size());
-
-        resp.sendRedirect(req.getContextPath() + "/compraExitosa");
+        // Todo OK → ir al checkout para elegir dirección y método de pago
+        resp.sendRedirect(req.getContextPath() + "/checkout");
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -252,7 +236,7 @@ public class CarritoServlet extends HttpServlet {
     }
 
     private void redirigirConMensaje(HttpServletRequest req, HttpServletResponse resp,
-                                     String destino, String tipo, String mensaje)
+            String destino, String tipo, String mensaje)
             throws IOException {
         String encoded = java.net.URLEncoder.encode(mensaje, "UTF-8");
         resp.sendRedirect(req.getContextPath() + destino + "?" + tipo + "=" + encoded);
@@ -265,4 +249,5 @@ public class CarritoServlet extends HttpServlet {
             return defecto;
         }
     }
+
 }

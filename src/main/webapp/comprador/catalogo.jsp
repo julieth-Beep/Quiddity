@@ -234,6 +234,10 @@
         <a href="<%= ctx %>/carrito" class="text-on-surface hover:text-primary transition-colors relative">
             <span class="material-symbols-outlined">shopping_bag</span>
         </a>
+        <!-- ICONO HISTORIAL / PEDIDOS -->
+        <a href="<%= ctx %>/pedidos" class="text-on-surface hover:text-primary transition-colors relative" title="Mis Pedidos">
+            <span class="material-symbols-outlined">receipt_long</span>
+        </a>
         <div class="relative group">
             <button class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary">
                 <%= user.getNombre() %>
@@ -243,6 +247,7 @@
                 <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
                 <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Compras</a>
                 <div class="border-t my-1"></div>
+                <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
                 <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
             </div>
         </div>

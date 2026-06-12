@@ -116,6 +116,9 @@
             <span class="material-symbols-outlined">shopping_bag</span>
             <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center"><%= items.size() %></span>
         </a>
+        <a href="<%= ctx %>/pedidos" class="text-on-surface hover:text-primary transition-colors relative" title="Mis Pedidos">
+            <span class="material-symbols-outlined">receipt_long</span>
+        </a>
         <div class="relative group">
             <button class="flex items-center gap-2 hover:text-primary"
                     style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">
@@ -123,6 +126,7 @@
                 <span class="material-symbols-outlined text-sm">expand_more</span>
             </button>
             <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
+                <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
                 <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
             </div>
         </div>
@@ -189,9 +193,9 @@
                                     <div class="flex gap-4 items-center">
                                         <div class="w-20 h-20 bg-surface-variant overflow-hidden flex-shrink-0">
                                             <% if (item.getProducto().getImagen() != null && !item.getProducto().getImagen().isEmpty()) { %>
-                                                <img src="<%= ctx %>/uploads/catalogo/<%= item.getProducto().getImagen() %>"
-                                                     alt="<%= item.getProducto().getNombre() %>"
-                                                     class="w-full h-full object-cover" />
+                                                <img src="<%= ctx %>/<%= item.getProducto().getImagen() %>" 
+                                                alt="<%= item.getProducto().getNombre() %>" 
+                                                class="w-full h-full object-cover" />
                                             <% } else { %>
                                                 <div class="w-full h-full flex items-center justify-center text-outline">
                                                     <span class="material-symbols-outlined">image</span>

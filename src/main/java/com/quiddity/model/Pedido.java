@@ -22,6 +22,7 @@ public class Pedido {
     private String nombreUsuario;
     private String emailUsuario;
     private String documentoUsuario;
+    private int cantidadItems;
 
     /**
      * PENDIENTE → CONFIRMADO → EN_PROCESO → ENVIADO → ENTREGADO
@@ -46,7 +47,7 @@ public class Pedido {
 
     public Pedido(int id, int usuarioId, int direccionId, Estado estado, double total, String notas,
             ZonedDateTime creadoEn, ZonedDateTime actualizadoEn, String metodo_pago, Direccion direccion,
-            List<PedidoItem> items, String nombreUsuario, String emailUsuario, String documentoUsuario) {
+            List<PedidoItem> items, String nombreUsuario, String emailUsuario, String documentoUsuario, int cantidadItems) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.direccionId = direccionId;
@@ -61,6 +62,7 @@ public class Pedido {
         this.nombreUsuario = nombreUsuario;
         this.emailUsuario = emailUsuario;
         this.documentoUsuario = documentoUsuario;
+        this.cantidadItems = cantidadItems;
     }
 
     public int getId() {
@@ -197,5 +199,13 @@ public class Pedido {
 
     public void setDocumentoUsuario(String documentoUsuario) {
         this.documentoUsuario = documentoUsuario;
+    }
+
+    public int getCantidadItems() {
+        return cantidadItems;
+    }
+
+    public void setCantidadItems(int cantidadItems) {
+        this.cantidadItems = cantidadItems;
     }
 }

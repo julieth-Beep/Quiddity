@@ -133,7 +133,7 @@
 
         .chips-scroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
         .chips-scroll::-webkit-scrollbar { display: none; }
-
+        
         /* ── Product cards ── */
         .product-card { opacity: 1; }
 
@@ -163,26 +163,20 @@
                 <h1 class="font-display-lg text-headline-md tracking-[0.2em] text-primary uppercase">Quiddity</h1>
             </a>
             <nav class="hidden md:flex gap-8">
-                <a class="font-label-md text-label-md uppercase text-primary border-b border-primary pb-0.5" href="<%= ctx %>/catalogo.jsp">Shop</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Our Story</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Apothecary</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Journal</a>
+                <a class="font-label-md text-label-md uppercase text-primary border-b border-primary pb-0.5" href="<%= ctx %>/catalogo.jsp">SHOP</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/index.jsp#nuestra-historia">NUESTRA HISTORIA</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/index.jsp#apothecary">APOTHECARY</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/index.jsp#offerings">BLOG</a>
             </nav>
         </div>
-        <div class="flex items-center gap-6">
-            <button class="text-on-surface hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">search</span>
-            </button>
-            <button class="text-on-surface hover:text-primary transition-colors">
-                <span class="material-symbols-outlined">favorite</span>
-            </button>
+        <div class="flex items-center gap-6">            
             <div class="w-px h-5 bg-outline/20"></div>
-            <a href="<%= ctx %>/login.jsp" class="font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary transition-colors">Login</a>
-            <a href="<%= ctx %>/registro.jsp" class="font-label-md text-label-md uppercase tracking-widest px-6 py-2.5 bg-primary text-white hover:bg-tertiary transition-all duration-300 active:scale-95">Registro</a>
+            <a href="<%= ctx %>/login.jsp" class="font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary transition-colors">LOGIN</a>
+            <a href="<%= ctx %>/registro.jsp" class="font-label-md text-label-md uppercase tracking-widest px-6 py-2.5 bg-primary text-white hover:bg-tertiary transition-all duration-300 active:scale-95">REGISTRO</a>
         </div>
     </header>
 
-    <main style="padding-top: 42px;">
+    <main id="main-content">
 
         <!-- MINI HERO CON VIDEO -->
         <section id="catalog-hero" aria-label="Catálogo hero">
@@ -206,7 +200,7 @@
         </section>
 
         <!-- CATEGORY CHIPS -->
-        <div class="sticky z-40 bg-white border-b border-on-surface/5 shadow-sm" style="top: calc(42px + 72px);">
+        <div id="chips-container" class="sticky z-40 bg-white border-b border-on-surface/5 shadow-sm" style="top: calc(42px + 72px);">
             <div class="max-w-[1440px] mx-auto px-container-margin">
                 <div class="chips-scroll py-5 gap-3">
 
@@ -574,14 +568,20 @@
     <script>
         /* ── Announcement bar ── */
         function closeAnnouncementBar() {
-            document.getElementById('announcement-bar').style.display = 'none';
-            document.getElementById('main-header').style.top = '0px';
-            document.querySelectorAll('.sticky').forEach(function(el) { el.style.top = '72px'; });
+            var bar = document.getElementById('announcement-bar');
+            var header = document.getElementById('main-header');
+            var main = document.getElementById('main-content');
+            var chips = document.getElementById('chips-container');
+            
+            bar.style.display = 'none';
+            header.style.top = '0px';
+            chips.style.top = '72px';
         }
 
         /* ── Shrink header on scroll ── */
         window.addEventListener('scroll', function() {
             var header = document.getElementById('main-header');
+            
             if (window.scrollY > 10) {
                 header.classList.add('py-2');
                 header.classList.remove('py-4');
@@ -591,7 +591,7 @@
             }
         });
 
-        /* ── Modal ── */
+        /* ── Modal ─ */
         function openLoginPrompt() {
             document.getElementById('login-modal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -720,4 +720,5 @@
     <%@ include file="chatbot.jsp" %>
 
 </body>
+
 </html>

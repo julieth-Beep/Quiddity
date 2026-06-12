@@ -24,6 +24,7 @@ public class PedidoDAO {
         p.setEstadoDesdeString(rs.getString("estado"));
         p.setTotal(rs.getDouble("total"));
         p.setNotas(rs.getString("notas"));
+        p.setMetodo_pago(rs.getString("metodo_pago"));
 
         Timestamp creadoEn = rs.getTimestamp("creado_en");
         if (creadoEn != null)
@@ -68,8 +69,8 @@ public class PedidoDAO {
                 VALUES (?, ?, ?, ?, ?)
                 """;
         String sqlItem = """
-                INSERT INTO pedido_item (pedidoid, catalogoid, cantidad, precio_unitario)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO pedido_item (pedido_id, catalogo_id, cantidad, precio_unitario, subtotal)
+                VALUES (?, ?, ?, ?, ?)
                 """;
         String sqlStock = "UPDATE catalogo SET stock = stock - ? WHERE id = ? AND stock >= ?";
 
@@ -99,11 +100,13 @@ public class PedidoDAO {
 
             // 2. Insertar ítems y descontar stock
             for (PedidoItem item : pedido.getItems()) {
+                double subtotal = item.getCantidad() * item.getPrecioUnitario();
                 try (PreparedStatement psItem = con.prepareStatement(sqlItem)) {
                     psItem.setInt(1, pedidoId);
                     psItem.setInt(2, item.getCatalogoId());
                     psItem.setInt(3, item.getCantidad());
                     psItem.setDouble(4, item.getPrecioUnitario());
+                    psItem.setDouble(5, subtotal);
                     psItem.executeUpdate();
                 }
 
@@ -146,10 +149,14 @@ public class PedidoDAO {
         List<Pedido> lista = new ArrayList<>();
         String sql = """
                 SELECT p.*, d.departamento, d.ciudad, d.barrio,
-                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
+                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural,
+                       COALESCE(SUM(pi.cantidad), 0) AS cantidad_items
                 FROM pedido p
                 JOIN direccion d ON p.direccionid = d.id
+                LEFT JOIN pedido_item pi ON pi.pedido_id = p.id
                 WHERE p.usuarioid = ?
+                GROUP BY p.id, d.departamento, d.ciudad, d.barrio,
+                         d.direccion, d.es_rural, d.descripcion_rural
                 ORDER BY p.creado_en DESC
                 """;
         try (Connection con = ConexionDB.getConnection();
@@ -159,7 +166,8 @@ public class PedidoDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Pedido p = mapearPedido(rs);
-                    // Adjuntar dirección del JOIN
+                    p.setCantidadItems(rs.getInt("cantidad_items"));
+
                     Direccion d = new Direccion();
                     d.setId(p.getDireccionId());
                     d.setDepartamento(rs.getString("departamento"));
@@ -190,13 +198,13 @@ public class PedidoDAO {
                 WHERE p.id = ? AND p.usuarioid = ?
                 """;
         String sqlItems = """
-                SELECT pi.id AS item_id, pi.pedidoid, pi.catalogoid,
-                       pi.cantidad, pi.precio_unitario,
+                SELECT pi.id AS item_id, pi.pedido_id AS pedidoid, pi.catalogo_id AS catalogoid,
+                       pi.cantidad, pi.precio_unitario, pi.subtotal,
                        c.nombre AS prod_nombre, c.imagen AS prod_imagen,
                        c.categoria AS prod_categoria, c.marca AS prod_marca
                 FROM pedido_item pi
-                JOIN catalogo c ON pi.catalogoid = c.id
-                WHERE pi.pedidoid = ?
+                JOIN catalogo c ON pi.catalogo_id = c.id
+                WHERE pi.pedido_id = ?
                 """;
         try (Connection con = ConexionDB.getConnection()) {
 
@@ -301,7 +309,7 @@ public class PedidoDAO {
         String sqlVerificar = "SELECT estado FROM pedido WHERE id = ? AND usuarioid = ?";
         String sqlCancelar = "UPDATE pedido SET estado = 'CANCELADO' WHERE id = ?";
         String sqlRestaurar = "UPDATE catalogo SET stock = stock + ? WHERE id = ?";
-        String sqlItems = "SELECT catalogoid, cantidad FROM pedido_item WHERE pedidoid = ?";
+        String sqlItems = "SELECT catalogo_id, cantidad FROM pedido_item WHERE pedidoid = ?";
 
         Connection con = null;
         try {
@@ -451,13 +459,13 @@ public class PedidoDAO {
                 WHERE p.id = ?
                 """;
         String sqlItems = """
-                SELECT pi.id AS item_id, pi.pedidoid, pi.catalogoid,
-                       pi.cantidad, pi.precio_unitario,
+                SELECT pi.id AS item_id, pi.pedido_id AS pedidoid, pi.catalogo_id AS catalogoid,
+                       pi.cantidad, pi.precio_unitario, pi.subtotal,
                        c.nombre AS prod_nombre, c.imagen AS prod_imagen,
                        c.categoria AS prod_categoria, c.marca AS prod_marca
                 FROM pedido_item pi
-                JOIN catalogo c ON pi.catalogoid = c.id
-                WHERE pi.pedidoid = ?
+                JOIN catalogo c ON pi.catalogo_id = c.id
+                WHERE pi.pedido_id = ?
                 """;
 
         try (Connection con = ConexionDB.getConnection()) {
@@ -593,6 +601,7 @@ public class PedidoDAO {
                     d.setEsRural(rs.getBoolean("es_rural"));
                     d.setDescripcionRural(rs.getString("descripcion_rural"));
                     p.setDireccion(d);
+                    p.setMetodo_pago(rs.getString("metodo_pago"));
                     lista.add(p);
                 }
             }
