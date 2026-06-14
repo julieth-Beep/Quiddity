@@ -133,7 +133,14 @@ public class AuthFilter implements Filter {
                 || path.startsWith("/rutina")
                 || path.startsWith("/sugerencias")
                 || path.startsWith("/usuario/")
-                || path.startsWith("/caracteristicas");
+                || path.startsWith("/caracteristicas")
+                || path.startsWith("/outfit") // ← agregar
+                || path.startsWith("/outfitprenda")
+                || path.startsWith("/closet/prenda")
+                || path.startsWith("/look")
+                || path.startsWith("/calendario")
+                || path.startsWith("/viajes")
+                || path.startsWith("/chat");
     }
 
     @Override

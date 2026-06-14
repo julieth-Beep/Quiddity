@@ -1,10 +1,16 @@
 package com.quiddity.model;
 
+/**
+ * Relación muchos-a-muchos entre Outfit y Prenda.
+ * Tabla: outfitprenda
+ */
 public class OutfitPrenda {
-
     private int id;
     private int idOutfit;
     private int idPrenda;
+
+    // Dato enriquecido — se llena con JOIN desde el DAO
+    private Prenda prenda;
 
     public OutfitPrenda() {
     }
@@ -13,10 +19,6 @@ public class OutfitPrenda {
         this.id = id;
         this.idOutfit = idOutfit;
         this.idPrenda = idPrenda;
-    }
-
-    public String toString() {
-        return "OutfitPrenda{id='" + this.id + "', idOutfit='" + this.idOutfit + "', idPrenda='" + this.idPrenda + "'}";
     }
 
     public int getId() {
@@ -41,5 +43,13 @@ public class OutfitPrenda {
 
     public void setIdPrenda(int idPrenda) {
         this.idPrenda = idPrenda;
+    }
+
+    public Prenda getPrenda() {
+        return prenda;
+    }
+
+    public void setPrenda(Prenda prenda) {
+        this.prenda = prenda;
     }
 }

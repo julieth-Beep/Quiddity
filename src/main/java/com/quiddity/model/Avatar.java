@@ -1,10 +1,16 @@
 package com.quiddity.model;
 
+/**
+ * Avatar del usuario — une usuario con sus características físicas.
+ * Tabla: avatar
+ */
 public class Avatar {
-
     private int idAvatar;
     private int idUsuario;
     private int idCaracteristicas;
+
+    // Datos enriquecidos (JOIN) — se llenan desde el DAO cuando se necesitan
+    private Caracteristicas caracteristicas;
 
     public Avatar() {
     }
@@ -39,4 +45,11 @@ public class Avatar {
         this.idCaracteristicas = idCaracteristicas;
     }
 
+    public Caracteristicas getCaracteristicas() {
+        return caracteristicas;
+    }
+
+    public void setCaracteristicas(Caracteristicas caracteristicas) {
+        this.caracteristicas = caracteristicas;
+    }
 }
