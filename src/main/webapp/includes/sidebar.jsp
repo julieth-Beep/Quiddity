@@ -1,4 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 
@@ -66,7 +67,7 @@
                                 </a>
                             </li>
                             <li class="nav-item ${activePage == 'closet' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/closet" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/usuario/closet" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">checkroom</span>
                                     <span class="nav-text">Mi Clóset</span>
                                 </a>
@@ -91,44 +92,6 @@
                             </li>
                         </ul>
                     </div>
-                    <!-- ══ QUIDDITY — Closet Digital / Outfits ══ -->
-                    <div class="nav-section">
-                        <p class="nav-section-label">Quiddity</p>
-                        <ul class="nav-list">
-                            <li class="nav-item ${activePage == 'outfit' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/outfit" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">style</span>
-                                    <span class="nav-text">Armar Outfit</span>
-                                </a>
-                            </li>
-                            <li class="nav-item ${activePage == 'look' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/look" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">photo_library</span>
-                                    <span class="nav-text">Mis Looks</span>
-                                </a>
-                            </li>
-                            <li class="nav-item ${activePage == 'chat' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/chat" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">smart_toy</span>
-                                    <span class="nav-text">Chat IA</span>
-                                    <span class="nav-badge">AI</span>
-                                </a>
-                            </li>
-                            <li class="nav-item ${activePage == 'calendario' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/calendario" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">calendar_month</span>
-                                    <span class="nav-text">Calendario</span>
-                                </a>
-                            </li>
-                            <li class="nav-item ${activePage == 'viajes' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/viajes" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">flight</span>
-                                    <span class="nav-text">Viajes</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
 
                     <div class="nav-section">
                         <p class="nav-section-label">Shopping</p>
