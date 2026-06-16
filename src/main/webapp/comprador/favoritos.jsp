@@ -116,7 +116,6 @@
     ::-webkit-scrollbar-thumb { background: #e6e1e4; }
     #announcement-bar { background-color: #c4a9a2; height: 42px; }
 
-    /* Hero de favoritos — imagen estática en lugar de video */
     #fav-hero { position: relative; width: 100%; height: 42vh; min-height: 280px; overflow: hidden; background: #1c1b1d; }
     #fav-hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; }
 
@@ -127,9 +126,12 @@
     .btn-fav.pop { animation: heartPop 0.32s cubic-bezier(.36,.07,.19,.97); }
     @keyframes heartPop { 0%{transform:scale(1)} 40%{transform:scale(1.45)} 70%{transform:scale(0.92)} 100%{transform:scale(1)} }
 
-    /* Tarjeta: cuando se elimina de favoritos */
     .product-card { opacity: 1; transition: opacity 0.3s ease, transform 0.3s ease; }
     .product-card.removing { opacity: 0; transform: scale(0.95); pointer-events: none; }
+
+    /* Loading overlay para el redirect inicial */
+    #fav-loading { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.3s; }
+    #fav-loading.hidden { opacity: 0; pointer-events: none; }
 
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(28,27,29,0.70); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 40px; }
     .modal-overlay.active { display: flex !important; }
@@ -157,20 +159,23 @@
     .modal-img-wrap img { display: block; width: 100%; height: 100%; object-fit: cover; }
     .modal-img-placeholder { display: flex; align-items: center; justify-content: center; color: #c4a9a2; }
 
-    /* Botón "limpiar todo" */
     .btn-clear-all { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; border: 1.5px solid rgba(154,58,90,0.25); font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #544246; cursor: pointer; transition: all 0.22s ease; background: white; }
     .btn-clear-all:hover { border-color: #9a3a5a; color: #9a3a5a; }
 
-    /* Empty state */
     .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 32px; text-align: center; }
 
-    @media (max-width: 768px) {
-        .modal-overlay { padding: 16px; }
-        .modal-content { max-height: 95vh; }
-    }
+    @media (max-width: 768px) { .modal-overlay { padding: 16px; } .modal-content { max-height: 95vh; } }
 </style>
 </head>
 <body class="bg-white font-body-md text-on-surface selection:bg-primary/10">
+
+<%-- Loading overlay: visible mientras el JS decide si redirigir --%>
+<div id="fav-loading">
+    <div style="text-align:center;">
+        <span class="material-symbols-outlined text-primary" style="font-size:48px;font-variation-settings:'FILL' 1,'wght' 200,'GRAD' 0,'opsz' 48;animation:pulse 1.4s ease-in-out infinite;">favorite</span>
+    </div>
+</div>
+<style>@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}</style>
 
 <!-- TOAST -->
 <div id="cart-toast">
@@ -205,7 +210,6 @@
         <button class="text-on-surface hover:text-primary transition-colors">
             <span class="material-symbols-outlined">search</span>
         </button>
-        <!-- Favoritos activo -->
         <a href="<%= ctx %>/favoritos" class="text-primary relative">
             <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">favorite</span>
             <span id="fav-badge" class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full items-center justify-center hidden">0</span>
@@ -236,7 +240,6 @@
 
     <!-- HERO FAVORITOS -->
     <section id="fav-hero">
-        <%-- Reutiliza un video del catálogo para el hero --%>
         <video id="fav-hero-bg" autoplay muted loop playsinline>
             <source src="<%= ctx %>/uploads/videos/mixed/4.mp4" type="video/mp4">
         </video>
@@ -247,15 +250,14 @@
                 <h2 class="font-display-lg text-white italic leading-tight" style="font-size:clamp(28px,3.5vw,50px);">
                     Mis Favoritos
                 </h2>
-                <!-- Contador dinámico -->
                 <span id="hero-count" class="font-label-md text-[11px] tracking-[0.2em] uppercase text-white/60 mb-1">
-                    — <span id="hero-count-num"><%= productos.size() %></span> producto<%= productos.size() != 1 ? "s" : "" %>
+                    — <span id="hero-count-num"><%= productos.size() %></span> producto<span id="hero-plural"><%= productos.size() != 1 ? "s" : "" %></span>
                 </span>
             </div>
         </div>
     </section>
 
-    <!-- SECTION HEADER + ACCIONES -->
+    <!-- SECTION HEADER -->
     <section class="max-w-[1440px] mx-auto px-container-margin pt-14 pb-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div>
@@ -272,7 +274,7 @@
                     Limpiar lista
                 </button>
                 <% } %>
-                <a href="<%= ctx %>/catalogo" class="btn-clear-all" style="border-color: rgba(135,114,118,0.3); text-decoration:none;">
+                <a href="<%= ctx %>/catalogo" class="btn-clear-all" style="border-color:rgba(135,114,118,0.3);text-decoration:none;">
                     <span class="material-symbols-outlined" style="font-size:14px;">arrow_back</span>
                     Seguir comprando
                 </a>
@@ -280,7 +282,6 @@
         </div>
     </section>
 
-    <!-- DIVIDER -->
     <div class="max-w-[1440px] mx-auto px-container-margin">
         <div style="height:1px; background: rgba(135,114,118,0.12);"></div>
     </div>
@@ -288,14 +289,10 @@
     <!-- PRODUCT GRID -->
     <section class="max-w-[1440px] mx-auto px-container-margin py-12 pb-section-gap">
 
-        <% if (productos.isEmpty()) { %>
-        <%-- EMPTY STATE: la lista de favoritos está vacía en el servidor,
-             pero puede haber IDs en localStorage — el JS se encarga de mostrar
-             el estado correcto dinámicamente. --%>
-        <div id="empty-state" class="empty-state">
+        <div id="empty-state" class="empty-state" style="display:none;">
             <span class="material-symbols-outlined text-7xl text-outline/30 mb-6"
                   style="font-variation-settings:'FILL' 0,'wght' 200,'GRAD' 0,'opsz' 48;">favorite</span>
-            <p class="font-headline-md text-2xl text-on-surface-variant mb-3">Aún no tienes favoritos</p>
+            <p class="font-headline-md text-2xl text-on-surface-variant mb-3" id="empty-msg">Aún no tienes favoritos</p>
             <p class="font-body-md text-sm text-outline mb-8 max-w-xs">
                 Explora el catálogo y toca el corazón en los productos que más te gusten.
             </p>
@@ -305,24 +302,8 @@
                 Ir al catálogo
             </a>
         </div>
-        <% } else { %>
-        <div id="empty-state" class="empty-state" style="display:none;">
-            <span class="material-symbols-outlined text-7xl text-outline/30 mb-6"
-                  style="font-variation-settings:'FILL' 0,'wght' 200,'GRAD' 0,'opsz' 48;">favorite</span>
-            <p class="font-headline-md text-2xl text-on-surface-variant mb-3">Tu lista de favoritos está vacía</p>
-            <p class="font-body-md text-sm text-outline mb-8 max-w-xs">
-                Eliminaste todos los productos. ¡Vuelve al catálogo para agregar más!
-            </p>
-            <a href="<%= ctx %>/catalogo"
-               class="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white font-label-md text-[11px] uppercase tracking-[0.2em] hover:bg-[#7a2e48] transition-all">
-                <span class="material-symbols-outlined" style="font-size:15px;">storefront</span>
-                Ir al catálogo
-            </a>
-        </div>
-        <% } %>
 
-        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter"
-             <%= productos.isEmpty() ? "style=\"display:none;\"" : "" %>>
+        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter">
             <%
             for (Catalogo prod : productos) {
                 String subcat    = determinarSubcat(prod.getImagen(), prod.getCategoria());
@@ -372,7 +353,6 @@
                         </div>
                     <% } %>
 
-                    <%-- Botón corazón — siempre activo en favoritos --%>
                     <button class="btn-fav active" data-id="<%= prod.getId() %>"
                             onclick="event.stopPropagation(); toggleFav(this)" title="Quitar de favoritos">
                         <span class="material-symbols-outlined">favorite</span>
@@ -397,7 +377,7 @@
     </section>
 </main>
 
-<!-- MODAL DETALLE PRODUCTO (idéntico al catálogo) -->
+<!-- MODAL DETALLE PRODUCTO -->
 <div id="productModal" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content">
         <button class="modal-close" onclick="closeProductModal()">
@@ -510,13 +490,13 @@
 </footer>
 
 <script>
-/* ═══════════════════════════════════════════
-   MODAL — igual al catálogo
-═══════════════════════════════════════════ */
-var currentProductId = null;
-var currentQty       = 1;
-var currentStock     = 0;
-var currentPrecio    = 0;
+/* ═══════════════ FAVORITOS — localStorage ═══════════════ */
+var FAV_KEY = 'quiddity_favs';
+function getFavs()     { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch(e){ return []; } }
+function saveFavs(arr) { localStorage.setItem(FAV_KEY, JSON.stringify(arr)); }
+
+/* ═══════════════ MODAL ═══════════════ */
+var currentProductId = null, currentQty = 1, currentStock = 0, currentPrecio = 0;
 
 function openProductModal(productId) {
     var card = document.querySelector('.product-card[data-id="' + productId + '"]');
@@ -527,12 +507,10 @@ function openProductModal(productId) {
     currentPrecio    = parseFloat(card.getAttribute('data-precio')) || 0;
 
     document.getElementById('modalNombre').textContent = card.getAttribute('data-nombre') || '';
-
     var marca = card.getAttribute('data-marca') || '';
     var marcaEl = document.getElementById('modalMarca');
     marcaEl.textContent = marca;
     marcaEl.style.display = marca ? 'inline-block' : 'none';
-
     document.getElementById('modalSubcat').textContent = card.getAttribute('data-subcat-label') || '';
     document.getElementById('modalPrecio').textContent = '$' + formatPeso(currentPrecio) + ' / und.';
 
@@ -544,35 +522,23 @@ function openProductModal(productId) {
     if (comp.trim() !== '') {
         document.getElementById('modalComponentes').textContent = comp;
         compWrap.style.display = 'block';
-    } else {
-        compWrap.style.display = 'none';
-    }
+    } else { compWrap.style.display = 'none'; }
 
     var imgSrc = card.getAttribute('data-imagen') || '';
     var imgEl  = document.getElementById('modalImage');
     var phEl   = document.getElementById('modalImagePlaceholder');
-    if (imgSrc) {
-        imgEl.src = imgSrc;
-        imgEl.alt = card.getAttribute('data-nombre') || '';
-        imgEl.style.display = 'block';
-        phEl.style.display  = 'none';
-    } else {
-        imgEl.style.display = 'none';
-        phEl.style.display  = 'flex';
-    }
+    if (imgSrc) { imgEl.src = imgSrc; imgEl.alt = card.getAttribute('data-nombre') || ''; imgEl.style.display = 'block'; phEl.style.display = 'none'; }
+    else        { imgEl.style.display = 'none'; phEl.style.display = 'flex'; }
 
-    actualizarStockUI();
-    resetQty();
+    actualizarStockUI(); resetQty();
     document.getElementById('modalError').style.display = 'none';
     document.getElementById('productModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function actualizarStockUI() {
-    var lbl = document.getElementById('modalStockLabel');
-    var num = document.getElementById('modalStockNum');
-    var bar = document.getElementById('modalStockBar');
-    var btn = document.getElementById('addToCartBtn');
+    var lbl = document.getElementById('modalStockLabel'), num = document.getElementById('modalStockNum');
+    var bar = document.getElementById('modalStockBar'),   btn = document.getElementById('addToCartBtn');
     var pct = Math.min(100, Math.round((currentStock / 50) * 100));
     if (currentStock === 0) {
         lbl.textContent = 'Sin stock disponible'; num.textContent = '';
@@ -580,99 +546,61 @@ function actualizarStockUI() {
         btn.disabled = true; btn.textContent = 'Sin Stock';
     } else if (currentStock <= 5) {
         lbl.textContent = '¡Últimas unidades!'; num.textContent = currentStock + ' disponibles';
-        bar.style.width = pct + '%'; bar.style.background = '#b45f06';
-        btn.disabled = false;
+        bar.style.width = pct + '%'; bar.style.background = '#b45f06'; btn.disabled = false;
         btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;">shopping_bag</span> Agregar al Carrito';
     } else {
         lbl.textContent = 'En stock'; num.textContent = currentStock + ' disponibles';
-        bar.style.width = pct + '%'; bar.style.background = '#9a3a5a';
-        btn.disabled = false;
+        bar.style.width = pct + '%'; bar.style.background = '#9a3a5a'; btn.disabled = false;
         btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;">shopping_bag</span> Agregar al Carrito';
     }
 }
 
 function resetQty() { currentQty = 1; renderQty(); }
-
 function changeQty(delta) {
     var next = currentQty + delta;
     if (next < 1) return;
     if (next > currentStock) { showModalError('Solo hay ' + currentStock + ' unidades disponibles.'); return; }
-    hideModalError();
-    currentQty = next;
-    renderQty();
+    hideModalError(); currentQty = next; renderQty();
 }
-
 function renderQty() {
     document.getElementById('qtyDisplay').textContent = currentQty;
     document.getElementById('btnMinus').disabled = (currentQty <= 1);
     document.getElementById('btnPlus').disabled  = (currentQty >= currentStock);
     document.getElementById('modalTotal').textContent = '$' + formatPeso(currentQty * currentPrecio);
 }
-
 function submitToCart() {
     if (!currentProductId || currentStock === 0) return;
     if (currentQty > currentStock) { showModalError('Stock insuficiente.'); return; }
     var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '<%= ctx %>/carrito';
+    form.method = 'POST'; form.action = '<%= ctx %>/carrito';
     var fields = { accion: 'agregar', catalogoId: currentProductId, cantidad: currentQty };
     Object.entries(fields).forEach(function(pair) {
         var inp = document.createElement('input');
-        inp.type = 'hidden'; inp.name = pair[0]; inp.value = pair[1];
-        form.appendChild(inp);
+        inp.type = 'hidden'; inp.name = pair[0]; inp.value = pair[1]; form.appendChild(inp);
     });
     document.body.appendChild(form);
-    closeProductModal();
-    showToast('Agregando al carrito…');
-    form.submit();
+    closeProductModal(); showToast('Agregando al carrito…'); form.submit();
 }
-
 function closeProductModal() {
     document.getElementById('productModal').classList.remove('active');
-    document.body.style.overflow = '';
-    currentProductId = null;
+    document.body.style.overflow = ''; currentProductId = null;
 }
-
-function closeModalOnOverlay(e) {
-    if (e.target === document.getElementById('productModal')) closeProductModal();
-}
-
+function closeModalOnOverlay(e) { if (e.target === document.getElementById('productModal')) closeProductModal(); }
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeProductModal(); });
 
-/* ═══════════════════════════════════════════
-   FAVORITOS — lógica con animación de salida
-   Al quitar un favorito, la tarjeta se anima
-   y desaparece del grid. Si el grid queda
-   vacío, se muestra el empty state.
-═══════════════════════════════════════════ */
-var FAV_KEY = 'quiddity_favs';
-function getFavs()     { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); }
-function saveFavs(arr) { localStorage.setItem(FAV_KEY, JSON.stringify(arr)); }
-
+/* ═══════════════ TOGGLE FAV (con animación de salida) ═══════════════ */
 function toggleFav(btn) {
     var id   = parseInt(btn.getAttribute('data-id'));
     var favs = getFavs();
     var idx  = favs.indexOf(id);
-
-    if (idx === -1) {
-        // No debería pasar en esta vista, pero por si acaso
-        favs.push(id);
-        btn.classList.add('active');
-        saveFavs(favs);
-    } else {
-        // Quitar favorito con animación
-        favs.splice(idx, 1);
-        saveFavs(favs);
+    if (idx !== -1) {
+        favs.splice(idx, 1); saveFavs(favs);
         btn.classList.remove('active');
-
         var card = btn.closest('.product-card');
-        if (card) {
-            card.classList.add('removing');
-            setTimeout(function() {
-                card.remove();
-                checkEmptyState();
-            }, 300);
-        }
+        if (card) { card.classList.add('removing'); setTimeout(function(){ card.remove(); checkEmptyState(); }, 300); }
+    } else {
+        favs.push(id); saveFavs(favs); btn.classList.add('active');
+        btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
     }
     updateFavBadge();
 }
@@ -681,27 +609,24 @@ function clearAllFavs() {
     if (!confirm('¿Eliminar todos tus favoritos?')) return;
     saveFavs([]);
     var cards = document.querySelectorAll('.product-card');
-    cards.forEach(function(card) { card.classList.add('removing'); });
-    setTimeout(function() {
-        cards.forEach(function(card) { card.remove(); });
-        checkEmptyState();
-    }, 320);
+    cards.forEach(function(c){ c.classList.add('removing'); });
+    setTimeout(function(){ cards.forEach(function(c){ c.remove(); }); checkEmptyState(); }, 320);
     updateFavBadge();
 }
 
 function checkEmptyState() {
     var remaining = document.querySelectorAll('.product-card:not(.removing)').length;
-    var grid   = document.getElementById('product-grid');
-    var empty  = document.getElementById('empty-state');
-    var count  = document.getElementById('product-count');
-    var heroN  = document.getElementById('hero-count-num');
-
-    count.textContent = remaining + ' producto' + (remaining !== 1 ? 's' : '');
+    var grid  = document.getElementById('product-grid');
+    var empty = document.getElementById('empty-state');
+    var count = document.getElementById('product-count');
+    var heroN = document.getElementById('hero-count-num');
+    var heroP = document.getElementById('hero-plural');
+    if (count) count.textContent = remaining + ' producto' + (remaining !== 1 ? 's' : '');
     if (heroN) heroN.textContent = remaining;
-
+    if (heroP) heroP.textContent = remaining !== 1 ? 's' : '';
     if (remaining === 0) {
         if (grid)  grid.style.display  = 'none';
-        if (empty) empty.style.display = 'flex';
+        if (empty) { empty.style.display = 'flex'; document.getElementById('empty-msg').textContent = 'Tu lista de favoritos está vacía'; }
     }
 }
 
@@ -713,50 +638,64 @@ function updateFavBadge() {
     else           { badge.style.display = 'none'; }
 }
 
-/* ═══════════════════════════════════════════
-   UTILITIES
-═══════════════════════════════════════════ */
+/* ═══════════════ UTILITIES ═══════════════ */
 function showToast(msg) {
     var t = document.getElementById('cart-toast');
     document.getElementById('cart-toast-msg').textContent = msg;
-    t.classList.add('show');
-    setTimeout(function() { t.classList.remove('show'); }, 2800);
+    t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 2800);
 }
-
 function formatPeso(n) { return Math.round(n).toLocaleString('es-CO'); }
 function showModalError(msg) { var el = document.getElementById('modalError'); el.textContent = msg; el.style.display = 'block'; }
 function hideModalError()    { document.getElementById('modalError').style.display = 'none'; }
-
 function closeAnnouncementBar() {
     document.getElementById('announcement-bar').style.display = 'none';
     document.getElementById('main-header').style.top = '0px';
 }
-
 window.addEventListener('scroll', function() {
-    var header = document.getElementById('main-header');
-    if (window.scrollY > 10) { header.classList.add('py-2'); header.classList.remove('py-4'); }
-    else                     { header.classList.remove('py-2'); header.classList.add('py-4'); }
+    var h = document.getElementById('main-header');
+    if (window.scrollY > 10) { h.classList.add('py-2'); h.classList.remove('py-4'); }
+    else                     { h.classList.remove('py-2'); h.classList.add('py-4'); }
 });
 
-/* ═══════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════ */
+/* ═══════════════ INIT — clave del fix ═══════════════ */
 document.addEventListener('DOMContentLoaded', function() {
-    // Sincronizar estado de corazones con localStorage
+    var loading = document.getElementById('fav-loading');
+    var params  = new URLSearchParams(window.location.search);
+    var favsEnUrl = params.get('favs');
+
+    if (!favsEnUrl) {
+        var favs = getFavs();
+        if (favs.length > 0) {
+        // Redirigir al SERVLET (no al JSP directo)
+            window.location.replace('<%= ctx %>/favoritos?favs=' + favs.join(','));
+            return;
+        }
+        // Sin favoritos en localStorage → mostrar empty state
+        var grid  = document.getElementById('product-grid');
+        var empty = document.getElementById('empty-state');
+        if (grid)  grid.style.display  = 'none';
+        if (empty) empty.style.display = 'flex';
+        if (loading) loading.classList.add('hidden');
+        updateFavBadge();
+        return;
+    }
+
+    // Ya tenemos ?favs= — el servidor ya renderizó los productos
+    // Ocultar loading
+    if (loading) loading.classList.add('hidden');
+
+    // Sincronizar: si un producto fue quitado del localStorage desde otra pestaña, ocultarlo
     var favs = getFavs();
-    document.querySelectorAll('.btn-fav').forEach(function(btn) {
-        var id = parseInt(btn.getAttribute('data-id'));
-        // En favoritos todos deberían estar activos, pero sincronizamos por si acaso
+    document.querySelectorAll('.product-card').forEach(function(card) {
+        var id = parseInt(card.getAttribute('data-id'));
         if (!favs.includes(id)) {
-            // Si el servidor lo mandó pero ya no está en localStorage, quitarlo
-            var card = btn.closest('.product-card');
-            if (card) card.style.display = 'none';
+            card.style.display = 'none';
         }
     });
+
     updateFavBadge();
     checkEmptyState();
 
-    var params = new URLSearchParams(window.location.search);
     if (params.get('exito')) showToast(decodeURIComponent(params.get('exito')));
 });
 </script>

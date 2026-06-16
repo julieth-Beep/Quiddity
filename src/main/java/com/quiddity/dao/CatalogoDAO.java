@@ -233,9 +233,8 @@ public class CatalogoDAO {
                 rs.getString("imagen"),
                 rs.getString("categoria"),
                 rs.getString("marca"),
-                rs.getBoolean("me_gusta"), 
-                rs.getBoolean("activo") 
-        );
+                rs.getBoolean("me_gusta"),
+                rs.getBoolean("activo"));
     }
     // ─── SOFT DELETE
     // ───────────────────────────────────────────────────────────────
@@ -478,7 +477,7 @@ public class CatalogoDAO {
         return lista;
     }
 
-      /**
+    /**
      * Obtiene productos por lista de IDs
      */
     public List<Catalogo> obtenerPorIds(List<Integer> ids) {
@@ -488,10 +487,10 @@ public class CatalogoDAO {
         }
 
         String placeholders = String.join(",", java.util.Collections.nCopies(ids.size(), "?"));
-        String sql = "SELECT * FROM catalogo WHERE id IN (" + placeholders + ") AND activo = 1";
+        String sql = "SELECT * FROM catalogo WHERE id IN (" + placeholders + ") AND activo = true ORDER BY nombre";
 
         try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             for (int i = 0; i < ids.size(); i++) {
                 stmt.setInt(i + 1, ids.get(i));
@@ -499,22 +498,11 @@ public class CatalogoDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Catalogo c = new Catalogo();
-                    c.setId(rs.getInt("id"));
-                    c.setNombre(rs.getString("nombre"));
-                    c.setDescripcion(rs.getString("descripcion"));
-                    c.setComponentes(rs.getString("componentes"));
-                    c.setPrecio(rs.getDouble("precio"));
-                    c.setStock(rs.getInt("stock"));
-                    c.setImagen(rs.getString("imagen"));
-                    c.setCategoria(rs.getString("categoria"));
-                    c.setMarca(rs.getString("marca"));
-                    c.setActivo(rs.getBoolean("activo"));
-                    resultado.add(c);
+                    resultado.add(mapear(rs));
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("[CatalogoDAO] Error al obtener por IDs: " + e.getMessage());
         }
         return resultado;
     }

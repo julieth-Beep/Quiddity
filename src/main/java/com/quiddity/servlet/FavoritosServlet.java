@@ -15,18 +15,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * GET /favoritos → muestra los productos favoritos del usuario
+ * GET  /favoritos?favs=1,2,3  → muestra los productos favoritos del usuario
+ * POST /favoritos              → igual, acepta favs en el body
  */
 @WebServlet("/favoritos")
 public class FavoritosServlet extends HttpServlet {
 
     private static final int ROL_COMPRADOR = 2;
-    private static final int ROL_USUARIO = 3;
+    private static final int ROL_USUARIO   = 3;
 
     private final CatalogoDAO catalogoDAO = new CatalogoDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        procesarFavoritos(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        procesarFavoritos(req, resp);
+    }
+
+    private void procesarFavoritos(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
@@ -38,18 +50,15 @@ public class FavoritosServlet extends HttpServlet {
         Usuario usuario = (Usuario) session.getAttribute("usuario");
         int rol = usuario.getIdRol();
 
-        // Solo compradores y usuarios normales ven favoritos
         if (rol != ROL_COMPRADOR && rol != ROL_USUARIO) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
-        // Obtener IDs de favoritos del usuario desde la BD
-        // Si no tienes tabla de favoritos en BD, usa localStorage vía parámetro
-        List<Integer> favIds = obtenerFavoritos(usuario.getId(), req);
+        List<Integer> favIds = parsearFavsParam(req.getParameter("favs"));
 
         List<Catalogo> productos = new ArrayList<>();
-        if (favIds != null && !favIds.isEmpty()) {
+        if (!favIds.isEmpty()) {
             productos = catalogoDAO.obtenerPorIds(favIds);
         }
 
@@ -58,27 +67,18 @@ public class FavoritosServlet extends HttpServlet {
     }
 
     /**
-     * Obtiene los IDs de favoritos.
-     * Primero intenta desde parámetro (enviado desde localStorage del cliente),
-     * si no, intenta desde la base de datos.
+     * Parsea el parámetro "favs" (ej: "1,2,3") a lista de enteros.
+     * Retorna lista vacía si el parámetro es nulo o inválido.
      */
-    private List<Integer> obtenerFavoritos(int usuarioId, HttpServletRequest req) {
-        // Opción 1: Desde parámetro POST/GET (localStorage del cliente)
-        String favsParam = req.getParameter("favs");
-        if (favsParam != null && !favsParam.isBlank()) {
-            List<Integer> ids = new ArrayList<>();
-            for (String s : favsParam.split(",")) {
-                try {
-                    ids.add(Integer.parseInt(s.trim()));
-                } catch (NumberFormatException ignored) {}
-            }
-            return ids;
+    private List<Integer> parsearFavsParam(String favsParam) {
+        List<Integer> ids = new ArrayList<>();
+        if (favsParam == null || favsParam.isBlank()) return ids;
+        for (String s : favsParam.split(",")) {
+            try {
+                int id = Integer.parseInt(s.trim());
+                if (id > 0) ids.add(id);
+            } catch (NumberFormatException ignored) {}
         }
-
-        // Opción 2: Desde base de datos (si tienes tabla favoritos)
-        // Descomenta cuando tengas la tabla:
-        // return catalogoDAO.getFavoritosPorUsuario(usuarioId);
-
-        return new ArrayList<>();
+        return ids;
     }
 }
