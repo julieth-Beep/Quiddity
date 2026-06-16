@@ -107,7 +107,6 @@ public class UsuarioDAO {
     }
 
     // READ — listar por rol
-
     public List<Usuario> listarPorRol(int idRol) {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT * FROM usuario WHERE idrol = ? ORDER BY nombre";
@@ -121,6 +120,38 @@ public class UsuarioDAO {
 
         } catch (Exception e) {
             System.err.println("[UsuarioDAO] Error al listar por rol: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    // NUEVO: Búsqueda por nombre, apellido, username, email o documento
+    // ═════════════════════════════════════════════════════════════════════════
+    public List<Usuario> buscarPorNombreUserEmailDoc(String termino) {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM usuario WHERE " +
+                     "LOWER(nombre) LIKE ? OR " +
+                     "LOWER(apellido) LIKE ? OR " +
+                     "LOWER(username) LIKE ? OR " +
+                     "LOWER(email) LIKE ? OR " +
+                     "LOWER(documento) LIKE ? " +
+                     "ORDER BY nombre";
+        
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            String like = "%" + termino.toLowerCase() + "%";
+            for (int i = 1; i <= 5; i++) {
+                ps.setString(i, like);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[UsuarioDAO] Error al buscar usuarios: " + e.getMessage());
         }
         return lista;
     }
@@ -151,14 +182,13 @@ public class UsuarioDAO {
 
     // UPDATE — cambiar contraseña
     public boolean cambiarContrasena(int id, String nuevaContrasena) {
-        // Hashear antes de guardar
         String hashed = BCrypt.hashpw(nuevaContrasena, BCrypt.gensalt());
 
         String sql = "UPDATE usuario SET contrasena = ? WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, hashed); // ← guardar hash, no texto plano
+            ps.setString(1, hashed);
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;
 
@@ -226,10 +256,8 @@ public class UsuarioDAO {
 
                 boolean match;
                 if (stored.startsWith("$2a$") || stored.startsWith("$2b$")) {
-                    // Contraseña con BCrypt
                     match = BCrypt.checkpw(contrasena, stored);
                 } else {
-                    // Contraseña en texto plano (usuarios viejos)
                     match = stored.equals(contrasena);
                 }
 
@@ -244,7 +272,6 @@ public class UsuarioDAO {
         return null;
     }
 
-    // UPDATE — solo la foto de perfil
     public boolean actualizarFoto(int id, String nombreArchivo) {
         String sql = "UPDATE usuario SET fotoperfil = ? WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
