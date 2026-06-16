@@ -1,5 +1,4 @@
 package com.quiddity.servlet;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,21 +33,20 @@ import com.quiddity.model.Usuario;
  *
  * GET /catalogo → catálogo para compradores/usuarios
  * GET /admin/catalogo → panel de productos (admin)
- * POST /admin/catalogo → acciones: agregar, actualizar, eliminar, stock,
- * toggleActivo
+ * POST /admin/catalogo → acciones: agregar, actualizar, eliminar, stock, toggleActivo
  * GET /admin/pedidos → panel de pedidos (admin)
  * POST /admin/pedidos → acción: avanzarEstado
  * GET /admin/pedidos/detalle → detalle de un pedido (admin)
  * GET /admin/estadisticas → panel de estadísticas (admin)
  */
 @WebServlet(urlPatterns = {
-        "/catalogo",
-        "/admin/catalogo",
-        "/admin/catalogo/form",
-        "/admin/pedidos",
-        "/admin/pedidos/detalle",
-        "/admin/estadisticas",
-        "/uploads/catalogo/*"
+    "/catalogo",
+    "/admin/catalogo",
+    "/admin/catalogo/form",
+    "/admin/pedidos",
+    "/admin/pedidos/detalle",
+    "/admin/estadisticas",
+    "/uploads/catalogo/*"
 })
 @MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2 MB
         maxFileSize = 1024 * 1024 * 10, // 10 MB
@@ -63,8 +61,7 @@ public class CatalogoServlet extends HttpServlet {
     private static final int ROL_USUARIO = 3;
 
     // Directorio raíz para imágenes de catálogo.
-    // Las imágenes se guardan en:
-    // uploads/catalogo/<ruta_categoria>/<nombre_limpio>.<ext>
+    // Las imágenes se guardan en: uploads/catalogo/<ruta_categoria>/<nombre_limpio>.<ext>
     // Ejemplo: uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg
     private static final String UPLOAD_ROOT = "uploads/catalogo";
 
@@ -167,8 +164,7 @@ public class CatalogoServlet extends HttpServlet {
             Path defaultImg = Paths.get(basePath, "default.jpg");
             if (Files.exists(defaultImg)) {
                 resp.setContentType("image/jpeg");
-                try (InputStream input = Files.newInputStream(defaultImg);
-                        OutputStream output = resp.getOutputStream()) {
+                try (InputStream input = Files.newInputStream(defaultImg); OutputStream output = resp.getOutputStream()) {
                     byte[] buffer = new byte[4096];
                     int len;
                     while ((len = input.read(buffer)) > 0) {
@@ -329,9 +325,8 @@ public class CatalogoServlet extends HttpServlet {
         String marca = getParam(req, "marca");
         double precio = parseDouble(req.getParameter("precio"), 0);
         int stock = parseInt(req.getParameter("stock"), 0);
-
-        // Ruta de subcategoría para la estructura de carpetas (ej:
-        // cuidado/skincare/cremas)
+        
+        // Ruta de subcategoría para la estructura de carpetas (ej: cuidado/skincare/cremas)
         String rutaCategoria = getParam(req, "rutaCategoria");
 
         if (nombre == null || nombre.isBlank() || precio <= 0) {
@@ -390,7 +385,7 @@ public class CatalogoServlet extends HttpServlet {
         String marca = getParam(req, "marca");
         double precio = parseDouble(req.getParameter("precio"), 0);
         int stock = parseInt(req.getParameter("stock"), 0);
-
+        
         // Ruta de subcategoría para la estructura de carpetas
         String rutaCategoria = getParam(req, "rutaCategoria");
 
@@ -519,8 +514,8 @@ public class CatalogoServlet extends HttpServlet {
         redirigir(req, resp, "/admin/catalogo", ok ? "exito" : "error", mensaje);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GET /admin/pedidos — listado de pedidos con filtros
+        // ─────────────────────────────────────────────────────────────────────────
+    // GET /admin/pedidos — listado de pedidos con filtros (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────────────
     private void adminPedidosGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -595,8 +590,8 @@ public class CatalogoServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/admin/detallePedido.jsp").forward(req, resp);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // POST /admin/pedidos — avanzar estado
+        // ─────────────────────────────────────────────────────────────────────────
+    // POST /admin/pedidos — acciones: avanzarEstado, cambiarEstado
     // ─────────────────────────────────────────────────────────────────────────
     private void adminPedidosPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -615,10 +610,26 @@ public class CatalogoServlet extends HttpServlet {
 
         if ("avanzarEstado".equalsIgnoreCase(accion)) {
             boolean ok = pedidoDAO.avanzarEstado(pedidoId);
-            redirigir(req, resp, "/admin/pedidos/detalle?id=" + pedidoId,
+            redirigir(req, resp, "/admin/pedidos",
                     ok ? "exito" : "error",
                     ok ? "Estado actualizado correctamente."
                             : "No se pudo avanzar el estado (verifique que el pedido permita transición).");
+        } else if ("cambiarEstado".equalsIgnoreCase(accion)) {
+            String nuevoEstadoStr = req.getParameter("estado");
+            if (nuevoEstadoStr == null || nuevoEstadoStr.isBlank()) {
+                redirigir(req, resp, "/admin/pedidos", "error", "Estado no especificado.");
+                return;
+            }
+            try {
+                Pedido.Estado nuevoEstado = Pedido.Estado.valueOf(nuevoEstadoStr);
+                boolean ok = pedidoDAO.cambiarEstado(pedidoId, nuevoEstado);
+                redirigir(req, resp, "/admin/pedidos",
+                        ok ? "exito" : "error",
+                        ok ? "Estado cambiado a " + nuevoEstado + "."
+                                : "No se pudo cambiar el estado del pedido.");
+            } catch (IllegalArgumentException e) {
+                redirigir(req, resp, "/admin/pedidos", "error", "Estado inválido: " + nuevoEstadoStr);
+            }
         } else {
             resp.sendRedirect(req.getContextPath() + "/admin/pedidos");
         }
@@ -673,7 +684,7 @@ public class CatalogoServlet extends HttpServlet {
     // ═════════════════════════════════════════════════════════════════════════
     // MANEJO DE IMÁGENES - CORREGIDO PARA RUTAS DE CATEGORÍA
     // ═════════════════════════════════════════════════════════════════════════
-
+    
     /**
      * Extrae el nombre de archivo de un Part desde el header Content-Disposition.
      * Compatible con Servlet 3.0 (Tomcat 7) — no usa getSubmittedFileName().
@@ -713,12 +724,10 @@ public class CatalogoServlet extends HttpServlet {
     /**
      * Guarda la imagen en uploads/catalogo/<ruta_categoria>/<nombre_limpio>.<ext>.
      * 
-     * @param filePart       Parte del archivo subido
-     * @param rutaCategoria  Ruta de categoría tipo "cuidado/skincare/cremas" (puede
-     *                       ser null)
+     * @param filePart Parte del archivo subido
+     * @param rutaCategoria Ruta de categoría tipo "cuidado/skincare/cremas" (puede ser null)
      * @param nombreProducto Nombre del producto para generar nombre limpio
-     * @return Ruta relativa completa para BD:
-     *         "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg"
+     * @return Ruta relativa completa para BD: "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg"
      *         o null si hay error de validación.
      */
     private String guardarImagen(Part filePart, String rutaCategoria, String nombreProducto) throws IOException {
@@ -751,8 +760,7 @@ public class CatalogoServlet extends HttpServlet {
         // Sanitizar y construir la ruta de categoría
         String rutaRelativa = sanitizarRutaCategoria(rutaCategoria);
 
-        // Ruta física en el servidor:
-        // <webapp>/uploads/catalogo/cuidado/skincare/cremas/
+        // Ruta física en el servidor: <webapp>/uploads/catalogo/cuidado/skincare/cremas/
         String basePath = getServletContext().getRealPath("") + File.separator + UPLOAD_ROOT;
         String fullDirPath = basePath + File.separator + rutaRelativa;
         File uploadDir = new File(fullDirPath);
@@ -772,8 +780,8 @@ public class CatalogoServlet extends HttpServlet {
         }
 
         // Guardar archivo en disco
-        try (InputStream input = filePart.getInputStream();
-                FileOutputStream output = new FileOutputStream(filePath)) {
+        try (InputStream input = filePart.getInputStream(); 
+             FileOutputStream output = new FileOutputStream(filePath)) {
             byte[] buffer = new byte[4096];
             int len;
             while ((len = input.read(buffer)) > 0) {
@@ -781,8 +789,7 @@ public class CatalogoServlet extends HttpServlet {
             }
         }
 
-        // Valor guardado en BD:
-        // "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg"
+        // Valor guardado en BD: "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg"
         // Usamos siempre forward slash para consistencia en BD
         return UPLOAD_ROOT + "/" + rutaRelativa + "/" + finalName;
     }
@@ -804,7 +811,7 @@ public class CatalogoServlet extends HttpServlet {
 
         String basePath = getServletContext().getRealPath("") + File.separator;
         Path filePath;
-
+        
         // Si la ruta ya empieza con "uploads/", usarla directamente
         if (imagenRelativa.startsWith("uploads/")) {
             filePath = Paths.get(basePath, imagenRelativa);
@@ -812,7 +819,7 @@ public class CatalogoServlet extends HttpServlet {
             // Ruta antigua: compatibilidad hacia atrás
             filePath = Paths.get(basePath, UPLOAD_ROOT, imagenRelativa);
         }
-
+        
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
@@ -823,7 +830,7 @@ public class CatalogoServlet extends HttpServlet {
     // ═════════════════════════════════════════════════════════════════════════
     // HELPERS - NUEVOS PARA SANITIZACIÓN DE RUTAS Y NOMBRES
     // ═════════════════════════════════════════════════════════════════════════
-
+    
     /**
      * Sanitiza una ruta de categoría con múltiples niveles.
      * Convierte "cuidado/skinCare/cremas" → "cuidado/skincare/cremas"
@@ -836,20 +843,19 @@ public class CatalogoServlet extends HttpServlet {
         if (ruta == null || ruta.isBlank()) {
             return "general";
         }
-
+        
         // Normalizar separadores a forward slash
         ruta = ruta.replace("\\", "/").trim();
         // Quitar slashes al inicio y final
         ruta = ruta.replaceAll("^/+", "").replaceAll("/+$", "");
-
+        
         String[] partes = ruta.split("/+");
         StringBuilder result = new StringBuilder();
-
+        
         for (String parte : partes) {
             parte = parte.trim();
-            if (parte.isEmpty())
-                continue;
-
+            if (parte.isEmpty()) continue;
+            
             // Quitar acentos y pasar a minúsculas
             parte = parte.toLowerCase()
                     .replaceAll("[áäâà]", "a")
@@ -860,22 +866,20 @@ public class CatalogoServlet extends HttpServlet {
                     .replaceAll("[ñ]", "n")
                     .replaceAll("[ç]", "c")
                     .replaceAll("[ýÿ]", "y");
-
+            
             // Reemplazar caracteres no alfanuméricos por underscore
             parte = parte.replaceAll("[^a-z0-9]", "_");
             // Colapsar múltiples underscores
             parte = parte.replaceAll("_+", "_");
             // Quitar underscores al inicio/final
             parte = parte.replaceAll("^_+|_+$", "");
-
-            if (parte.isEmpty())
-                continue;
-
-            if (result.length() > 0)
-                result.append("/");
+            
+            if (parte.isEmpty()) continue;
+            
+            if (result.length() > 0) result.append("/");
             result.append(parte);
         }
-
+        
         return result.length() > 0 ? result.toString() : "general";
     }
 
@@ -890,7 +894,7 @@ public class CatalogoServlet extends HttpServlet {
         if (nombre == null || nombre.isBlank()) {
             return "producto";
         }
-
+        
         return nombre.trim().toLowerCase()
                 .replaceAll("[áäâà]", "a")
                 .replaceAll("[éëêè]", "e")
@@ -908,7 +912,7 @@ public class CatalogoServlet extends HttpServlet {
     // ═════════════════════════════════════════════════════════════════════════
     // HELPERS EXISTENTES
     // ═════════════════════════════════════════════════════════════════════════
-
+    
     private Usuario verificarAdmin(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         HttpSession session = req.getSession(false);
@@ -962,8 +966,7 @@ public class CatalogoServlet extends HttpServlet {
     }
 
     /**
-     * @deprecated Usar sanitizarRutaCategoria() en su lugar para soportar rutas
-     *             anidadas
+     * @deprecated Usar sanitizarRutaCategoria() en su lugar para soportar rutas anidadas
      */
     @Deprecated
     private String sanitizarNombreDir(String nombre) {

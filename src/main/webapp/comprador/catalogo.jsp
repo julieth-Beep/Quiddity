@@ -814,7 +814,7 @@ function renderSubcats(cat) {
                 if (gObj && gObj.subs && gObj.subs.length > 0) renderSubsubcats(gObj.subs);
                 else hideSubsubcats();
             } else {
-                activeGroup = null; activeSubcat = subKey; hideSubsubcats();
+                activeGroup = null; hideSubsubcats(); activeSubcat = subKey;
             }
             filterProducts();
         });
