@@ -1,0 +1,10 @@
+[33m2cc3a9f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m WIP: panel de usuario y vistas semi completas
+[33m3790747[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Cambios en los archivos para el correcto cargue de la imagen de perfil, totalmente funcional ahora
+[33m9e0508b[m comprador subcategorias
+[33md72ded6[m vista favoritos, cambio servlet favoritos, y cambio dao catalogo favoritos
+[33m434c907[m UsuarioDAO corregido con metodo para buscar usuarios en la vista del panel de administrador
+[33mafc0fd4[m Panel de administrador vistas completas, AdminServlet y UsuarioServlet mejorados en terminos de administrador
+[33mc8e7eb7[m Logica usuario,sin api keys para git
+[33m92e9cc0[m vista comprador, incluyendo servlets y cambios en el dao
+[33m98b6047[m Se hicieron cambios en dao, vist comprador y se agrego checkout y direccion a servlet y vista
+[33m832a2d4[m Correccion de catalogo servlet para que funcione la vista publica de productos de catalogo

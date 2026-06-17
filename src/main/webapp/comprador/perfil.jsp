@@ -168,7 +168,7 @@
             <h1 class="font-display-lg text-headline-md tracking-[0.2em] text-primary uppercase">Quiddity</h1>
         </a>
         <nav class="hidden md:flex gap-8">
-            <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/comprador/catalogo.jsp">Shop</a>
+            <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/catalogo">Shop</a>
             <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Nuestra historia</a>
             <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Apothecary</a>
             <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Blog</a>
