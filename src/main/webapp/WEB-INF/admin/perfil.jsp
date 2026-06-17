@@ -598,7 +598,7 @@
                                 <c:choose>
                                     <c:when test="${not empty usuario.fotoPerfil}">
                                         <div class="user-badge-avatar">
-                                            <img src="${pageContext.request.contextPath}/uploads/${usuario.fotoPerfil}" alt="${usuario.nombre}">
+                                            <img src="${pageContext.request.contextPath}/foto-perfil/${usuario.fotoPerfil}" alt="${usuario.nombre}">
                                         </div>
                                     </c:when>
                                     <c:otherwise>
@@ -625,7 +625,7 @@
                                 <div class="avatar-preview-area">
                                     <c:choose>
                                         <c:when test="${not empty usuario.fotoPerfil}">
-                                            <img src="${pageContext.request.contextPath}/uploads/${usuario.fotoPerfil}" alt="Avatar">
+                                            <img src="${pageContext.request.contextPath}/foto-perfil/${usuario.fotoPerfil}" alt="Avatar">
                                         </c:when>
                                         <c:otherwise>
                                             <div class="avatar-preview-placeholder">
@@ -668,4 +668,4 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+</html>s

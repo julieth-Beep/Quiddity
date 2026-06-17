@@ -210,7 +210,7 @@
                 <div class="w-40 h-40 rounded-full overflow-hidden bg-gradient-to-tr from-primary to-tertiary p-[2px] mx-auto mb-3 flex-shrink-0">
                     <div class="w-full h-full rounded-full overflow-hidden bg-surface-variant flex items-center justify-center" id="sidebarAvatarWrap">
                         <% if (user.getFotoPerfil() != null && !user.getFotoPerfil().isBlank()) { %>
-                            <img src="<%= ctx %>/uploads/perfiles/<%= user.getFotoPerfil() %>"
+                            <img src="<%= ctx %>/foto-perfil/<%= user.getFotoPerfil() %>"
                                  class="w-full h-full object-cover" id="sidebarAvatarImg" alt="Foto">
                         <% } else { %>
                             <span class="font-serif text-4xl text-primary" id="sidebarIniciales"><%= iniciales %></span>
@@ -256,7 +256,7 @@
                         <!-- Preview -->
                         <div class="w-20 h-20 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center flex-shrink-0">
                             <% if (user.getFotoPerfil() != null && !user.getFotoPerfil().isBlank()) { %>
-                                <img src="<%= ctx %>/uploads/perfiles/<%= user.getFotoPerfil() %>"
+                                <img src="<%= ctx %>/foto-perfil/<%= user.getFotoPerfil() %>"
                                      class="w-full h-full object-cover" id="fotoPreviewImg" alt="Foto">
                             <% } else { %>
                                 <span class="font-serif text-2xl text-primary" id="fotoIniciales"><%= iniciales %></span>
