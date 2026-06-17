@@ -59,24 +59,48 @@
                                     <span class="nav-badge">AI</span>
                                 </a>
                             </li>
-                            <li class="nav-item ${activePage == 'avatar' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/usuario/avatar" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">person</span>
-                                    <span class="nav-text">Mi Avatar</span>
-                                </a>
-                            </li>
                             <li class="nav-item ${activePage == 'closet' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/usuario/closet" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/closet" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">checkroom</span>
                                     <span class="nav-text">Mi Clóset</span>
                                 </a>
                             </li>
-                            <li class="nav-item ${activePage == 'sugerencias' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/estadoAnimo" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">mood</span>
-                                    <span class="nav-text">Estado de Ánimo</span>
-                                </a>
-                            </li>
+                            <li class="nav-item ${seccionActiva == 'outfit' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/outfit" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">style</span>
+        <span class="nav-text">Armar Outfit</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'historial' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/look" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">photo_library</span>
+        <span class="nav-text">Mis Looks</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'chat' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/chat" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">smart_toy</span>
+        <span class="nav-text">Chat IA</span>
+        <span class="nav-badge">AI</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'calendario' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/calendario" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">calendar_month</span>
+        <span class="nav-text">Calendario</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'viajes' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/viajes" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">flight</span>
+        <span class="nav-text">Viajes</span>
+    </a>
+</li>
+
                             <li class="nav-item ${activePage == 'caracteristicas' ? 'active' : ''}">
                                 <a href="${pageContext.request.contextPath}/caracteristicas" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">face</span>
@@ -188,8 +212,8 @@
             </nav>
 
             <!-- ══ USUARIO / FOOTER ══ -->
-<div class="sidebar-footer">
-    <!-- User Profile -->
+            <div class="sidebar-footer">
+                <!-- User Profile -->
     <div class="user-profile">
         <div class="user-avatar">
             <c:choose>
@@ -230,7 +254,6 @@
             </p>
         </div>
     </div>
-    <!-- Resto del footer... -->
 
                 <!-- Footer Links -->
                 <div class="footer-links">
@@ -244,20 +267,7 @@
                     </a>
                 </div>
 
-                <!-- Upgrade Card (Solo para usuarios no-admin) -->
-                <c:if test="${sessionScope.usuario.idRol != 1}">
-                    <div class="upgrade-card">
-                        <div class="upgrade-icon">
-                            <span class="material-symbols-outlined">auto_awesome</span>
-                        </div>
-                        <div class="upgrade-content">
-                            <h4 class="upgrade-title">Upgrade to Pro</h4>
-                            <p class="upgrade-desc">Unlock all premium features</p>
-                        </div>
-                        <button class="upgrade-btn">Upgrade Now</button>
-                    </div>
-                </c:if>
-            </div>
+                            </div>
         </aside>
 
         <!-- Overlay para móvil -->

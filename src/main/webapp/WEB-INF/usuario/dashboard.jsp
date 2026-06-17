@@ -1,31 +1,69 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ page import="java.util.*" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    // Página activa para resaltar en el sidebar
-    request.setAttribute("activePage", "dashboard");
+    // ── Datos del servlet ─────────────────────────────────────────────
+    com.quiddity.model.Usuario usuario = (com.quiddity.model.Usuario) session.getAttribute("usuario");
+    com.quiddity.model.Caracteristicas caract = (com.quiddity.model.Caracteristicas) request.getAttribute("caract");
+    java.util.List<com.quiddity.model.Prenda> prendasRecientes = (java.util.List<com.quiddity.model.Prenda>) request.getAttribute("prendasRecientes");
+    com.quiddity.model.Pedido ultimoPedido = (com.quiddity.model.Pedido) request.getAttribute("ultimoPedido");
+    com.quiddity.model.Rutina rutinaDelDia = (com.quiddity.model.Rutina) request.getAttribute("rutinaDelDia");
+    java.util.List<com.quiddity.model.LookGenerado> favoritosPreview = (java.util.List<com.quiddity.model.LookGenerado>) request.getAttribute("favoritosPreview");
+    com.quiddity.model.Frase fraseActual = (com.quiddity.model.Frase) session.getAttribute("fraseActual");
 
-    // Datos de ejemplo para el dashboard (reemplazar con datos reales de BD)
-    int totalUsuarios = 1248;
-    int nuevosHoy = 23;
-    int totalProductos = 456;
-    int productosBajos = 12;
-    int totalPedidos = 389;
-    double ingresosMes = 28450.75;
-    int citasHoy = 18;
-    int citasPendientes = 7;
+    int totalPrendas = request.getAttribute("totalPrendas") != null ? (Integer) request.getAttribute("totalPrendas") : 0;
+    int totalPedidos = request.getAttribute("totalPedidos") != null ? (Integer) request.getAttribute("totalPedidos") : 0;
+    int totalRutinas = request.getAttribute("totalRutinas") != null ? (Integer) request.getAttribute("totalRutinas") : 0;
+    int totalFavoritos = request.getAttribute("totalFavoritos") != null ? (Integer) request.getAttribute("totalFavoritos") : 0;
 
-    // Simulación de usuario en sesión
-    Object usuario = session.getAttribute("usuario");
-    String nombreUsuario = "María García";
-    String rolUsuario = "admin";
-    if (usuario != null) {
-        try {
-            nombreUsuario = (String) usuario.getClass().getMethod("getNombre").invoke(usuario);
-            rolUsuario = (String) usuario.getClass().getMethod("getRol").invoke(usuario);
-        } catch (Exception e) { }
+    String nombreUsuario = usuario != null ? usuario.getNombre() : "Usuario";
+    String fotoPerfil = usuario != null && usuario.getFotoPerfil() != null ? usuario.getFotoPerfil() : "";
+    String tipoPiel = (caract != null && caract.getTipoPiel() != null) ? caract.getTipoPiel() : null;
+
+    // FIX: getEstado() devuelve enum -> convertir a String
+    String estadoUltimoPedido = "";
+    if (ultimoPedido != null && ultimoPedido.getEstado() != null) {
+        estadoUltimoPedido = ultimoPedido.getEstado().toString();
     }
+
+    // Tracker de pedido
+    String[] estadosPedido = {"Confirmado", "En preparacion", "Enviado", "Entregado"};
+    int pasoActual = -1;
+    if (!estadoUltimoPedido.isEmpty()) {
+        for (int i = 0; i < estadosPedido.length; i++) {
+            if (estadoUltimoPedido.equalsIgnoreCase(estadosPedido[i])) {
+                pasoActual = i;
+                break;
+            }
+        }
+    }
+
+    // Clima
+    String ciudad = "Bogota";
+    String temp = "18C";
+    String condicion = "Parcialmente nublado";
+
+    // FIX: Frase getter generico
+    String fraseTexto = null;
+    if (fraseActual != null) {
+        try {
+            fraseTexto = (String) fraseActual.getClass().getMethod("getTexto").invoke(fraseActual);
+        } catch (Exception e1) {
+            try {
+                fraseTexto = (String) fraseActual.getClass().getMethod("getFrase").invoke(fraseActual);
+            } catch (Exception e2) {
+                try {
+                    fraseTexto = (String) fraseActual.getClass().getMethod("getContenido").invoke(fraseActual);
+                } catch (Exception e3) {
+                    fraseTexto = fraseActual.toString();
+                }
+            }
+        }
+    }
+
+    request.setAttribute("activePage", "dashboard");
 %>
 
 <!DOCTYPE html>
@@ -33,222 +71,358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Belleza</title>
-
-    <!-- Google Fonts -->
+    <title>Mi Espacio - Quiddity</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    
     <style>
-        /* ═══════════════════════════════════════════════
-           VARIABLES DEL TEMA
-           ═══════════════════════════════════════════════ */
         :root {
-            --primary: #9a3a5a;
-            --primary-light: rgba(154, 58, 90, 0.08);
-            --primary-medium: rgba(154, 58, 90, 0.15);
-            --secondary: #516617;
-            --tertiary: #88495a;
-            --background: #ffffff;
-            --surface: #ffffff;
-            --on-surface: #1c1b1d;
-            --on-surface-variant: #544246;
-            --outline: #877276;
-            --surface-container-low: #ffffff;
-            --surface-container-lowest: #ffffff;
-            --surface-variant: #f1ecef;
-            --surface-variant-hover: #e8e3e6;
-            --success: #516617;
-            --warning: #c47e00;
-            --error: #b3261e;
-            --element-gap: 24px;
-            --gutter: 32px;
-            --section-gap: 120px;
-            --radius: 0px;
-            --radius-full: 9999px;
+            /* MISMA PALETA DEL ADMIN - pasteles elegantes y frios */
+            --bg: #F8F9FA;
+            --bg-soft: #FFFFFF;
+            --surface: #FFFFFF;
+            --text-primary: #1a1a2e;
+            --text-secondary: #6c757d;
+            --text-tertiary: #adb5bd;
+            --border: #e9ecef;
+            --border-light: #f1f3f5;
+
+            --pastel-sky: #e3f2fd;
+            --pastel-sky-dark: #bbdefb;
+            --pastel-mint: #e8f5e9;
+            --pastel-mint-dark: #c8e6c9;
+            --pastel-lavender: #f3e5f5;
+            --pastel-lavender-dark: #e1bee7;
+            --pastel-cream: #fff3e0;
+            --pastel-cream-dark: #ffe0b2;
+            --pastel-coral: #fce4ec;
+            --pastel-coral-dark: #f8bbd0;
+            --pastel-sage: #f1f8e9;
+            --pastel-sage-dark: #dcedc8;
+
+            --accent-sky: #1976d2;
+            --accent-mint: #388e3c;
+            --accent-lavender: #7b1fa2;
+            --accent-cream: #f57c00;
+            --accent-coral: #c2185b;
+            --accent-sage: #689f38;
+
+            --success: #388e3c;
+            --warning: #f57c00;
+            --error: #c2185b;
+
+            --radius-sm: 12px;
+            --radius-md: 14px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Manrope', sans-serif;
-            background: var(--background);
-            color: var(--on-surface);
-            line-height: 1.5;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.4;
             -webkit-font-smoothing: antialiased;
+            font-size: 12px;
+            overflow: hidden;
+            height: 100vh;
         }
 
-        /* ═══════════════════════════════════════════════
-           LAYOUT CON SIDEBAR
-           ═══════════════════════════════════════════════ */
         .layout-wrapper {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* MAIN CONTENT */
         .main-content {
             flex: 1;
-            margin-left: 280px;
-            min-height: 100vh;
-            background: var(--background);
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: max-width 0.3s ease;
         }
 
-        /* ── Toggle móvil ── */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 998;
-            width: 44px;
-            height: 44px;
+        .main-content.sidebar-open { max-width: calc(100% - 320px); }
+        .main-content.sidebar-closed { max-width: 100%; }
+
+        /* RIGHT SIDEBAR */
+        .right-sidebar {
+            width: 320px;
+            min-width: 320px;
             background: var(--surface);
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface);
+            border-left: 1px solid var(--border);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: -2px 0 12px rgba(0,0,0,0.04);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+        }
+
+        .right-sidebar.hidden {
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+        }
+
+        .right-sidebar::-webkit-scrollbar { width: 3px; }
+        .right-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .sidebar-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-close {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: none;
+            background: var(--pastel-coral);
+            color: var(--accent-coral);
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
         }
 
-        /* ═══════════════════════════════════════════════
-           HEADER DEL DASHBOARD
-           ═══════════════════════════════════════════════ */
-        .dashboard-header {
-            padding: 40px var(--gutter) 0;
-            max-width: 1400px;
-            margin: 0 auto;
+        .sidebar-close:hover {
+            background: var(--pastel-coral-dark);
+            transform: scale(1.1);
         }
 
-        .header-breadcrumb {
+        /* WELCOME - Elegante y sobrio (igual admin) */
+        .welcome-section {
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--outline);
-            letter-spacing: 0.02em;
-            margin-bottom: 16px;
-        }
-
-        .header-breadcrumb .material-symbols-outlined {
-            font-size: 16px;
-        }
-
-        .header-breadcrumb a {
-            color: var(--outline);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .header-breadcrumb a:hover {
-            color: var(--primary);
-        }
-
-        .header-title-row {
-            display: flex;
-            align-items: flex-end;
             justify-content: space-between;
-            gap: var(--element-gap);
-            flex-wrap: wrap;
-            margin-bottom: 40px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
 
-        .header-title h1 {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 48px;
-            font-weight: 400;
-            line-height: 56px;
-            color: var(--on-surface);
-            margin-bottom: 8px;
+        .welcome-content { flex: 1; }
+
+        .welcome-title {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 3px 0;
+            letter-spacing: -0.3px;
         }
 
-        .header-subtitle {
-            font-size: 16px;
-            color: var(--on-surface-variant);
-            line-height: 24px;
+        .welcome-title span {
+            color: var(--accent-sky);
         }
 
-        .header-actions {
+        .welcome-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .welcome-avatar {
             display: flex;
-            gap: 12px;
+            align-items: center;
+            gap: 10px;
         }
 
-        .btn {
+        .avatar-ring {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pastel-sky), var(--pastel-lavender));
+            padding: 2px;
+        }
+
+        .avatar-ring img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+
+        .avatar-info { text-align: right; }
+        .avatar-name { font-weight: 700; font-size: 13px; color: var(--text-primary); }
+        .avatar-role { font-size: 11px; color: var(--text-tertiary); font-weight: 600; }
+
+        /* Skin badge */
+        .skin-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 12px 24px;
-            font-family: 'Manrope', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--pastel-lavender);
+            color: var(--accent-lavender);
+            margin-top: 8px;
+        }
+
+        .skin-badge .material-symbols-rounded { font-size: 14px; }
+
+        /* CTA escaneo */
+        .scan-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--pastel-sky);
+            border: 1px solid var(--pastel-sky-dark);
+            border-radius: var(--radius-md);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-sky);
             text-decoration: none;
-            border: none;
             cursor: pointer;
-            transition: all 0.2s;
-            line-height: 20px;
+            transition: all 0.25s ease;
+            margin-top: 8px;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background: #7a2e48;
+        .scan-cta:hover {
+            background: var(--pastel-sky-dark);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(154, 58, 90, 0.25);
+            box-shadow: var(--shadow);
+            color: var(--accent-sky);
         }
 
-        .btn-secondary {
-            background: var(--surface-variant);
-            color: var(--on-surface);
-            border: 1px solid var(--outline);
+        .scan-cta .material-symbols-rounded { font-size: 16px; }
+
+        /* Toggle Closet Button */
+        .welcome-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
-        .btn-secondary:hover {
-            background: var(--surface-variant-hover);
+        .toggle-closet-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--pastel-mint);
+            border: 1px solid var(--pastel-mint-dark);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-mint);
         }
 
-        .btn .material-symbols-outlined {
-            font-size: 18px;
+        .toggle-closet-btn:hover {
+            background: var(--pastel-mint-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
         }
 
-        /* ═══════════════════════════════════════════════
-           KPI CARDS
-           ═══════════════════════════════════════════════ */
-        .kpi-section {
-            padding: 0 var(--gutter) 48px;
-            max-width: 1400px;
-            margin: 0 auto;
+        .toggle-closet-btn .material-symbols-rounded { font-size: 18px; }
+        .toggle-closet-btn .toggle-icon { transition: transform 0.3s ease; }
+        .toggle-closet-btn.active .toggle-icon { transform: rotate(180deg); }
+
+        /* Weather widget */
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--pastel-sky);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--pastel-sky-dark);
         }
 
+        .weather-icon {
+            font-size: 20px;
+            color: var(--accent-sky);
+        }
+
+        .weather-info { text-align: left; }
+        .weather-temp {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        .weather-city {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* KPI GRID - Compacto (igual admin) */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: var(--element-gap);
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
         .kpi-card {
             background: var(--surface);
-            border: 1px solid var(--surface-variant);
-            padding: 28px;
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
         }
 
         .kpi-card:hover {
-            border-color: var(--outline);
-            box-shadow: 0 4px 20px rgba(28, 27, 29, 0.06);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--pastel-sky-dark);
         }
 
         .kpi-card::before {
@@ -256,1461 +430,999 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 3px;
-            height: 100%;
-            background: var(--primary);
-            opacity: 0;
-            transition: opacity 0.3s;
+            right: 0;
+            height: 3px;
+            background: var(--pastel-sky-dark);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
         }
 
-        .kpi-card:hover::before {
-            opacity: 1;
-        }
+        .kpi-card.sky::before { background: var(--accent-sky); }
+        .kpi-card.mint::before { background: var(--accent-mint); }
+        .kpi-card.lavender::before { background: var(--accent-lavender); }
+        .kpi-card.cream::before { background: var(--accent-cream); }
 
-        .kpi-card.success::before { background: var(--success); }
-        .kpi-card.warning::before { background: var(--warning); }
-        .kpi-card.info::before { background: var(--tertiary); }
+        .kpi-card:hover::before { transform: scaleX(1); }
 
         .kpi-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 8px;
         }
 
         .kpi-label {
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
             text-transform: uppercase;
-            color: var(--outline);
-            line-height: 20px;
+            letter-spacing: 0.06em;
         }
 
         .kpi-icon {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--primary-light);
+            transition: all 0.3s ease;
         }
 
-        .kpi-icon .material-symbols-outlined {
-            font-size: 22px;
-            color: var(--primary);
-        }
+        .kpi-card:hover .kpi-icon { transform: scale(1.1); }
 
-        .kpi-card.success .kpi-icon { background: rgba(81, 102, 23, 0.08); }
-        .kpi-card.success .kpi-icon .material-symbols-outlined { color: var(--success); }
-        .kpi-card.warning .kpi-icon { background: rgba(196, 126, 0, 0.08); }
-        .kpi-card.warning .kpi-icon .material-symbols-outlined { color: var(--warning); }
-        .kpi-card.info .kpi-icon { background: rgba(136, 73, 90, 0.08); }
-        .kpi-card.info .kpi-icon .material-symbols-outlined { color: var(--tertiary); }
+        .kpi-icon.sky { background: var(--pastel-sky); }
+        .kpi-icon.sky .material-symbols-rounded { color: var(--accent-sky); }
+        .kpi-icon.mint { background: var(--pastel-mint); }
+        .kpi-icon.mint .material-symbols-rounded { color: var(--accent-mint); }
+        .kpi-icon.lavender { background: var(--pastel-lavender); }
+        .kpi-icon.lavender .material-symbols-rounded { color: var(--accent-lavender); }
+        .kpi-icon.cream { background: var(--pastel-cream); }
+        .kpi-icon.cream .material-symbols-rounded { color: var(--accent-cream); }
+
+        .kpi-icon .material-symbols-rounded { font-size: 18px; }
 
         .kpi-value {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 40px;
-            font-weight: 400;
-            line-height: 48px;
-            color: var(--on-surface);
-            margin-bottom: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+            line-height: 1;
         }
 
         .kpi-trend {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .kpi-trend.up {
-            color: var(--success);
-        }
-
-        .kpi-trend.down {
-            color: var(--error);
-        }
-
-        .kpi-trend .material-symbols-outlined {
-            font-size: 16px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           SECCIONES DEL DASHBOARD
-           ═══════════════════════════════════════════════ */
-        .dashboard-section {
-            padding: 0 var(--gutter) 48px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-        }
-
-        .section-title {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 32px;
-            font-weight: 400;
-            line-height: 40px;
-            color: var(--on-surface);
-        }
-
-        .section-link {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: gap 0.2s;
-        }
-
-        .section-link:hover {
-            gap: 8px;
-        }
-
-        .section-link .material-symbols-outlined {
-            font-size: 18px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           GRID DE CONTENIDO
-           ═══════════════════════════════════════════════ */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: var(--element-gap);
-        }
-
-        .content-grid.reverse {
-            grid-template-columns: 1fr 2fr;
-        }
-
-        .content-grid.equal {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        /* ═══════════════════════════════════════════════
-           CARDS / PANELES
-           ═══════════════════════════════════════════════ */
-        .panel {
-            background: var(--surface);
-            border: 1px solid var(--surface-variant);
-            overflow: hidden;
-        }
-
-        .panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 24px 28px;
-            border-bottom: 1px solid var(--surface-variant);
-        }
-
-        .panel-title {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 24px;
-            font-weight: 400;
-            line-height: 32px;
-            color: var(--on-surface);
-        }
-
-        .panel-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .panel-action-btn {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface-variant);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .panel-action-btn:hover {
-            background: var(--surface-variant);
-            color: var(--on-surface);
-        }
-
-        .panel-action-btn .material-symbols-outlined {
-            font-size: 18px;
-        }
-
-        .panel-body {
-            padding: 24px 28px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           TABLA DE ACTIVIDAD
-           ═══════════════════════════════════════════════ */
-        .activity-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .activity-table th {
-            text-align: left;
-            padding: 12px 0;
+            gap: 3px;
             font-size: 11px;
             font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--outline);
-            border-bottom: 1px solid var(--surface-variant);
+            padding: 3px 8px;
+            border-radius: 12px;
         }
 
-        .activity-table td {
-            padding: 16px 0;
-            font-size: 14px;
-            color: var(--on-surface);
-            border-bottom: 1px solid var(--surface-variant);
-            vertical-align: middle;
-        }
+        .kpi-trend.up { background: var(--pastel-mint); color: var(--accent-mint); }
+        .kpi-trend.down { background: var(--pastel-coral); color: var(--accent-coral); }
+        .kpi-trend .material-symbols-rounded { font-size: 13px; }
 
-        .activity-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .activity-user {
-            display: flex;
-            align-items: center;
+        /* DASHBOARD GRID */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
+            flex: 1;
+            min-height: 0;
         }
 
-        .activity-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-full);
-            background: var(--surface-variant);
+        .dashboard-left, .dashboard-right {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 0;
+        }
+
+        /* PANELS (igual admin) */
+        .panel {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .panel:hover { box-shadow: var(--shadow); border-color: var(--border); }
+
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-light);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             flex-shrink: 0;
         }
 
-        .activity-avatar .material-symbols-outlined {
-            font-size: 18px;
-            color: var(--primary);
+        .panel-title-group h3 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .activity-user-info {
-            min-width: 0;
+        .panel-title-group h3::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            border-radius: 2px;
+            background: var(--accent-sky);
         }
 
-        .activity-user-name {
+        .panel-title-group p {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            margin: 2px 0 0 11px;
+        }
+
+        .panel-actions { display: flex; gap: 6px; }
+
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--surface);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            color: var(--text-tertiary);
+        }
+
+        .icon-btn:hover {
+            background: var(--pastel-sky);
+            border-color: var(--pastel-sky-dark);
+            color: var(--accent-sky);
+            transform: translateY(-1px);
+        }
+
+        .icon-btn .material-symbols-rounded { font-size: 15px; }
+
+        .panel-body {
+            padding: 12px 16px;
+            flex: 1;
+            overflow: auto;
+            min-height: 0;
+        }
+
+        /* OUTFIT DEL DIA */
+        .outfit-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--pastel-sky) 0%, var(--pastel-lavender) 100%);
+            border-radius: var(--radius-sm);
+            min-height: 200px;
+            position: relative;
+        }
+
+        .outfit-image {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-md);
+            object-fit: cover;
+        }
+
+        .outfit-tags {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+            flex-wrap: wrap;
+        }
+
+        .outfit-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--on-surface);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .outfit-tag .material-symbols-rounded { font-size: 14px; }
+
+        .outfit-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .outfit-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .outfit-btn.like { background: var(--pastel-mint); color: var(--accent-mint); }
+        .outfit-btn.like:hover { background: var(--pastel-mint-dark); }
+        .outfit-btn.change { background: var(--pastel-cream); color: var(--accent-cream); }
+        .outfit-btn.change:hover { background: var(--pastel-cream-dark); }
+        .outfit-btn.view { background: var(--pastel-lavender); color: var(--accent-lavender); }
+        .outfit-btn.view:hover { background: var(--pastel-lavender-dark); }
+
+        /* TRACKER PEDIDO */
+        .tracker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            position: relative;
+        }
+
+        .tracker::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 30px;
+            right: 30px;
+            height: 3px;
+            background: var(--border);
+            border-radius: 2px;
+            z-index: 0;
+        }
+
+        .tracker-line {
+            position: absolute;
+            top: 24px;
+            left: 30px;
+            height: 3px;
+            background: var(--accent-sky);
+            border-radius: 2px;
+            z-index: 0;
+            transition: width 0.6s ease;
+        }
+
+        .tracker-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+
+        .step-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+        }
+
+        .step-dot .material-symbols-rounded {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            transition: all 0.4s ease;
+        }
+
+        .tracker-step.active .step-dot {
+            border-color: var(--accent-sky);
+            background: var(--pastel-sky);
+            box-shadow: 0 0 0 4px rgba(25,118,210,0.15);
+        }
+
+        .tracker-step.active .step-dot .material-symbols-rounded { color: var(--accent-sky); }
+
+        .tracker-step.completed .step-dot {
+            border-color: var(--accent-mint);
+            background: var(--pastel-mint);
+        }
+
+        .tracker-step.completed .step-dot .material-symbols-rounded { color: var(--accent-mint); }
+
+        .step-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        .tracker-step.active .step-label { color: var(--accent-sky); }
+        .tracker-step.completed .step-label { color: var(--accent-mint); }
+
+        /* RUTINA */
+        .routine-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .routine-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease;
+        }
+
+        .routine-step:hover {
+            background: var(--pastel-sage);
+            transform: translateX(2px);
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent-sky);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-info { flex: 1; min-width: 0; }
+
+        .step-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1px;
+        }
+
+        .step-product {
+            font-size: 10px;
+            color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .activity-user-email {
-            font-size: 12px;
-            color: var(--outline);
+        .step-time {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent-cream);
+            background: var(--pastel-cream);
+            padding: 3px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
         }
 
-        .activity-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+        /* ACCESOS RAPIDOS */
+        .quick-access {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
 
-        .badge-success {
-            background: rgba(81, 102, 23, 0.08);
-            color: var(--success);
-        }
-
-        .badge-warning {
-            background: rgba(196, 126, 0, 0.08);
-            color: var(--warning);
-        }
-
-        .badge-info {
-            background: rgba(136, 73, 90, 0.08);
-            color: var(--tertiary);
-        }
-
-        .badge-primary {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        .activity-time {
-            font-size: 13px;
-            color: var(--outline);
-        }
-
-        /* ═══════════════════════════════════════════════
-           LISTA DE TAREAS / CITAS
-           ═══════════════════════════════════════════════ */
-        .task-list {
-            list-style: none;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--surface-variant);
-        }
-
-        .task-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .task-item:first-child {
-            padding-top: 0;
-        }
-
-        .task-checkbox {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--outline);
-            flex-shrink: 0;
-            margin-top: 2px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .task-checkbox:hover {
-            border-color: var(--primary);
-        }
-
-        .task-checkbox.checked {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .task-checkbox.checked .material-symbols-outlined {
-            font-size: 14px;
-            color: #ffffff;
-            display: block;
-        }
-
-        .task-checkbox .material-symbols-outlined {
-            display: none;
-        }
-
-        .task-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .task-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--on-surface);
-            margin-bottom: 4px;
-        }
-
-        .task-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 12px;
-            color: var(--outline);
-        }
-
-        .task-meta span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .task-meta .material-symbols-outlined {
-            font-size: 14px;
-        }
-
-        .task-priority {
-            width: 8px;
-            height: 8px;
-            flex-shrink: 0;
-            margin-top: 8px;
-        }
-
-        .priority-high { background: var(--error); }
-        .priority-medium { background: var(--warning); }
-        .priority-low { background: var(--success); }
-
-        /* ═══════════════════════════════════════════════
-           GRÁFICO DE BARRAS (CSS puro)
-           ═══════════════════════════════════════════════ */
-        .chart-container {
-            padding: 20px 0;
-        }
-
-        .chart-bars {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 12px;
-            height: 200px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid var(--surface-variant);
-            position: relative;
-        }
-
-        .chart-bar-wrapper {
-            flex: 1;
+        .access-btn {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 8px;
-        }
-
-        .chart-bar {
-            width: 100%;
-            max-width: 48px;
-            background: var(--surface-variant);
-            transition: background 0.3s, height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            position: relative;
-            cursor: pointer;
-        }
-
-        .chart-bar:hover {
-            background: var(--primary);
-        }
-
-        .chart-bar::after {
-            content: attr(data-value);
-            position: absolute;
-            top: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--on-surface);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .chart-bar:hover::after {
-            opacity: 1;
-        }
-
-        .chart-label {
-            font-size: 12px;
-            color: var(--outline);
-            font-weight: 500;
-        }
-
-        .chart-legend {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            margin-top: 20px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--on-surface-variant);
-        }
-
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-        }
-
-        .legend-dot.primary { background: var(--primary); }
-        .legend-dot.secondary { background: var(--secondary); }
-
-        /* ═══════════════════════════════════════════════
-           PRODUCTOS DESTACADOS
-           ═══════════════════════════════════════════════ */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .product-card {
-            border: 1px solid var(--surface-variant);
-            overflow: hidden;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .product-card:hover {
-            border-color: var(--outline);
-            box-shadow: 0 4px 16px rgba(28, 27, 29, 0.06);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 160px;
-            background: var(--surface-variant);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .product-image .material-symbols-outlined {
-            font-size: 48px;
-            color: var(--outline);
-        }
-
-        .product-info {
-            padding: 16px 20px 20px;
-        }
-
-        .product-category {
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 6px;
-        }
-
-        .product-name {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 18px;
-            font-weight: 400;
-            line-height: 24px;
-            color: var(--on-surface);
-            margin-bottom: 8px;
-        }
-
-        .product-price {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--on-surface);
-        }
-
-        .product-stock {
-            font-size: 12px;
-            color: var(--outline);
-            margin-top: 4px;
-        }
-
-        /* ═══════════════════════════════════════════════
-           CALENDARIO MINI
-           ═══════════════════════════════════════════════ */
-        .mini-calendar {
-            width: 100%;
-        }
-
-        .calendar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .calendar-month {
-            font-family: 'EB Garamond', Georgia, serif;
-            font-size: 20px;
-            font-weight: 400;
-            color: var(--on-surface);
-        }
-
-        .calendar-nav {
-            display: flex;
-            gap: 4px;
-        }
-
-        .calendar-nav-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: 1px solid var(--surface-variant);
-            color: var(--on-surface-variant);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .calendar-nav-btn:hover {
-            background: var(--surface-variant);
-            color: var(--on-surface);
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-        }
-
-        .calendar-day-header {
-            text-align: center;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--outline);
-            padding: 8px 0;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--on-surface);
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .calendar-day:hover {
-            background: var(--surface-variant);
-        }
-
-        .calendar-day.today {
-            background: var(--primary);
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .calendar-day.has-event::after {
-            content: '';
-            position: absolute;
-            bottom: 4px;
-            width: 4px;
-            height: 4px;
-            border-radius: var(--radius-full);
-            background: var(--primary);
-        }
-
-        .calendar-day.today.has-event::after {
-            background: #ffffff;
-        }
-
-        .calendar-day.other-month {
-            color: var(--outline);
-        }
-
-        /* ═══════════════════════════════════════════════
-           NOTIFICACIONES
-           ═══════════════════════════════════════════════ */
-        .notification-list {
-            list-style: none;
-        }
-
-        .notification-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--surface-variant);
-        }
-
-        .notification-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .notification-item:first-child {
-            padding-top: 0;
-        }
-
-        .notification-icon {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .notification-icon .material-symbols-outlined {
-            font-size: 20px;
-        }
-
-        .notification-icon.primary { background: var(--primary-light); }
-        .notification-icon.primary .material-symbols-outlined { color: var(--primary); }
-        .notification-icon.success { background: rgba(81, 102, 23, 0.08); }
-        .notification-icon.success .material-symbols-outlined { color: var(--success); }
-        .notification-icon.warning { background: rgba(196, 126, 0, 0.08); }
-        .notification-icon.warning .material-symbols-outlined { color: var(--warning); }
-
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-text {
-            font-size: 14px;
-            color: var(--on-surface);
-            line-height: 20px;
-            margin-bottom: 4px;
-        }
-
-        .notification-text strong {
-            font-weight: 600;
-        }
-
-        .notification-time {
-            font-size: 12px;
-            color: var(--outline);
-        }
-
-        /* ═══════════════════════════════════════════════
-           FOOTER
-           ═══════════════════════════════════════════════ */
-        .dashboard-footer {
-            padding: 32px var(--gutter);
-            max-width: 1400px;
-            margin: 0 auto;
-            border-top: 1px solid var(--surface-variant);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-            color: var(--outline);
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
-
-        .footer-links a {
-            color: var(--outline);
+            padding: 20px 12px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
             text-decoration: none;
-            transition: color 0.2s;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .footer-links a:hover {
-            color: var(--primary);
+        .access-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--border);
         }
 
-        /* ═══════════════════════════════════════════════
-           ANIMACIONES
-           ═══════════════════════════════════════════════ */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .access-btn:hover .access-icon { transform: scale(1.1); }
+
+        .access-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
 
-        .animate-in {
-            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        .access-icon .material-symbols-rounded { font-size: 20px; }
+
+        .access-btn.scan .access-icon { background: var(--pastel-sky); }
+        .access-btn.scan .access-icon .material-symbols-rounded { color: var(--accent-sky); }
+        .access-btn.avatar .access-icon { background: var(--pastel-lavender); }
+        .access-btn.avatar .access-icon .material-symbols-rounded { color: var(--accent-lavender); }
+        .access-btn.closet .access-icon { background: var(--pastel-mint); }
+        .access-btn.closet .access-icon .material-symbols-rounded { color: var(--accent-mint); }
+        .access-btn.catalog .access-icon { background: var(--pastel-cream); }
+        .access-btn.catalog .access-icon .material-symbols-rounded { color: var(--accent-cream); }
+
+        .access-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* SIDEBAR - Mi Closet reciente */
+        .closet-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .closet-item {
+            position: relative;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .closet-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .closet-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .closet-item:hover img { transform: scale(1.05); }
+
+        .closet-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(26,26,46,0.7) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .closet-item:hover .closet-overlay { opacity: 1; }
+
+        .closet-action {
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            padding: 4px 10px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.3);
+            text-decoration: none;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .anim-fade-up {
+            animation: fadeUp 0.5s ease forwards;
             opacity: 0;
         }
 
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-        .delay-5 { animation-delay: 0.5s; }
+        .delay-1 { animation-delay: 0.04s; }
+        .delay-2 { animation-delay: 0.08s; }
+        .delay-3 { animation-delay: 0.12s; }
+        .delay-4 { animation-delay: 0.16s; }
 
-        /* ═══════════════════════════════════════════════
-           RESPONSIVE
-           ═══════════════════════════════════════════════ */
-        @media (max-width: 1200px) {
-            .kpi-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .content-grid,
-            .content-grid.reverse,
-            .content-grid.equal {
-                grid-template-columns: 1fr;
-            }
-            .product-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .stagger-children > * {
+            opacity: 0;
+            animation: fadeUp 0.4s ease forwards;
         }
 
-        @media (max-width: 1024px) {
-            .main-content {
-                margin-left: 0;
-            }
-            .sidebar-toggle {
-                display: flex;
-            }
+        .stagger-children > *:nth-child(1) { animation-delay: 0.03s; }
+        .stagger-children > *:nth-child(2) { animation-delay: 0.06s; }
+        .stagger-children > *:nth-child(3) { animation-delay: 0.09s; }
+        .stagger-children > *:nth-child(4) { animation-delay: 0.12s; }
+        .stagger-children > *:nth-child(5) { animation-delay: 0.15s; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1280px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-grid { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-            .kpi-grid {
-                grid-template-columns: 1fr;
-            }
-            .header-title h1 {
-                font-size: 32px;
-                line-height: 40px;
-            }
-            .header-actions {
-                width: 100%;
-            }
-            .btn {
-                flex: 1;
-                justify-content: center;
-            }
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
-            .dashboard-footer {
-                flex-direction: column;
-                gap: 12px;
-                text-align: center;
-            }
+            .main-content { padding: 12px 16px; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .welcome-section { flex-direction: column; gap: 12px; text-align: center; }
+            .avatar-info { text-align: center; }
+            .right-sidebar { width: 280px; min-width: 280px; }
         }
 
-        @media (max-width: 480px) {
-            .dashboard-header,
-            .kpi-section,
-            .dashboard-section,
-            .dashboard-footer {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     </style>
 </head>
 <body>
+<div class="layout-wrapper">
+<%@ include file="/includes/sidebar.jsp" %>
 
-    <!-- Botón hamburguesa para móvil -->
-    <button type="button" class="sidebar-toggle" onclick="toggleSidebar()">
-        <span class="material-symbols-outlined">menu</span>
-    </button>
-
-    <div class="layout-wrapper">
-        <!-- Sidebar -->
-        <%@ include file="/includes/sidebar.jsp" %>
-
-        <!-- Contenido Principal -->
-        <main class="main-content">
-
-            <!-- ═══════════════════════════════════════════════
-                 HEADER
-                 ═══════════════════════════════════════════════ -->
-            <header class="dashboard-header animate-in">
-                <nav class="header-breadcrumb">
-                    <a href="${pageContext.request.contextPath}/dashboard.jsp">Inicio</a>
-                    <span class="material-symbols-outlined">chevron_right</span>
-                    <span>Dashboard</span>
-                </nav>
-
-                <div class="header-title-row">
-                    <div class="header-title">
-                        <h1>Panel de Control</h1>
-                        <p class="header-subtitle">
-                            Bienvenida de vuelta, <strong><%= nombreUsuario %></strong>. 
-                            Aquí tienes un resumen de la actividad de hoy.
-                        </p>
+    <!-- MAIN CONTENT -->
+    <main class="main-content sidebar-open" id="mainContent">
+        <!-- Welcome Section - Elegante -->
+        <div class="welcome-section anim-fade-up">
+            <div class="welcome-content">
+                <h1 class="welcome-title">Hola, <span><%= nombreUsuario %></span></h1>
+                <p class="welcome-subtitle">
+                    <% if (fraseTexto != null) { %>
+                        <%= fraseTexto %>
+                    <% } else { %>
+                        Descubre tu look perfecto para hoy y manten tu rutina de skincare al dia.
+                    <% } %>
+                </p>
+                <% if (tipoPiel != null) { %>
+                    <div class="skin-badge">
+                        <span class="material-symbols-rounded">auto_awesome</span>
+                        Piel <%= tipoPiel %>
                     </div>
-                    <div class="header-actions">
-                        <a href="${pageContext.request.contextPath}/admin/reportes.jsp" class="btn btn-secondary">
-                            <span class="material-symbols-outlined">download</span>
-                            Exportar
-                        </a>
-                        <a href="${pageContext.request.contextPath}/usuario/caracteristicas.jsp" class="btn btn-primary">
-                            <span class="material-symbols-outlined">add</span>
-                            Nueva Cita
-                        </a>
+                <% } else { %>
+                    <a href="<%= request.getContextPath() %>/facefull" class="scan-cta">
+                        <span class="material-symbols-rounded">face_retouching_natural</span>
+                        Completa tu analisis facial
+                    </a>
+                <% } %>
+            </div>
+            <div class="welcome-actions">
+                <div class="weather-widget">
+                    <span class="material-symbols-rounded weather-icon">partly_cloudy_day</span>
+                    <div class="weather-info">
+                        <div class="weather-temp"><%= temp %></div>
+                        <div class="weather-city"><%= ciudad %></div>
                     </div>
                 </div>
-            </header>
-
-            <!-- ═══════════════════════════════════════════════
-                 KPI CARDS
-                 ═══════════════════════════════════════════════ -->
-            <section class="kpi-section">
-                <div class="kpi-grid">
-                    <!-- Usuarios -->
-                    <article class="kpi-card animate-in delay-1">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Total Usuarios</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">group</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalUsuarios) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +<%= nuevosHoy %> hoy
-                        </div>
-                    </article>
-
-                    <!-- Productos -->
-                    <article class="kpi-card success animate-in delay-2">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Productos</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">inventory_2</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalProductos) %></div>
-                        <div class="kpi-trend down">
-                            <span class="material-symbols-outlined">trending_down</span>
-                            <%= productosBajos %> bajo stock
-                        </div>
-                    </article>
-
-                    <!-- Pedidos -->
-                    <article class="kpi-card warning animate-in delay-3">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Pedidos del Mes</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">shopping_bag</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value"><%= String.format("%,d", totalPedidos) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +12% vs mes pasado
-                        </div>
-                    </article>
-
-                    <!-- Ingresos -->
-                    <article class="kpi-card info animate-in delay-4">
-                        <div class="kpi-header">
-                            <span class="kpi-label">Ingresos</span>
-                            <div class="kpi-icon">
-                                <span class="material-symbols-outlined">payments</span>
-                            </div>
-                        </div>
-                        <div class="kpi-value">$<%= String.format("%,.0f", ingresosMes) %></div>
-                        <div class="kpi-trend up">
-                            <span class="material-symbols-outlined">trending_up</span>
-                            +8.5% vs mes pasado
-                        </div>
-                    </article>
+                <button class="toggle-closet-btn" id="toggleClosetBtn" onclick="toggleSidebar()">
+                    <span class="material-symbols-rounded">checkroom</span>
+                    <span class="toggle-label">Mi Closet</span>
+                    <span class="material-symbols-rounded toggle-icon" id="toggleIcon">chevron_left</span>
+                </button>
+                <div class="welcome-avatar">
+                    <div class="avatar-info">
+                        <div class="avatar-name"><%= nombreUsuario %></div>
+                        <div class="avatar-role">Usuario</div>
+                    </div>
+                    <div class="avatar-ring">
+                        <% if (!fotoPerfil.isEmpty()) { %>
+                            <img src="<%= request.getContextPath() %>/uploads/perfiles/<%= fotoPerfil %>" 
+                                alt="<%= nombreUsuario %>"
+                                onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:var(--accent-sky);color:white;font-weight:700;font-size:16px;border-radius:50%;\"><%= nombreUsuario.substring(0,1).toUpperCase() %></span>';">
+                        <% } else { %>
+                            <img src="https://ui-avatars.com/api/?name=<%= nombreUsuario %>&background=random&color=fff&size=128" 
+                                alt="<%= nombreUsuario %>">
+                        <% } %>
+                    </div>
                 </div>
-            </section>
+            </div>
+        </div>
 
-            <!-- ═══════════════════════════════════════════════
-                 GRID PRINCIPAL: Actividad + Calendario
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid">
-                    <!-- Panel de Actividad Reciente -->
-                    <article class="panel animate-in delay-2">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Actividad Reciente</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Filtrar">
-                                    <span class="material-symbols-outlined">filter_list</span>
-                                </button>
-                                <button class="panel-action-btn" title="Ver todo">
-                                    <span class="material-symbols-outlined">open_in_new</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <table class="activity-table">
-                                <thead>
-                                    <tr>
-                                        <th>Usuario</th>
-                                        <th>Acción</th>
-                                        <th>Estado</th>
-                                        <th>Hora</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Laura Mendoza</div>
-                                                    <div class="activity-user-email">laura@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Nueva cita agendada</td>
-                                        <td><span class="activity-badge badge-success">Completado</span></td>
-                                        <td class="activity-time">Hace 10 min</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Carlos Ruiz</div>
-                                                    <div class="activity-user-email">carlos@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Compra de productos</td>
-                                        <td><span class="activity-badge badge-primary">En proceso</span></td>
-                                        <td class="activity-time">Hace 25 min</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Ana Torres</div>
-                                                    <div class="activity-user-email">ana@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Registro de características</td>
-                                        <td><span class="activity-badge badge-info">Nuevo</span></td>
-                                        <td class="activity-time">Hace 1 hora</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Pedro Gómez</div>
-                                                    <div class="activity-user-email">pedro@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Face Scan realizado</td>
-                                        <td><span class="activity-badge badge-success">Completado</span></td>
-                                        <td class="activity-time">Hace 2 horas</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="activity-user">
-                                                <div class="activity-avatar">
-                                                    <span class="material-symbols-outlined">person</span>
-                                                </div>
-                                                <div class="activity-user-info">
-                                                    <div class="activity-user-name">Diana Flores</div>
-                                                    <div class="activity-user-email">diana@email.com</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Estado de ánimo registrado</td>
-                                        <td><span class="activity-badge badge-warning">Pendiente</span></td>
-                                        <td class="activity-time">Hace 3 horas</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Calendario -->
-                    <article class="panel animate-in delay-3">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Calendario</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Agregar evento">
-                                    <span class="material-symbols-outlined">add</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="mini-calendar">
-                                <div class="calendar-header">
-                                    <span class="calendar-month">Junio 2026</span>
-                                    <div class="calendar-nav">
-                                        <button class="calendar-nav-btn">
-                                            <span class="material-symbols-outlined">chevron_left</span>
-                                        </button>
-                                        <button class="calendar-nav-btn">
-                                            <span class="material-symbols-outlined">chevron_right</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="calendar-grid">
-                                    <div class="calendar-day-header">Dom</div>
-                                    <div class="calendar-day-header">Lun</div>
-                                    <div class="calendar-day-header">Mar</div>
-                                    <div class="calendar-day-header">Mié</div>
-                                    <div class="calendar-day-header">Jue</div>
-                                    <div class="calendar-day-header">Vie</div>
-                                    <div class="calendar-day-header">Sáb</div>
-
-                                    <div class="calendar-day other-month">31</div>
-                                    <div class="calendar-day">1</div>
-                                    <div class="calendar-day">2</div>
-                                    <div class="calendar-day has-event">3</div>
-                                    <div class="calendar-day">4</div>
-                                    <div class="calendar-day has-event">5</div>
-                                    <div class="calendar-day">6</div>
-                                    <div class="calendar-day">7</div>
-                                    <div class="calendar-day has-event">8</div>
-                                    <div class="calendar-day">9</div>
-                                    <div class="calendar-day">10</div>
-                                    <div class="calendar-day has-event">11</div>
-                                    <div class="calendar-day">12</div>
-                                    <div class="calendar-day">13</div>
-                                    <div class="calendar-day">14</div>
-                                    <div class="calendar-day has-event">15</div>
-                                    <div class="calendar-day">16</div>
-                                    <div class="calendar-day">17</div>
-                                    <div class="calendar-day has-event">18</div>
-                                    <div class="calendar-day">19</div>
-                                    <div class="calendar-day">20</div>
-                                    <div class="calendar-day">21</div>
-                                    <div class="calendar-day has-event">22</div>
-                                    <div class="calendar-day">23</div>
-                                    <div class="calendar-day">24</div>
-                                    <div class="calendar-day">25</div>
-                                    <div class="calendar-day has-event">26</div>
-                                    <div class="calendar-day">27</div>
-                                    <div class="calendar-day">28</div>
-                                    <div class="calendar-day">29</div>
-                                    <div class="calendar-day has-event">30</div>
-                                    <div class="calendar-day today has-event">2</div>
-                                    <div class="calendar-day other-month">3</div>
-                                    <div class="calendar-day other-month">4</div>
-                                    <div class="calendar-day other-month">5</div>
-                                    <div class="calendar-day other-month">6</div>
-                                </div>
-                            </div>
-
-                            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--surface-variant);">
-                                <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--outline); margin-bottom: 12px;">
-                                    Próximas Citas
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-variant);">
-                                        <div style="width: 40px; height: 40px; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600;">10:00</div>
-                                        <div>
-                                            <div style="font-weight: 600; font-size: 14px;">Facial Hidratante</div>
-                                            <div style="font-size: 12px; color: var(--outline);">Laura Mendoza</div>
-                                        </div>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface-variant);">
-                                        <div style="width: 40px; height: 40px; background: var(--tertiary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600;">14:30</div>
-                                        <div>
-                                            <div style="font-weight: 600; font-size: 14px;">Masaje Relajante</div>
-                                            <div style="font-size: 12px; color: var(--outline);">Carlos Ruiz</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card sky anim-fade-up delay-1">
+                <div class="kpi-header">
+                    <span class="kpi-label">Mis Pedidos</span>
+                    <div class="kpi-icon sky">
+                        <span class="material-symbols-rounded">shopping_bag</span>
+                    </div>
                 </div>
-            </section>
-
-            <!-- ═══════════════════════════════════════════════
-                 GRID: Gráfico + Tareas
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid reverse">
-                    <!-- Panel de Gráfico -->
-                    <article class="panel animate-in delay-3">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Ingresos Semanales</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Descargar">
-                                    <span class="material-symbols-outlined">download</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="chart-container">
-                                <div class="chart-bars">
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 45%;" data-value="$3,240"></div>
-                                        <span class="chart-label">Lun</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 62%;" data-value="$4,560"></div>
-                                        <span class="chart-label">Mar</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 38%;" data-value="$2,890"></div>
-                                        <span class="chart-label">Mié</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 75%;" data-value="$5,670"></div>
-                                        <span class="chart-label">Jue</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 55%;" data-value="$4,120"></div>
-                                        <span class="chart-label">Vie</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 88%;" data-value="$6,890"></div>
-                                        <span class="chart-label">Sáb</span>
-                                    </div>
-                                    <div class="chart-bar-wrapper">
-                                        <div class="chart-bar" style="height: 30%;" data-value="$2,100"></div>
-                                        <span class="chart-label">Dom</span>
-                                    </div>
-                                </div>
-                                <div class="chart-legend">
-                                    <div class="legend-item">
-                                        <div class="legend-dot primary"></div>
-                                        <span>Ingresos</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-dot secondary"></div>
-                                        <span>Meta</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Tareas -->
-                    <article class="panel animate-in delay-4">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Tareas Pendientes</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Nueva tarea">
-                                    <span class="material-symbols-outlined">add</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <ul class="task-list">
-                                <li class="task-item">
-                                    <div class="task-priority priority-high"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Revisar inventario de productos</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Hoy, 16:00</span>
-                                            <span><span class="material-symbols-outlined">inventory_2</span> Stock</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-medium"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Confirmar citas de mañana</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Hoy, 18:00</span>
-                                            <span><span class="material-symbols-outlined">event</span> Citas</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-low"></div>
-                                    <div class="task-checkbox checked" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title" style="text-decoration: line-through; color: var(--outline);">Actualizar catálogo de servicios</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Ayer</span>
-                                            <span><span class="material-symbols-outlined">check_circle</span> Completado</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-high"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Preparar reporte mensual</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Mañana, 09:00</span>
-                                            <span><span class="material-symbols-outlined">description</span> Reportes</span>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li class="task-item">
-                                    <div class="task-priority priority-medium"></div>
-                                    <div class="task-checkbox" onclick="this.classList.toggle('checked')">
-                                        <span class="material-symbols-outlined">check</span>
-                                    </div>
-                                    <div class="task-content">
-                                        <div class="task-title">Revisar feedback de clientes</div>
-                                        <div class="task-meta">
-                                            <span><span class="material-symbols-outlined">schedule</span> Viernes</span>
-                                            <span><span class="material-symbols-outlined">reviews</span> Clientes</span>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </article>
+                <div class="kpi-value"><%= totalPedidos %></div>
+                <div class="kpi-trend <%= !estadoUltimoPedido.isEmpty() ? "up" : "down" %>">
+                    <span class="material-symbols-rounded"><%= !estadoUltimoPedido.isEmpty() ? "check_circle" : "info" %></span>
+                    <%= !estadoUltimoPedido.isEmpty() ? estadoUltimoPedido : "Sin pedidos" %>
                 </div>
-            </section>
+            </div>
 
-            <!-- ═══════════════════════════════════════════════
-                 GRID: Productos + Notificaciones
-                 ═══════════════════════════════════════════════ -->
-            <section class="dashboard-section">
-                <div class="content-grid equal">
-                    <!-- Panel de Productos Destacados -->
-                    <article class="panel animate-in delay-4">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Productos Destacados</h2>
-                            <a href="${pageContext.request.contextPath}/catalogo/index.jsp" class="section-link">
-                                Ver catálogo <span class="material-symbols-outlined">arrow_forward</span>
+            <div class="kpi-card mint anim-fade-up delay-2">
+                <div class="kpi-header">
+                    <span class="kpi-label">En mi Closet</span>
+                    <div class="kpi-icon mint">
+                        <span class="material-symbols-rounded">checkroom</span>
+                    </div>
+                </div>
+                <div class="kpi-value"><%= totalPrendas %></div>
+                <div class="kpi-trend up">
+                    <span class="material-symbols-rounded">add_circle</span>
+                    <%= totalPrendas %> prendas
+                </div>
+            </div>
+
+            <div class="kpi-card lavender anim-fade-up delay-3">
+                <div class="kpi-header">
+                    <span class="kpi-label">Rutinas Activas</span>
+                    <div class="kpi-icon lavender">
+                        <span class="material-symbols-rounded">spa</span>
+                    </div>
+                </div>
+                <div class="kpi-value"><%= totalRutinas %></div>
+                <div class="kpi-trend up">
+                    <span class="material-symbols-rounded">favorite</span>
+                    <%= tipoPiel != null ? "Piel " + tipoPiel : "Sin definir" %>
+                </div>
+            </div>
+
+            <div class="kpi-card cream anim-fade-up delay-4">
+                <div class="kpi-header">
+                    <span class="kpi-label">Outfits Favoritos</span>
+                    <div class="kpi-icon cream">
+                        <span class="material-symbols-rounded">favorite</span>
+                    </div>
+                </div>
+                <div class="kpi-value"><%= totalFavoritos %></div>
+                <div class="kpi-trend up">
+                    <span class="material-symbols-rounded">auto_awesome</span>
+                    looks guardados
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div class="dashboard-left">
+                <!-- Outfit del Dia -->
+                <div class="panel anim-fade-up delay-2">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Outfit del Dia</h3>
+                            <p>Sugerencia segun el clima en <%= ciudad %></p>
+                        </div>
+                        <div class="panel-actions">
+                            <button class="icon-btn" title="Regenerar"><span class="material-symbols-rounded">refresh</span></button>
+                            <button class="icon-btn" title="Mas opciones"><span class="material-symbols-rounded">more_vert</span></button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="outfit-visual">
+                            <% if (favoritosPreview != null && !favoritosPreview.isEmpty() && favoritosPreview.get(0).getImagenGenerada() != null) { %>
+                                <img src="<%= request.getContextPath() %>/<%= favoritosPreview.get(0).getImagenGenerada() %>" 
+                                     alt="Outfit del dia" class="outfit-image">
+                            <% } else { %>
+                                <div style="text-align: center; color: var(--text-tertiary);">
+                                    <span class="material-symbols-rounded" style="font-size: 48px; display: block; margin-bottom: 8px;">auto_awesome</span>
+                                    <p style="font-size: 13px; font-weight: 600;">Genera tu primer look</p>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="outfit-tags">
+                            <span class="outfit-tag">
+                                <span class="material-symbols-rounded">thermostat</span>
+                                <%= temp %>
+                            </span>
+                            <span class="outfit-tag">
+                                <span class="material-symbols-rounded">wb_sunny</span>
+                                <%= condicion %>
+                            </span>
+                            <span class="outfit-tag">
+                                <span class="material-symbols-rounded">event</span>
+                                Casual
+                            </span>
+                        </div>
+                        <div class="outfit-actions">
+                            <button class="outfit-btn like" onclick="alert('Me gusta!')">
+                                <span class="material-symbols-rounded">thumb_up</span>
+                                Me gusta
+                            </button>
+                            <button class="outfit-btn change" onclick="alert('Cambiando outfit...')">
+                                <span class="material-symbols-rounded">sync</span>
+                                Cambiar
+                            </button>
+                            <button class="outfit-btn view" onclick="alert('Ver en avatar')">
+                                <span class="material-symbols-rounded">visibility</span>
+                                Ver en avatar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ultimo Pedido -->
+                <div class="panel anim-fade-up delay-3">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Mi Ultimo Pedido</h3>
+                            <p><%= ultimoPedido != null ? "Pedido #" + ultimoPedido.getId() : "Sin pedidos" %></p>
+                        </div>
+                        <div class="panel-actions">
+                            <a href="<%= request.getContextPath() %>/pedidos" class="icon-btn" title="Ver todos">
+                                <span class="material-symbols-rounded">arrow_forward</span>
                             </a>
                         </div>
-                        <div class="panel-body">
-                            <div class="product-grid">
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">spa</span>
+                    </div>
+                    <div class="panel-body">
+                        <% if (ultimoPedido != null) { %>
+                            <div class="tracker">
+                                <div class="tracker-line" style="width: <%= pasoActual >= 0 ? (pasoActual * 33.33) + "%" : "0%" %>;"></div>
+                                <% 
+                                String[] icons = {"receipt_long", "inventory_2", "local_shipping", "check_circle"};
+                                for (int i = 0; i < estadosPedido.length; i++) { 
+                                    boolean isActive = i == pasoActual;
+                                    boolean isCompleted = i < pasoActual;
+                                %>
+                                    <div class="tracker-step <%= isActive ? "active" : "" %> <%= isCompleted ? "completed" : "" %>">
+                                        <div class="step-dot">
+                                            <span class="material-symbols-rounded"><%= icons[i] %></span>
+                                        </div>
+                                        <span class="step-label"><%= estadosPedido[i] %></span>
                                     </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Cuidado Facial</div>
-                                        <div class="product-name">Serum Hidratante</div>
-                                        <div class="product-price">$45.00</div>
-                                        <div class="product-stock">Stock: 24 unidades</div>
+                                <% } %>
+                            </div>
+                        <% } else { %>
+                            <div style="text-align: center; padding: 24px; color: var(--text-tertiary);">
+                                <span class="material-symbols-rounded" style="font-size: 36px; display: block; margin-bottom: 8px;">shopping_bag</span>
+                                <p style="font-size: 12px; font-weight: 600;">Aun no tienes pedidos</p>
+                                <a href="<%= request.getContextPath() %>/catalogo" style="color: var(--accent-sky); font-weight: 700; text-decoration: none; margin-top: 6px; display: inline-block;">
+                                    Explorar catalogo
+                                </a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="dashboard-right">
+                <!-- Rutina de Hoy -->
+                <div class="panel anim-fade-up delay-2">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Rutina de Hoy</h3>
+                            <p><%= tipoPiel != null ? "Personalizada para piel " + tipoPiel : "Completa tu perfil" %></p>
+                        </div>
+                        <div class="panel-actions">
+                            <button class="icon-btn" title="Ver todas"><span class="material-symbols-rounded">spa</span></button>
+                            <button class="icon-btn" title="Mas opciones"><span class="material-symbols-rounded">more_vert</span></button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <% if (rutinaDelDia != null) { %>
+                            <div class="routine-list stagger-children">
+                                <div class="routine-step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-info">
+                                        <div class="step-name">Limpieza facial</div>
+                                        <div class="step-product">Gel limpiador suave</div>
                                     </div>
+                                    <span class="step-time">2 min</span>
                                 </div>
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">face</span>
+                                <div class="routine-step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-info">
+                                        <div class="step-name">Tonico equilibrante</div>
+                                        <div class="step-product">Tonico de rosas</div>
                                     </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Maquillaje</div>
-                                        <div class="product-name">Base Líquida Premium</div>
-                                        <div class="product-price">$38.50</div>
-                                        <div class="product-stock">Stock: 18 unidades</div>
-                                    </div>
+                                    <span class="step-time">1 min</span>
                                 </div>
-                                <div class="product-card">
-                                    <div class="product-image">
-                                        <span class="material-symbols-outlined">self_care</span>
+                                <div class="routine-step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-info">
+                                        <div class="step-name">Serum hidratante</div>
+                                        <div class="step-product">Acido hialuronico 2%</div>
                                     </div>
-                                    <div class="product-info">
-                                        <div class="product-category">Corporal</div>
-                                        <div class="product-name">Aceite Esencial</div>
-                                        <div class="product-price">$28.00</div>
-                                        <div class="product-stock">Stock: 32 unidades</div>
+                                    <span class="step-time">1 min</span>
+                                </div>
+                                <div class="routine-step">
+                                    <div class="step-number">4</div>
+                                    <div class="step-info">
+                                        <div class="step-name">Crema hidratante</div>
+                                        <div class="step-product">Moisturizer SPF 30</div>
                                     </div>
+                                    <span class="step-time">2 min</span>
+                                </div>
+                                <div class="routine-step">
+                                    <div class="step-number">5</div>
+                                    <div class="step-info">
+                                        <div class="step-name">Protector solar</div>
+                                        <div class="step-product">Sunscreen SPF 50</div>
+                                    </div>
+                                    <span class="step-time">1 min</span>
                                 </div>
                             </div>
-                        </div>
-                    </article>
-
-                    <!-- Panel de Notificaciones -->
-                    <article class="panel animate-in delay-5">
-                        <div class="panel-header">
-                            <h2 class="panel-title">Notificaciones</h2>
-                            <div class="panel-actions">
-                                <button class="panel-action-btn" title="Marcar todo como leído">
-                                    <span class="material-symbols-outlined">done_all</span>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 600;">
+                                    <span class="material-symbols-rounded" style="font-size: 13px; vertical-align: middle; margin-right: 4px;">schedule</span>
+                                    ~7 min total
+                                </span>
+                                <button class="scan-cta" style="padding: 6px 14px; font-size: 11px; margin-top: 0;">
+                                    <span class="material-symbols-rounded" style="font-size: 14px;">play_arrow</span>
+                                    Iniciar
                                 </button>
                             </div>
-                        </div>
-                        <div class="panel-body">
-                            <ul class="notification-list">
-                                <li class="notification-item">
-                                    <div class="notification-icon primary">
-                                        <span class="material-symbols-outlined">person_add</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            <strong>Nuevo usuario</strong> registrado: Sofía Herrera
-                                        </div>
-                                        <div class="notification-time">Hace 15 minutos</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon success">
-                                        <span class="material-symbols-outlined">check_circle</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Pedido <strong>#2847</strong> completado exitosamente
-                                        </div>
-                                        <div class="notification-time">Hace 45 minutos</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon warning">
-                                        <span class="material-symbols-outlined">warning</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Stock bajo: <strong>Crema Anti-edad</strong> (5 unidades)
-                                        </div>
-                                        <div class="notification-time">Hace 2 horas</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon primary">
-                                        <span class="material-symbols-outlined">event</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            <strong>3 citas</strong> confirmadas para mañana
-                                        </div>
-                                        <div class="notification-time">Hace 3 horas</div>
-                                    </div>
-                                </li>
-                                <li class="notification-item">
-                                    <div class="notification-icon success">
-                                        <span class="material-symbols-outlined">trending_up</span>
-                                    </div>
-                                    <div class="notification-content">
-                                        <div class="notification-text">
-                                            Ingresos del día superaron la meta en <strong>12%</strong>
-                                        </div>
-                                        <div class="notification-time">Hace 5 horas</div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </article>
+                        <% } else { %>
+                            <div style="text-align: center; padding: 24px; color: var(--text-tertiary);">
+                                <span class="material-symbols-rounded" style="font-size: 36px; display: block; margin-bottom: 8px;">spa</span>
+                                <p style="font-size: 12px; font-weight: 600;">No tienes rutinas activas</p>
+                                <a href="<%= request.getContextPath() %>/rutinas" style="color: var(--accent-sky); font-weight: 700; text-decoration: none; margin-top: 6px; display: inline-block;">
+                                    Descubrir rutinas
+                                </a>
+                            </div>
+                        <% } %>
+                    </div>
                 </div>
-            </section>
 
-            <!-- ═══════════════════════════════════════════════
-                 FOOTER
-                 ═══════════════════════════════════════════════ -->
-            <footer class="dashboard-footer">
-                <span> 2026 Belleza. Todos los derechos reservados.</span>
-                <div class="footer-links">
-                    <a href="#">Ayuda</a>
-                    <a href="#">Privacidad</a>
-                    <a href="#">Términos</a>
+                <!-- Accesos Rapidos -->
+                <div class="panel anim-fade-up delay-3">
+                    <div class="panel-header">
+                        <div class="panel-title-group">
+                            <h3>Accesos Rapidos</h3>
+                            <p>Todo a un clic</p>
+                        </div>
+                        <div class="panel-actions">
+                            <button class="icon-btn" title="Configurar"><span class="material-symbols-rounded">settings</span></button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="quick-access stagger-children">
+                            <a href="<%= request.getContextPath() %>/facefull" class="access-btn scan">
+                                <div class="access-icon">
+                                    <span class="material-symbols-rounded">face_retouching_natural</span>
+                                </div>
+                                <span class="access-label">Escaneo Facial</span>
+                            </a>
+                            <a href="<%= request.getContextPath() %>/avatar" class="access-btn avatar">
+                                <div class="access-icon">
+                                    <span class="material-symbols-rounded">person</span>
+                                </div>
+                                <span class="access-label">Mi Avatar</span>
+                            </a>
+                            <a href="<%= request.getContextPath() %>/closet" class="access-btn closet">
+                                <div class="access-icon">
+                                    <span class="material-symbols-rounded">checkroom</span>
+                                </div>
+                                <span class="access-label">Mi Closet</span>
+                            </a>
+                            <a href="<%= request.getContextPath() %>/catalogo" class="access-btn catalog">
+                                <div class="access-icon">
+                                    <span class="material-symbols-rounded">storefront</span>
+                                </div>
+                                <span class="access-label">Catalogo</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </footer>
+            </div>
+        </div>
+    </main>
 
-        </main>
-    </div>
+    <!-- RIGHT SIDEBAR - Mi Closet Reciente -->
+    <aside class="right-sidebar" id="rightSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">
+                <span class="material-symbols-rounded" style="color:var(--accent-mint);font-size:20px;">checkroom</span>
+                Mi Closet Reciente
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">
+                <span class="material-symbols-rounded" style="font-size:16px;">close</span>
+            </button>
+        </div>
 
-    <script>
-        // Animación de entrada para las barras del gráfico
-        document.addEventListener('DOMContentLoaded', function() {
-            const bars = document.querySelectorAll('.chart-bar');
-            bars.forEach((bar, index) => {
-                const finalHeight = bar.style.height;
-                bar.style.height = '0%';
-                setTimeout(() => {
-                    bar.style.height = finalHeight;
-                }, 600 + (index * 100));
-            });
-        });
-    </script>
-<%@ include file="/includes/sidebar.jsp" %>
+        <div class="closet-grid stagger-children">
+            <% if (prendasRecientes != null && !prendasRecientes.isEmpty()) { 
+                for (com.quiddity.model.Prenda p : prendasRecientes) { %>
+                <div class="closet-item">
+                    <img src="<%= request.getContextPath() %>/<%= p.getImagen() != null ? p.getImagen() : "assets/img/placeholder.png" %>" 
+                         alt="<%= p.getTipo() %>">
+                    <div class="closet-overlay">
+                        <a href="<%= request.getContextPath() %>/avatar?prenda=<%= p.getId() %>" class="closet-action">
+                            Ver en avatar
+                        </a>
+                    </div>
+                </div>
+            <% } 
+            } else { %>
+                <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-tertiary); background: var(--bg); border-radius: var(--radius-sm); border: 1px dashed var(--border);">
+                    <span class="material-symbols-rounded" style="font-size: 28px; display: block; margin-bottom: 6px;">add_photo_alternate</span>
+                    <p style="font-size: 11px; font-weight: 600;">Sube tu primera prenda</p>
+                </div>
+            <% } %>
+        </div>
+
+        <a href="<%= request.getContextPath() %>/closet" style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; padding: 10px; background: var(--bg); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-secondary); font-size: 11px; font-weight: 700; transition: all 0.2s ease;">
+            <span class="material-symbols-rounded" style="font-size: 14px;">arrow_forward</span>
+            Ver todo mi closet
+        </a>
+    </aside>
+
+</div>
+
+<script>
+    var sidebarOpen = true;
+
+    function toggleSidebar() {
+        var sidebar = document.getElementById('rightSidebar');
+        var mainContent = document.getElementById('mainContent');
+        var toggleBtn = document.getElementById('toggleClosetBtn');
+        var toggleIcon = document.getElementById('toggleIcon');
+
+        sidebarOpen = !sidebarOpen;
+
+        if (sidebarOpen) {
+            sidebar.classList.remove('hidden');
+            mainContent.classList.remove('sidebar-closed');
+            mainContent.classList.add('sidebar-open');
+            if (toggleBtn) toggleBtn.classList.add('active');
+            if (toggleIcon) toggleIcon.textContent = 'chevron_left';
+        } else {
+            sidebar.classList.add('hidden');
+            mainContent.classList.remove('sidebar-open');
+            mainContent.classList.add('sidebar-closed');
+            if (toggleBtn) toggleBtn.classList.remove('active');
+            if (toggleIcon) toggleIcon.textContent = 'chevron_right';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var kpiValues = document.querySelectorAll('.kpi-value');
+        for (var i = 0; i < kpiValues.length; i++) {
+            var el = kpiValues[i];
+            var finalValue = parseInt(el.textContent.replace(/[^0-9]/g, '')) || 0;
+            if (finalValue > 0) {
+                var current = 0;
+                var increment = finalValue / 40;
+                var timer = setInterval((function(element, target) {
+                    return function() {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        element.textContent = Math.floor(current);
+                    };
+                })(el, finalValue), 25);
+            }
+        }
+    });
+</script>
+
 </body>
 </html>
