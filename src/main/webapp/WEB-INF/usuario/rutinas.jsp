@@ -58,7 +58,6 @@
             .replaceAll("[\u00ed\u00ef\u00ee\u00ec]","i").replaceAll("[\u00f3\u00f6\u00f4\u00f2]","o")
             .replaceAll("[\u00fa\u00fc\u00fb\u00f9]","u");
         if (c.contains("cuidado de la piel")) return "cuidado";
-        if (c.contains("perfume")) return "perfumes";
         if (c.contains("cabello")) return "cabello";
         if (c.contains("corporal")) return "cuerpo";
         if (c.contains("maquillaje")) return "maquillaje";
@@ -131,7 +130,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .perfil-alert .material-symbols-outlined{font-size:18px;}
 
 /* STATS */
-.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
 .stat-item{background:var(--surface);border-radius:var(--radius-md);padding:14px 16px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);transition:all 0.3s ease;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;gap:12px;}
 .stat-item:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--pastel-lavender-dark);}
 .stat-item::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-lavender);transform:scaleX(0);transform-origin:left;transition:transform 0.3s ease;}
@@ -172,7 +171,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .filter-select:focus{outline:none;border-color:var(--accent-sky);box-shadow:0 0 0 4px rgba(25,118,210,0.08);}
 
 /* GRID */
-.rutina-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+.rutina-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;}
 .rutina-card{position:relative;background:var(--surface);border-radius:var(--radius-md);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);overflow:hidden;transition:all 0.3s ease;display:flex;flex-direction:column;}
 .rutina-card.recomendada{border-color:var(--pastel-mint-dark);box-shadow:0 0 0 1px var(--pastel-mint-dark);}
 .rutina-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);}
@@ -187,7 +186,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .cat-badge{position:absolute;top:10px;left:10px;padding:5px 12px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:white;z-index:5;backdrop-filter:blur(8px);box-shadow:0 2px 8px rgba(0,0,0,0.15);}
 .cat-badge.maquillaje{background:rgba(194,24,91,0.85);}
 .cat-badge.cuidado{background:rgba(25,118,210,0.85);}
-.cat-badge.perfumes{background:rgba(245,124,0,0.85);}
 .cat-badge.cabello{background:rgba(56,142,60,0.85);}
 .cat-badge.cuerpo{background:rgba(123,31,162,0.85);}
 .cat-badge.general{background:rgba(96,125,139,0.85);}
@@ -331,10 +329,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
                 <div class="stat-icon sky"><span class="material-symbols-outlined">spa</span></div>
                 <div class="stat-data"><h4 id="countCuidado">0</h4><p>Cuidado Piel</p></div>
             </div>
-            <div class="stat-item" onclick="filterByCategory('perfumes')">
-                <div class="stat-icon cream"><span class="material-symbols-outlined">water_drop</span></div>
-                <div class="stat-data"><h4 id="countPerfumes">0</h4><p>Perfumes</p></div>
-            </div>
             <div class="stat-item" onclick="filterByCategory('cabello')">
                 <div class="stat-icon mint"><span class="material-symbols-outlined">self_improvement</span></div>
                 <div class="stat-data"><h4 id="countCabello">0</h4><p>Cabello</p></div>
@@ -352,7 +346,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
                     <button class="cat-chip active" data-cat="all"><span class="material-symbols-outlined" style="font-size:14px;">auto_awesome</span> Todas</button>
                     <button class="cat-chip" data-cat="maquillaje"><span class="material-symbols-outlined" style="font-size:14px;">face_retouching_natural</span> Maquillaje</button>
                     <button class="cat-chip" data-cat="cuidado"><span class="material-symbols-outlined" style="font-size:14px;">spa</span> Cuidado de la Piel</button>
-                    <button class="cat-chip" data-cat="perfumes"><span class="material-symbols-outlined" style="font-size:14px;">water_drop</span> Perfumes</button>
                     <button class="cat-chip" data-cat="cabello"><span class="material-symbols-outlined" style="font-size:14px;">self_improvement</span> Cabello</button>
                     <button class="cat-chip" data-cat="cuerpo"><span class="material-symbols-outlined" style="font-size:14px;">accessibility</span> Cuidado Corporal</button>
                 </div>
@@ -520,7 +513,7 @@ function filterByCategory(cat) {
     document.querySelectorAll('.cat-chip').forEach(function(c){ c.classList.remove('active'); });
     var chip = document.querySelector('.cat-chip[data-cat="' + cat + '"]');
     if (chip) chip.classList.add('active');
-    var titles = { all:'Todas las Rutinas', maquillaje:'Maquillaje', cuidado:'Cuidado de la Piel', perfumes:'Perfumes', cabello:'Cabello', cuerpo:'Cuidado Corporal' };
+    var titles = { all:'Todas las Rutinas', maquillaje:'Maquillaje', cuidado:'Cuidado de la Piel', cabello:'Cabello', cuerpo:'Cuidado Corporal' };
     document.getElementById('sectionTitle').textContent = titles[cat] || 'Rutinas';
     applyFilters();
 }
@@ -580,14 +573,13 @@ function sortCards(sort) {
 }
 
 function updateCounts() {
-    var counts = { maquillaje:0, cuidado:0, perfumes:0, cabello:0, cuerpo:0 };
+    var counts = { maquillaje:0, cuidado:0, cabello:0, cuerpo:0 };
     document.querySelectorAll('.rutina-card').forEach(function(c){
         var cat = c.getAttribute('data-cat');
         if (counts[cat] !== undefined) counts[cat]++;
     });
     document.getElementById('countMaquillaje').textContent = counts.maquillaje;
     document.getElementById('countCuidado').textContent    = counts.cuidado;
-    document.getElementById('countPerfumes').textContent   = counts.perfumes;
     document.getElementById('countCabello').textContent    = counts.cabello;
     document.getElementById('countCuerpo').textContent     = counts.cuerpo;
     document.getElementById('countTotal').textContent      = document.querySelectorAll('.rutina-card').length;

@@ -81,7 +81,6 @@
         if (cat == null) return "maquillaje";
         String c = normalize(cat);
         if (c.contains("cuidado de la piel")) return "cuidado";
-        if (c.contains("perfume")) return "perfumes";
         if (c.contains("cabello")) return "cabello";
         if (c.contains("cuidado corporal") || c.contains("corporal")) return "cuerpo";
         if (c.contains("maquillaje")) return "maquillaje";
@@ -188,7 +187,7 @@ body {
 .perfil-alert a { color: var(--accent-cream); text-decoration: underline; font-weight: 700; }
 .perfil-alert .material-symbols-outlined { font-size: 18px; }
 
-.stats-bar { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.stats-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .stat-item {
     background: var(--surface); border-radius: var(--radius-md); padding: 14px 16px;
     box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
@@ -211,7 +210,6 @@ body {
 .stat-icon.cream { background: var(--pastel-cream); color: var(--accent-cream); }
 .stat-icon.coral { background: var(--pastel-coral); color: var(--accent-coral); }
 .stat-icon.lavender { background: var(--pastel-sky); color: var(--accent-sky); }
-.stat-icon.perfumes { background: var(--pastel-cream); color: var(--accent-cream); }
 .stat-data h4 { font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-bottom: 3px; letter-spacing: -0.5px; }
 .stat-data p { font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
 
@@ -354,7 +352,6 @@ body {
 }
 .cat-badge.maquillaje { background: rgba(194, 24, 89, 0.85); }
 .cat-badge.cuidado { background: rgba(25, 118, 210, 0.85); }
-.cat-badge.perfumes { background: rgba(245, 124, 0, 0.85); }
 .cat-badge.cabello { background: rgba(56, 142, 60, 0.85); }
 .cat-badge.cuerpo { background: rgba(123, 31, 162, 0.85); }
 
@@ -615,10 +612,6 @@ body {
                 <div class="stat-icon cream"><span class="material-symbols-outlined">spa</span></div>
                 <div class="stat-data"><h4 id="countCuidado">0</h4><p>Cuidado Piel</p></div>
             </div>
-            <div class="stat-item" onclick="filterByCategory('perfumes')">
-                <div class="stat-icon perfumes"><span class="material-symbols-outlined">water_drop</span></div>
-                <div class="stat-data"><h4 id="countPerfumes">0</h4><p>Perfumes</p></div>
-            </div>
             <div class="stat-item" onclick="filterByCategory('cabello')">
                 <div class="stat-icon coral"><span class="material-symbols-outlined">self_improvement</span></div>
                 <div class="stat-data"><h4 id="countCabello">0</h4><p>Cabello</p></div>
@@ -640,9 +633,6 @@ body {
                     </button>
                     <button class="cat-chip" data-cat="cuidado">
                         <span class="material-symbols-outlined" style="font-size:14px;">spa</span> Cuidado de la Piel
-                    </button>
-                    <button class="cat-chip" data-cat="perfumes">
-                        <span class="material-symbols-outlined" style="font-size:14px;">water_drop</span> Perfumes
                     </button>
                     <button class="cat-chip" data-cat="cabello">
                         <span class="material-symbols-outlined" style="font-size:14px;">self_improvement</span> Cabello
@@ -854,7 +844,6 @@ body {
                                     <option value="">Sin categoria</option>
                                     <option value="Maquillaje">Maquillaje</option>
                                     <option value="Cuidado de la Piel">Cuidado de la Piel</option>
-                                    <option value="Perfumes">Perfumes</option>
                                     <option value="Cabello">Cabello</option>
                                     <option value="Cuidado Corporal">Cuidado Corporal</option>
                                 </select>
@@ -973,7 +962,6 @@ body {
                                     <option value="">Sin categoria</option>
                                     <option value="Maquillaje">Maquillaje</option>
                                     <option value="Cuidado de la Piel">Cuidado de la Piel</option>
-                                    <option value="Perfumes">Perfumes</option>
                                     <option value="Cabello">Cabello</option>
                                     <option value="Cuidado Corporal">Cuidado Corporal</option>
                                 </select>
@@ -1130,7 +1118,6 @@ function filterByCategory(cat) {
         'all': 'Todas las Rutinas',
         'maquillaje': 'Rutinas de Maquillaje',
         'cuidado': 'Rutinas de Cuidado de la Piel',
-        'perfumes': 'Rutinas de Perfumes',
         'cabello': 'Rutinas de Cabello',
         'cuerpo': 'Rutinas de Cuidado Corporal'
     };
@@ -1476,7 +1463,7 @@ function showToast(message, type) {
 }
 
 function updateCategoryCounts() {
-    var counts = { maquillaje: 0, cuidado: 0, perfumes: 0, cabello: 0, cuerpo: 0 };
+    var counts = { maquillaje: 0, cuidado: 0, cabello: 0, cuerpo: 0 };
 
     document.querySelectorAll('.rutina-card').forEach(function(card) {
         var cat = card.getAttribute('data-cat');
@@ -1487,7 +1474,6 @@ function updateCategoryCounts() {
 
     document.getElementById('countMaquillaje').textContent = counts.maquillaje;
     document.getElementById('countCuidado').textContent = counts.cuidado;
-    document.getElementById('countPerfumes').textContent = counts.perfumes;
     document.getElementById('countCabello').textContent = counts.cabello;
     document.getElementById('countCuerpo').textContent = counts.cuerpo;
 

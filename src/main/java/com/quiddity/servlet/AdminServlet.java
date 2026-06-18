@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -21,9 +22,8 @@ import javax.servlet.http.Part;
 import com.quiddity.dao.UsuarioDAO;
 import com.quiddity.model.Usuario;
 
-@WebServlet(urlPatterns = {"/admin/usuarios", "/admin/reportes"})
-@MultipartConfig(
-        fileSizeThreshold = 1024 * 1024 * 2, // 2 MB
+@WebServlet(urlPatterns = { "/admin/usuarios", "/admin/reportes" })
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2 MB
         maxFileSize = 1024 * 1024 * 5, // 5 MB
         maxRequestSize = 1024 * 1024 * 50 // 50 MB
 )
@@ -34,6 +34,15 @@ public class AdminServlet extends HttpServlet {
 
     // Directorio raíz para imágenes de perfil
     private static final String UPLOAD_PERFILES = "uploads/perfiles";
+
+    // Método consistente con FotoPerfilServlet
+    private String getUploadDir() {
+        String env = System.getenv("UPLOAD_DIR");
+        if (env != null && !env.isBlank()) {
+            return env + File.separator + "perfiles";
+        }
+        return getServletContext().getRealPath("/" + UPLOAD_PERFILES);
+    }
 
     // ─────────────────────────────────────────────
     // GET
@@ -48,10 +57,10 @@ public class AdminServlet extends HttpServlet {
 
         String uri = req.getRequestURI();
         String base = req.getContextPath();
-        String action = req.getParameter("action");   // "nuevo"
+        String action = req.getParameter("action"); // "nuevo"
         String idStr = req.getParameter("id");
-        String editar = req.getParameter("editar");   // "true"
-        String accion = req.getParameter("accion");   // "editar" | "ver" (desde la lista)
+        String editar = req.getParameter("editar"); // "true"
+        String accion = req.getParameter("accion"); // "editar" | "ver" (desde la lista)
 
         if (uri.endsWith("/admin/reportes")) {
             mostrarReportes(req, resp);
@@ -62,13 +71,13 @@ public class AdminServlet extends HttpServlet {
         // FIX #1: /admin/usuarios?action=nuevo → formulario VACÍO
         // ═══════════════════════════════════════════════════════════════════
         if ("nuevo".equals(action)) {
-            req.removeAttribute("usuario");   // ← LIMPIAR para que no quede datos viejos
+            req.removeAttribute("usuario"); // ← LIMPIAR para que no quede datos viejos
             req.removeAttribute("accion");
             req.getRequestDispatcher("/WEB-INF/admin/form.jsp").forward(req, resp);
             return;
         }
 
-        // /admin/usuarios?accion=editar&id=X  →  formulario relleno
+        // /admin/usuarios?accion=editar&id=X → formulario relleno
         if ("editar".equals(accion) && idStr != null) {
             try {
                 int id = Integer.parseInt(idStr);
@@ -86,7 +95,7 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
-        // /admin/usuarios?accion=ver&id=X  →  modo solo lectura
+        // /admin/usuarios?accion=ver&id=X → modo solo lectura
         if ("ver".equals(accion) && idStr != null) {
             try {
                 int id = Integer.parseInt(idStr);
@@ -104,7 +113,7 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
-        // /admin/usuarios?id=X&editar=true  →  compatibilidad
+        // /admin/usuarios?id=X&editar=true → compatibilidad
         if (idStr != null && "true".equals(editar)) {
             try {
                 int id = Integer.parseInt(idStr);
@@ -122,7 +131,7 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
-        // /admin/usuarios?id=X  →  detalle/modo ver
+        // /admin/usuarios?id=X → detalle/modo ver
         if (idStr != null) {
             try {
                 int id = Integer.parseInt(idStr);
@@ -136,12 +145,12 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
-        // /admin/usuarios  →  listado (con filtros opcionales)
+        // /admin/usuarios → listado (con filtros opcionales)
         listarUsuarios(req, resp);
     }
 
     // ─────────────────────────────────────────────
-    // POST  (crear / editar / eliminar / cambiarRol)
+    // POST (crear / editar / eliminar / cambiarRol)
     // ─────────────────────────────────────────────
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -283,27 +292,49 @@ public class AdminServlet extends HttpServlet {
                 u.setIdRol(Integer.parseInt(req.getParameter("idrol")));
             }
 
-            // === MANEJO DE IMAGEN DE PERFIL (EDITAR) ===
+            // ═══════════════════════════════════════════════════════════════════
+            // FIX #3: MANEJO ROBUSTO DE IMAGEN DE PERFIL (EDITAR)
+            // Ahora usa el ID del usuario para evitar colisiones de nombres
+            // y fuerza la actualización en BD incluso si el nombre cambió
+            // ═══════════════════════════════════════════════════════════════════
             Part filePart = req.getPart("avatar");
             String fotoPerfil = null;
+
             if (filePart != null && filePart.getSize() > 0) {
+                // Borrar foto anterior si existe y no es URL externa
                 if (u.getFotoPerfil() != null && !u.getFotoPerfil().isBlank()
                         && !u.getFotoPerfil().startsWith("http")) {
                     borrarImagenPerfil(u.getFotoPerfil());
                 }
-                fotoPerfil = guardarImagenPerfil(filePart, u.getNombre(), u.getApellido());
+                // Guardar nueva foto con ID + UUID para evitar colisiones
+                fotoPerfil = guardarImagenPerfil(filePart, u.getNombre(), u.getApellido(), id);
             }
+
             if (fotoPerfil == null) {
                 String fotoTexto = req.getParameter("fotoperfil_url");
                 if (fotoTexto != null && !fotoTexto.isBlank()) {
                     fotoPerfil = fotoTexto.trim();
                 } else {
-                    fotoPerfil = u.getFotoPerfil();
+                    fotoPerfil = u.getFotoPerfil(); // Conservar foto anterior
                 }
             }
             u.setFotoPerfil(fotoPerfil);
 
-            usuarioDAO.actualizar(u);
+            // Si el admin edita su propio perfil, actualizar la sesión
+            if (admin.getId() == id) {
+                req.getSession().setAttribute("usuario", u);
+            }
+
+            // ═══════════════════════════════════════════════════════════════════
+            // FIX #4: Forzar actualización de foto en BD con método dedicado
+            // para asegurar que el campo foto_perfil se actualice
+            // ═══════════════════════════════════════════════════════════════════
+            boolean ok = usuarioDAO.actualizar(u);
+            if (ok && fotoPerfil != null) {
+                // Doble verificación: actualizar explícitamente la foto
+                usuarioDAO.actualizarFoto(id, fotoPerfil);
+            }
+
             resp.sendRedirect(base + "/admin/usuarios?exito="
                     + java.net.URLEncoder.encode("Usuario actualizado correctamente.", "UTF-8"));
 
@@ -373,7 +404,12 @@ public class AdminServlet extends HttpServlet {
     // ═════════════════════════════════════════════════════════════════════════
     // MANEJO DE IMÁGENES DE PERFIL
     // ═════════════════════════════════════════════════════════════════════════
-    private String guardarImagenPerfil(Part filePart, String nombre, String apellido)
+
+    /**
+     * Guarda imagen de perfil con nombre único basado en ID + UUID.
+     * Esto evita colisiones cuando dos usuarios tienen el mismo nombre.
+     */
+    private String guardarImagenPerfil(Part filePart, String nombre, String apellido, int userId)
             throws IOException {
 
         String contentType = filePart.getContentType();
@@ -388,27 +424,67 @@ public class AdminServlet extends HttpServlet {
 
         String extension = getExtension(fileName).toLowerCase();
         if (!extension.equals("jpg") && !extension.equals("jpeg")
-                && !extension.equals("png") && !extension.equals("gif")) {
+                && !extension.equals("png") && !extension.equals("gif") && !extension.equals("webp")) {
             return null;
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // FIX #5: Usar ID + UUID para nombre único, evita colisiones
+        // ═══════════════════════════════════════════════════════════════════
         String nombreBase = sanitizarNombreArchivo(nombre + "_" + apellido);
         if (nombreBase.isEmpty()) {
             nombreBase = "perfil";
         }
-        String finalName = nombreBase + "." + extension;
+        // Nombre final: perfil_{id}_{nombre}_{uuid}.{ext}
+        String uuid = UUID.randomUUID().toString().substring(0, 8);
+        String finalName = "perfil_" + userId + "_" + nombreBase + "_" + uuid + "." + extension;
 
-        String basePath = getServletContext().getRealPath("") + File.separator + UPLOAD_PERFILES;
+        String basePath = getUploadDir();
         File uploadDir = new File(basePath);
         if (!uploadDir.exists()) {
             uploadDir.mkdirs();
         }
 
         String filePath = basePath + File.separator + finalName;
+
+        try (InputStream input = filePart.getInputStream(); FileOutputStream output = new FileOutputStream(filePath)) {
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = input.read(buffer)) > 0) {
+                output.write(buffer, 0, len);
+            }
+        }
+
+        System.out.println("[AdminServlet] Foto guardada: " + finalName + " en " + filePath);
+        return finalName;
+    }
+
+    /**
+     * Sobrecarga para compatibilidad con crearUsuario (sin ID aún).
+     * Genera nombre con UUID aleatorio.
+     */
+    private String guardarImagenPerfil(Part filePart, String nombre, String apellido)
+            throws IOException {
+        String nombreBase = sanitizarNombreArchivo(nombre + "_" + apellido);
+        if (nombreBase.isEmpty())
+            nombreBase = "perfil";
+        String uuid = UUID.randomUUID().toString().substring(0, 8);
+
+        String fileName = getFileNameFromPart(filePart);
+        String extension = getExtension(fileName).toLowerCase();
+        String finalName = nombreBase + "_" + uuid + "." + extension;
+
+        String basePath = getUploadDir();
+        File uploadDir = new File(basePath);
+        if (!uploadDir.exists())
+            uploadDir.mkdirs();
+
+        // Verificar que no exista
+        String filePath = basePath + File.separator + finalName;
         File destFile = new File(filePath);
         int counter = 1;
         while (destFile.exists()) {
-            finalName = nombreBase + "_" + counter + "." + extension;
+            finalName = nombreBase + "_" + uuid + "_" + counter + "." + extension;
             filePath = basePath + File.separator + finalName;
             destFile = new File(filePath);
             counter++;
@@ -422,28 +498,24 @@ public class AdminServlet extends HttpServlet {
             }
         }
 
-        return "uploads/perfiles/" + finalName;
+        System.out.println("[AdminServlet] Foto guardada (nuevo usuario): " + finalName);
+        return finalName;
     }
 
-    private void borrarImagenPerfil(String imagenRelativa) {
-        if (imagenRelativa == null || imagenRelativa.isBlank()) {
+    private void borrarImagenPerfil(String nombreArchivo) {
+        if (nombreArchivo == null || nombreArchivo.isBlank()) {
             return;
         }
-        if (imagenRelativa.startsWith("http://") || imagenRelativa.startsWith("https://")) {
+        if (nombreArchivo.startsWith("http://") || nombreArchivo.startsWith("https://")) {
             return;
         }
 
-        String basePath = getServletContext().getRealPath("") + File.separator;
-        Path filePath;
-
-        if (imagenRelativa.startsWith("uploads/")) {
-            filePath = Paths.get(basePath, imagenRelativa);
-        } else {
-            filePath = Paths.get(basePath, "uploads/perfiles", imagenRelativa);
-        }
+        String basePath = getUploadDir();
+        Path filePath = Paths.get(basePath, nombreArchivo);
 
         try {
-            Files.deleteIfExists(filePath);
+            boolean deleted = Files.deleteIfExists(filePath);
+            System.out.println("[AdminServlet] Foto anterior borrada: " + deleted + " - " + filePath);
         } catch (IOException e) {
             System.err.println("[AdminServlet] No se pudo borrar imagen: " + filePath);
         }

@@ -20,46 +20,78 @@ public class FotoPerfilServlet extends HttpServlet {
     private String getUploadDir() {
         String env = System.getenv("UPLOAD_DIR");
         if (env != null && !env.isBlank()) {
-            return env + File.separator + "perfiles";
+            String dir = env + File.separator + "perfiles";
+            System.out.println("[FotoPerfilServlet] Usando UPLOAD_DIR: " + dir);
+            return dir;
         }
-        return getServletContext().getRealPath("/uploads/perfiles");
+        String dir = getServletContext().getRealPath("/uploads/perfiles");
+        System.out.println("[FotoPerfilServlet] Usando ruta local: " + dir);
+        return dir;
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String pathInfo = req.getPathInfo(); // ej. /perfil_3_abc123.jpg
-        if (pathInfo == null || pathInfo.equals("/")) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
+        try {
+            String pathInfo = req.getPathInfo(); // ej. /perfil_3_abc123.jpg
+            System.out.println("[FotoPerfilServlet] pathInfo: " + pathInfo);
 
-        // Evitar path traversal
-        String nombreArchivo = new File(pathInfo.substring(1)).getName();
-        File archivo = new File(getUploadDir(), nombreArchivo);
-
-        if (!archivo.exists() || !archivo.isFile()) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        // Detectar content type
-        String contentType = Files.probeContentType(archivo.toPath());
-        if (contentType == null) contentType = "application/octet-stream";
-
-        resp.setContentType(contentType);
-        resp.setContentLengthLong(archivo.length());
-        // Cache 1 hora
-        resp.setHeader("Cache-Control", "public, max-age=3600");
-
-        try (InputStream in = new FileInputStream(archivo);
-             OutputStream out = resp.getOutputStream()) {
-            byte[] buf = new byte[8192];
-            int n;
-            while ((n = in.read(buf)) != -1) {
-                out.write(buf, 0, n);
+            if (pathInfo == null || pathInfo.equals("/")) {
+                System.out.println("[FotoPerfilServlet] pathInfo vacio, devolviendo 404");
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
             }
+
+            // Evitar path traversal
+            String nombreArchivo = new File(pathInfo.substring(1)).getName();
+            System.out.println("[FotoPerfilServlet] nombreArchivo: " + nombreArchivo);
+
+            String uploadDir = getUploadDir();
+            File archivo = new File(uploadDir, nombreArchivo);
+            System.out.println("[FotoPerfilServlet] Buscando archivo: " + archivo.getAbsolutePath());
+            System.out.println("[FotoPerfilServlet] Existe: " + archivo.exists() + ", Es archivo: " + archivo.isFile());
+
+            if (!archivo.exists() || !archivo.isFile()) {
+                // Intentar buscar en directorio alternativo (compatibilidad)
+                File altDir = new File(getServletContext().getRealPath("/uploads/perfiles"));
+                File altArchivo = new File(altDir, nombreArchivo);
+                System.out.println("[FotoPerfilServlet] Buscando en alternativo: " + altArchivo.getAbsolutePath());
+
+                if (altArchivo.exists() && altArchivo.isFile()) {
+                    archivo = altArchivo;
+                    System.out.println("[FotoPerfilServlet] Encontrado en directorio alternativo");
+                } else {
+                    System.out.println("[FotoPerfilServlet] Archivo no encontrado, devolviendo 404");
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+            }
+
+            // Detectar content type
+            String contentType = Files.probeContentType(archivo.toPath());
+            if (contentType == null)
+                contentType = "application/octet-stream";
+
+            resp.setContentType(contentType);
+            resp.setContentLength((int) archivo.length());
+            // Cache 1 hora
+            resp.setHeader("Cache-Control", "public, max-age=3600");
+
+            try (InputStream in = new FileInputStream(archivo);
+                    OutputStream out = resp.getOutputStream()) {
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) != -1) {
+                    out.write(buf, 0, n);
+                }
+            }
+            System.out.println("[FotoPerfilServlet] Archivo servido correctamente: " + nombreArchivo);
+
+        } catch (Exception e) {
+            System.err.println("[FotoPerfilServlet] ERROR: " + e.getMessage());
+            e.printStackTrace();
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error al servir imagen: " + e.getMessage());
         }
     }
 }

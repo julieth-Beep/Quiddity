@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
     <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+
 
         <!-- ═══════════════════════════════════════════════════════════
      SIDEBAR QUIDDITY — Minimalist Unisex Design (Salleist Style)
@@ -31,7 +31,7 @@
                             </a>
                         </li>
                         <li class="nav-item ${activePage == 'catalogo' ? 'active' : ''}">
-                            <a href="${pageContext.request.contextPath}/catalogo" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/comprador/catalogo.jsp" class="nav-link">
                                 <span class="material-symbols-outlined nav-icon">category</span>
                                 <span class="nav-text">Catálogo</span>
                             </a>
@@ -57,12 +57,6 @@
                                     <span class="material-symbols-outlined nav-icon">face</span>
                                     <span class="nav-text">Face Scan</span>
                                     <span class="nav-badge">AI</span>
-                                </a>
-                            </li>
-                            <li class="nav-item ${activePage == 'avatar' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/usuario/avatar" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">person</span>
-                                    <span class="nav-text">Mi Avatar</span>
                                 </a>
                             </li>
                             <li class="nav-item ${activePage == 'closet' ? 'active' : ''}">
@@ -106,12 +100,7 @@
         <span class="nav-text">Viajes</span>
     </a>
 </li>
-                            <li class="nav-item ${activePage == 'sugerencias' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/estadoAnimo" class="nav-link">
-                                    <span class="material-symbols-outlined nav-icon">mood</span>
-                                    <span class="nav-text">Estado de Ánimo</span>
-                                </a>
-                            </li>
+
                             <li class="nav-item ${activePage == 'caracteristicas' ? 'active' : ''}">
                                 <a href="${pageContext.request.contextPath}/caracteristicas" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">face</span>
@@ -217,7 +206,7 @@
                                     <span class="nav-text">Estadísticas</span>
                                 </a>
                             </li>
-                            <li class="nav-item ${activePage == 'estadisticas' ? 'active' : ''}">
+                            <li class="nav-item ${activePage == 'rutinas' ? 'active' : ''}">
                                 <a href="${pageContext.request.contextPath}/rutinas" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">self_improvement</span>
                                     <span class="nav-text">Rutinas</span>
@@ -231,44 +220,46 @@
             <!-- ══ USUARIO / FOOTER ══ -->
             <div class="sidebar-footer">
                 <!-- User Profile -->
-                <div class="user-profile">
-                    <div class="user-avatar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <c:choose>
+                <c:when test="${not empty sessionScope.usuario.fotoPerfil}">
+                    <img src="${pageContext.request.contextPath}/uploads/perfiles/${sessionScope.usuario.fotoPerfil}"
+                        alt="Avatar" 
+                        class="avatar-img"
+                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'avatar-initials\'>${fn:substring(sessionScope.usuario.nombre, 0, 1)}</span>';" />
+                </c:when>
+                <c:otherwise>
+                    <span class="avatar-initials">
                         <c:choose>
-                            <c:when test="${not empty sessionScope.usuario.fotoPerfil}">
-                                <img src="${pageContext.request.contextPath}${sessionScope.usuario.fotoPerfil}"
-                                    alt="Avatar" class="avatar-img" />
+                            <c:when test="${not empty sessionScope.usuario.nombre}">
+                                ${fn:substring(sessionScope.usuario.nombre, 0, 1)}
                             </c:when>
-                            <c:otherwise>
-                                <span class="avatar-initials">
-                                    <c:choose>
-                                        <c:when test="${not empty sessionScope.usuario.nombre}">
-                                            ${fn:substring(sessionScope.usuario.nombre, 0, 1)}
-                                        </c:when>
-                                        <c:otherwise>U</c:otherwise>
-                                    </c:choose>
-                                </span>
-                            </c:otherwise>
+                            <c:otherwise>U</c:otherwise>
                         </c:choose>
-                    </div>
-                    <div class="user-details">
-                        <p class="user-name">
-                            <c:choose>
-                                <c:when test="${not empty sessionScope.usuario}">
-                                    ${sessionScope.usuario.nombre}
-                                </c:when>
-                                <c:otherwise>Invitado</c:otherwise>
-                            </c:choose>
-                        </p>
-                        <p class="user-role">
-                            <c:choose>
-                                <c:when test="${sessionScope.usuario.idRol == 1}">Administrator</c:when>
-                                <c:when test="${sessionScope.usuario.idRol == 2}">Buyer</c:when>
-                                <c:when test="${sessionScope.usuario.idRol == 3}">Premium User</c:when>
-                                <c:otherwise>Guest</c:otherwise>
-                            </c:choose>
-                        </p>
-                    </div>
-                </div>
+                    </span>
+                </c:otherwise>
+            </c:choose>
+        </div>
+        <div class="user-details">
+            <p class="user-name">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.usuario}">
+                        ${sessionScope.usuario.nombre}
+                    </c:when>
+                    <c:otherwise>Invitado</c:otherwise>
+                </c:choose>
+            </p>
+            <p class="user-role">
+                <c:choose>
+                    <c:when test="${sessionScope.usuario.idRol == 1}">Administrator</c:when>
+                    <c:when test="${sessionScope.usuario.idRol == 2}">Buyer</c:when>
+                    <c:when test="${sessionScope.usuario.idRol == 3}">Premium User</c:when>
+                    <c:otherwise>Guest</c:otherwise>
+                </c:choose>
+            </p>
+        </div>
+    </div>
 
                 <!-- Footer Links -->
                 <div class="footer-links">

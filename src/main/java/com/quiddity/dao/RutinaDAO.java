@@ -43,7 +43,9 @@ public class RutinaDAO {
                     + "AND NULLIF(tono_piel, '') IS NULL AND NULLIF(forma_cara, '') IS NULL "
                     + "AND NULLIF(tipo_cuerpo, '') IS NULL "
                     + "ORDER BY categoria, nombre";
-            try (Connection con = ConexionDB.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            try (Connection con = ConexionDB.getConnection();
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     lista.add(mapear(rs));
                 }
@@ -53,8 +55,10 @@ public class RutinaDAO {
             return lista;
         }
 
-        // Con perfil: la rutina aplica si CADA campo definido en la rutina coincide con el usuario
-        // (campos NULL o '' en la rutina = universal para esa característica, siempre pasa)
+        // Con perfil: la rutina aplica si CADA campo definido en la rutina coincide con
+        // el usuario
+        // (campos NULL o '' en la rutina = universal para esa característica, siempre
+        // pasa)
         String sql = "SELECT * FROM rutina WHERE "
                 + "(NULLIF(tipo_piel, '')    IS NULL OR ? IS NULL OR tipo_piel    = ?) AND "
                 + "(NULLIF(tipo_cabello, '') IS NULL OR ? IS NULL OR tipo_cabello = ?) AND "
@@ -130,7 +134,9 @@ public class RutinaDAO {
         List<Rutina> lista = new ArrayList<>();
         String sql = "SELECT * FROM rutina ORDER BY categoria, nombre";
 
-        try (Connection con = ConexionDB.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 lista.add(mapear(rs));
@@ -172,22 +178,23 @@ public class RutinaDAO {
     }
 
     public boolean guardar(Rutina r) {
-        String sql = "INSERT INTO rutina (nombre, objetivo, url, favoritos, categoria, subcategoria, "
+        String sql = "INSERT INTO rutina (idusuario, nombre, objetivo, url, favoritos, categoria, subcategoria, "
                 + "tipo_piel, tipo_cabello, tono_piel, forma_cara, tipo_cuerpo) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, r.getNombre());
-            ps.setString(2, r.getObjetivo());
-            ps.setString(3, r.getUrl());
-            ps.setString(4, r.getFavoritos() != null ? r.getFavoritos() : "false");
-            ps.setString(5, r.getCategoria());
-            ps.setString(6, r.getSubcategoria());
-            ps.setString(7, emptyToNull(r.getTipoPiel()));
-            ps.setString(8, emptyToNull(r.getTipoCabello()));
-            ps.setString(9, emptyToNull(r.getTonoPiel()));
-            ps.setString(10, emptyToNull(r.getFormaCara()));
-            ps.setString(11, emptyToNull(r.getTipoCuerpo()));
+            ps.setInt(1, r.getIdUsuario());
+            ps.setString(2, r.getNombre());
+            ps.setString(3, r.getObjetivo());
+            ps.setString(4, r.getUrl());
+            ps.setString(5, r.getFavoritos() != null ? r.getFavoritos() : "false");
+            ps.setString(6, r.getCategoria());
+            ps.setString(7, r.getSubcategoria());
+            ps.setString(8, emptyToNull(r.getTipoPiel()));
+            ps.setString(9, emptyToNull(r.getTipoCabello()));
+            ps.setString(10, emptyToNull(r.getTonoPiel()));
+            ps.setString(11, emptyToNull(r.getFormaCara()));
+            ps.setString(12, emptyToNull(r.getTipoCuerpo()));
             return ps.executeUpdate() > 0;
 
         } catch (Exception e) {

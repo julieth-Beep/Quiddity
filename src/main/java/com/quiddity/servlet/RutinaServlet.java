@@ -115,7 +115,8 @@ public class RutinaServlet extends HttpServlet {
                 r.setTonoPiel   (tonoPiel    != null && !tonoPiel.isBlank()    ? tonoPiel    : null);
                 r.setFormaCara  (formaCara   != null && !formaCara.isBlank()   ? formaCara   : null);
                 r.setTipoCuerpo (tipoCuerpo  != null && !tipoCuerpo.isBlank()  ? tipoCuerpo  : null);
-
+                r.setIdUsuario(usuario.getId());
+                
                 if (r.getId() > 0) {
                     rutinaDAO.actualizar(r);
                     resp.sendRedirect(req.getContextPath() + "/rutinas?success=Rutina+actualizada+correctamente");

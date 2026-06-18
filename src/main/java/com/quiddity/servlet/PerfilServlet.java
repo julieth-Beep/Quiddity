@@ -30,7 +30,7 @@ public class PerfilServlet extends HttpServlet {
     // Directorio base de uploads de fotos de perfil.
     // En Render: configura la variable de entorno UPLOAD_DIR apuntando
     // a tu Persistent Disk, p. ej. /var/data/uploads
-    // En local: si no está definida, usa webapp/uploads/perfiles
+    // En local: si no esta definida, usa webapp/uploads/perfiles
     private String getUploadDir() {
         String env = System.getenv("UPLOAD_DIR");
         if (env != null && !env.isBlank()) {
@@ -40,9 +40,9 @@ public class PerfilServlet extends HttpServlet {
         return getServletContext().getRealPath("/uploads/perfiles");
     }
 
-    // ─────────────────────────────────────────────
-    // GET — mostrar perfil del usuario en sesión
-    // ─────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // GET — mostrar perfil del usuario en sesion
+    // -------------------------------------------------------------------------
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -61,12 +61,21 @@ public class PerfilServlet extends HttpServlet {
             session.setAttribute("usuario", u);
         }
 
-        req.getRequestDispatcher("/WEB-INF/usuario/perfil.jsp").forward(req, resp);
+        // === FIX: Redirigir segun el rol a la JSP correspondiente ===
+        String destino;
+        if (sesionUsuario.getIdRol() == UsuarioDAO.ROL_ADMIN) {
+            destino = "/WEB-INF/admin/perfil.jsp";
+        } else if (sesionUsuario.getIdRol() == UsuarioDAO.ROL_COMPRADOR) {
+            destino = "/comprador/perfil.jsp";
+        } else {
+            destino = "/WEB-INF/usuario/perfil.jsp";
+        }
+        req.getRequestDispatcher(destino).forward(req, resp);
     }
 
-    // ─────────────────────────────────────────────
-    // POST — despachar por acción
-    // ─────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // POST — despachar por accion
+    // -------------------------------------------------------------------------
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -103,9 +112,9 @@ public class PerfilServlet extends HttpServlet {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // ACCIÓN: actualizar datos personales
-    // ─────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // ACCION: actualizar datos personales
+    // -------------------------------------------------------------------------
     private void actualizarInfo(HttpServletRequest req, HttpServletResponse resp, Usuario sesion)
             throws IOException {
 
@@ -139,17 +148,14 @@ public class PerfilServlet extends HttpServlet {
             req.getSession().setAttribute("usuario", u);
             req.getSession().setAttribute("mensajeExito", "Datos actualizados correctamente.");
         } else {
-            req.getSession().setAttribute("mensajeError", "No se pudo actualizar. Inténtalo de nuevo.");
+            req.getSession().setAttribute("mensajeError", "No se pudo actualizar. Intentalo de nuevo.");
         }
-        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
-                ? "/perfil"
-                : "/comprador/perfil.jsp";
-        resp.sendRedirect(req.getContextPath() + destino);
+        resp.sendRedirect(req.getContextPath() + "/perfil");
     }
 
-    // ─────────────────────────────────────────────
-    // ACCIÓN: cambiar contraseña
-    // ─────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // ACCION: cambiar contrasena
+    // -------------------------------------------------------------------------
     private void cambiarPassword(HttpServletRequest req, HttpServletResponse resp, Usuario sesion)
             throws IOException, ServletException {
 
@@ -157,24 +163,24 @@ public class PerfilServlet extends HttpServlet {
         String nueva = req.getParameter("passwordNueva");
         String confirmar = req.getParameter("passwordConfirmar");
 
-        // Verificar contraseña actual
+        // Verificar contrasena actual
         Usuario verificado = usuarioDAO.login(sesion.getEmail(), actual);
         if (verificado == null) {
-            req.getSession().setAttribute("mensajeError", "La contraseña actual es incorrecta.");
+            req.getSession().setAttribute("mensajeError", "La contrasena actual es incorrecta.");
             req.getSession().setAttribute("tabActiva", "seguridad");
             resp.sendRedirect(req.getContextPath() + "/perfil");
             return;
         }
 
         if (!nueva.equals(confirmar)) {
-            req.getSession().setAttribute("mensajeError", "Las contraseñas nuevas no coinciden.");
+            req.getSession().setAttribute("mensajeError", "Las contrasenas nuevas no coinciden.");
             req.getSession().setAttribute("tabActiva", "seguridad");
             resp.sendRedirect(req.getContextPath() + "/perfil");
             return;
         }
 
         if (nueva.length() < 8) {
-            req.getSession().setAttribute("mensajeError", "La contraseña debe tener al menos 8 caracteres.");
+            req.getSession().setAttribute("mensajeError", "La contrasena debe tener al menos 8 caracteres.");
             req.getSession().setAttribute("tabActiva", "seguridad");
             resp.sendRedirect(req.getContextPath() + "/perfil");
             return;
@@ -182,20 +188,17 @@ public class PerfilServlet extends HttpServlet {
 
         boolean ok = usuarioDAO.cambiarContrasena(sesion.getId(), nueva);
         if (ok) {
-            req.getSession().setAttribute("mensajeExito", "Contraseña actualizada correctamente.");
+            req.getSession().setAttribute("mensajeExito", "Contrasena actualizada correctamente.");
         } else {
-            req.getSession().setAttribute("mensajeError", "No se pudo cambiar la contraseña.");
+            req.getSession().setAttribute("mensajeError", "No se pudo cambiar la contrasena.");
         }
         req.getSession().setAttribute("tabActiva", "seguridad");
-        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
-                ? "/perfil"
-                : "/comprador/perfil.jsp";
-        resp.sendRedirect(req.getContextPath() + destino);
+        resp.sendRedirect(req.getContextPath() + "/perfil");
     }
 
-    // ─────────────────────────────────────────────
-    // ACCIÓN: subir foto de perfil (multipart)
-    // ─────────────────────────────────────────────
+    // -------------------------------------------------------------------------
+    // ACCION: subir foto de perfil (multipart)
+    // -------------------------------------------------------------------------
     private void subirFoto(HttpServletRequest req, HttpServletResponse resp, Usuario sesion)
             throws IOException {
 
@@ -211,7 +214,7 @@ public class PerfilServlet extends HttpServlet {
             factory.setRepository(File.createTempFile("tmp", null).getParentFile());
 
             ServletFileUpload upload = new ServletFileUpload(factory);
-            upload.setFileSizeMax(5 * 1024 * 1024L); // 5 MB máx por archivo
+            upload.setFileSizeMax(5 * 1024 * 1024L); // 5 MB max por archivo
             upload.setSizeMax(6 * 1024 * 1024L); // 6 MB total
 
             List<FileItem> items = upload.parseRequest(req);
@@ -227,7 +230,7 @@ public class PerfilServlet extends HttpServlet {
             }
 
             if (fotoItem == null) {
-                req.getSession().setAttribute("mensajeError", "No se seleccionó ninguna imagen.");
+                req.getSession().setAttribute("mensajeError", "No se selecciono ninguna imagen.");
                 resp.sendRedirect(req.getContextPath() + "/perfil");
                 return;
             }
@@ -240,7 +243,7 @@ public class PerfilServlet extends HttpServlet {
                 return;
             }
 
-            // Generar nombre único
+            // Generar nombre unico
             String originalName = fotoItem.getName();
             String extension = "";
             int dotIdx = originalName.lastIndexOf('.');
@@ -264,7 +267,7 @@ public class PerfilServlet extends HttpServlet {
             File destino = new File(uploadDir, nombreArchivo);
             fotoItem.write(destino);
 
-            // Actualizar BD con la ruta relativa
+            // Actualizar BD con el nombre del archivo (solo nombre, sin ruta)
             boolean ok = usuarioDAO.actualizarFoto(sesion.getId(), nombreArchivo);
             if (ok) {
                 sesion.setFotoPerfil(nombreArchivo);
@@ -278,13 +281,8 @@ public class PerfilServlet extends HttpServlet {
             System.err.println("[PerfilServlet] Error al subir foto: " + e.getMessage());
             req.getSession().setAttribute("mensajeError", "Error al procesar la imagen: " + e.getMessage());
         }
-        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
-                ? "/perfil"
-                : "/comprador/perfil.jsp";
-        resp.sendRedirect(req.getContextPath() + destino);
-
+        resp.sendRedirect(req.getContextPath() + "/perfil");
     }
-    // Nuevo método:
 
     private void cambiarRol(HttpServletRequest req, HttpServletResponse resp, Usuario sesion)
             throws IOException {
@@ -308,9 +306,6 @@ public class PerfilServlet extends HttpServlet {
         } else {
             req.getSession().setAttribute("mensajeError", "No se pudo cambiar el rol.");
         }
-        String destino = (sesion.getIdRol() == UsuarioDAO.ROL_ADMIN)
-                ? "/perfil"
-                : "/comprador/perfil.jsp";
-        resp.sendRedirect(req.getContextPath() + destino);
+        resp.sendRedirect(req.getContextPath() + "/perfil");
     }
 }

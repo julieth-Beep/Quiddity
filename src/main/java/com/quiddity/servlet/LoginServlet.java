@@ -12,7 +12,7 @@ import javax.servlet.http.HttpSession;
 import com.quiddity.dao.UsuarioDAO;
 import com.quiddity.model.Usuario;
 
-@WebServlet(urlPatterns = { "/login", "/logout" })
+@WebServlet(urlPatterns = {"/login", "/logout"})
 public class LoginServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -27,7 +27,7 @@ public class LoginServlet extends HttpServlet {
         // Logout: invalidar sesión y redirigir al login
         if (uri.endsWith("/logout")) {
             HttpSession session = req.getSession(false);
-            if (session != null){
+            if (session != null) {
                 session.invalidate();
             }
             resp.sendRedirect(req.getContextPath() + "/login");
@@ -86,15 +86,15 @@ public class LoginServlet extends HttpServlet {
 
     private String destino(HttpServletRequest req, Usuario u) {
         String base = req.getContextPath();
-        return switch (u.getIdRol()) {
-            case UsuarioDAO.ROL_ADMIN -> 
-                base + "/admin/dashboard";
-            case UsuarioDAO.ROL_COMPRADOR -> 
-                base + "/catalogo";
-            case UsuarioDAO.ROL_USUARIO -> 
-                base + "/usuario/dashboard";
-            default -> 
-                base + "/login";
-        };
+        int rol = u.getIdRol();
+        if (rol == UsuarioDAO.ROL_ADMIN) {
+            return base + "/admin/dashboard";
+        } else if (rol == UsuarioDAO.ROL_COMPRADOR) {
+            return base + "/catalogo";
+        } else if (rol == UsuarioDAO.ROL_USUARIO) {
+            return base + "/usuario/dashboard";
+        } else {
+            return base + "/login";
+        }
     }
 }
