@@ -31,7 +31,7 @@
                             </a>
                         </li>
                         <li class="nav-item ${activePage == 'catalogo' ? 'active' : ''}">
-                            <a href="${pageContext.request.contextPath}/comprador/catalogo.jsp" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/catalogo" class="nav-link">
                                 <span class="material-symbols-outlined nav-icon">category</span>
                                 <span class="nav-text">Catálogo</span>
                             </a>

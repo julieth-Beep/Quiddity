@@ -64,7 +64,7 @@ public class AuthFilter implements Filter {
 
         // Solo Comprador
         if (path.startsWith("/comprador") || path.startsWith("/carrito")) {
-            if (rol != UsuarioDAO.ROL_COMPRADOR && rol != UsuarioDAO.ROL_ADMIN) {
+            if (rol != UsuarioDAO.ROL_COMPRADOR && rol != UsuarioDAO.ROL_ADMIN && rol != UsuarioDAO.ROL_USUARIO) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Acceso denegado");
                 return;
             }

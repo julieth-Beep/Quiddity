@@ -229,7 +229,7 @@ public class CarritoServlet extends HttpServlet {
         }
 
         Usuario u = (Usuario) session.getAttribute("usuario");
-        if (u.getIdRol() != ROL_USUARIO && u.getIdRol() != ROL_COMPRADOR) {
+        if (u.getIdRol() != ROL_ADMIN && u.getIdRol() != ROL_USUARIO && u.getIdRol() != ROL_COMPRADOR) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return null;
         }
