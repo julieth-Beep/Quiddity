@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
     <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
         <!-- ═══════════════════════════════════════════════════════════
      SIDEBAR QUIDDITY — Minimalist Unisex Design (Salleist Style)
@@ -31,7 +31,7 @@
                             </a>
                         </li>
                         <li class="nav-item ${activePage == 'catalogo' ? 'active' : ''}">
-                            <a href="${pageContext.request.contextPath}/comprador/catalogo.jsp" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/catalogo" class="nav-link">
                                 <span class="material-symbols-outlined nav-icon">category</span>
                                 <span class="nav-text">Catálogo</span>
                             </a>
@@ -66,11 +66,46 @@
                                 </a>
                             </li>
                             <li class="nav-item ${activePage == 'closet' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/usuario/closet" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/closet" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">checkroom</span>
                                     <span class="nav-text">Mi Clóset</span>
                                 </a>
                             </li>
+                            <li class="nav-item ${seccionActiva == 'outfit' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/outfit" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">style</span>
+        <span class="nav-text">Armar Outfit</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'historial' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/look" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">photo_library</span>
+        <span class="nav-text">Mis Looks</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'chat' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/chat" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">smart_toy</span>
+        <span class="nav-text">Chat IA</span>
+        <span class="nav-badge">AI</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'calendario' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/calendario" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">calendar_month</span>
+        <span class="nav-text">Calendario</span>
+    </a>
+</li>
+
+<li class="nav-item ${seccionActiva == 'viajes' ? 'active' : ''}">
+    <a href="${pageContext.request.contextPath}/viajes" class="nav-link">
+        <span class="material-symbols-outlined nav-icon">flight</span>
+        <span class="nav-text">Viajes</span>
+    </a>
+</li>
                             <li class="nav-item ${activePage == 'sugerencias' ? 'active' : ''}">
                                 <a href="${pageContext.request.contextPath}/estadoAnimo" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">mood</span>
@@ -84,7 +119,7 @@
                                 </a>
                             </li>
                             <li class="nav-item ${activePage == 'rutinas' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/usuario/rutinas" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/rutinas" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">self_improvement</span>
                                     <span class="nav-text">Rutinas</span>
                                 </a>
@@ -182,55 +217,58 @@
                                     <span class="nav-text">Estadísticas</span>
                                 </a>
                             </li>
+                            <li class="nav-item ${activePage == 'estadisticas' ? 'active' : ''}">
+                                <a href="${pageContext.request.contextPath}/rutinas" class="nav-link">
+                                    <span class="material-symbols-outlined nav-icon">self_improvement</span>
+                                    <span class="nav-text">Rutinas</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </c:if>
             </nav>
 
             <!-- ══ USUARIO / FOOTER ══ -->
-<div class="sidebar-footer">
-    <!-- User Profile -->
-    <div class="user-profile">
-        <div class="user-avatar">
-            <c:choose>
-                <c:when test="${not empty sessionScope.usuario.fotoPerfil}">
-                    <img src="${pageContext.request.contextPath}/uploads/perfiles/${sessionScope.usuario.fotoPerfil}"
-                        alt="Avatar" 
-                        class="avatar-img"
-                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'avatar-initials\'>${fn:substring(sessionScope.usuario.nombre, 0, 1)}</span>';" />
-                </c:when>
-                <c:otherwise>
-                    <span class="avatar-initials">
+            <div class="sidebar-footer">
+                <!-- User Profile -->
+                <div class="user-profile">
+                    <div class="user-avatar">
                         <c:choose>
-                            <c:when test="${not empty sessionScope.usuario.nombre}">
-                                ${fn:substring(sessionScope.usuario.nombre, 0, 1)}
+                            <c:when test="${not empty sessionScope.usuario.fotoPerfil}">
+                                <img src="${pageContext.request.contextPath}${sessionScope.usuario.fotoPerfil}"
+                                    alt="Avatar" class="avatar-img" />
                             </c:when>
-                            <c:otherwise>U</c:otherwise>
+                            <c:otherwise>
+                                <span class="avatar-initials">
+                                    <c:choose>
+                                        <c:when test="${not empty sessionScope.usuario.nombre}">
+                                            ${fn:substring(sessionScope.usuario.nombre, 0, 1)}
+                                        </c:when>
+                                        <c:otherwise>U</c:otherwise>
+                                    </c:choose>
+                                </span>
+                            </c:otherwise>
                         </c:choose>
-                    </span>
-                </c:otherwise>
-            </c:choose>
-        </div>
-        <div class="user-details">
-            <p class="user-name">
-                <c:choose>
-                    <c:when test="${not empty sessionScope.usuario}">
-                        ${sessionScope.usuario.nombre}
-                    </c:when>
-                    <c:otherwise>Invitado</c:otherwise>
-                </c:choose>
-            </p>
-            <p class="user-role">
-                <c:choose>
-                    <c:when test="${sessionScope.usuario.idRol == 1}">Administrator</c:when>
-                    <c:when test="${sessionScope.usuario.idRol == 2}">Buyer</c:when>
-                    <c:when test="${sessionScope.usuario.idRol == 3}">Premium User</c:when>
-                    <c:otherwise>Guest</c:otherwise>
-                </c:choose>
-            </p>
-        </div>
-    </div>
-    <!-- Resto del footer... -->
+                    </div>
+                    <div class="user-details">
+                        <p class="user-name">
+                            <c:choose>
+                                <c:when test="${not empty sessionScope.usuario}">
+                                    ${sessionScope.usuario.nombre}
+                                </c:when>
+                                <c:otherwise>Invitado</c:otherwise>
+                            </c:choose>
+                        </p>
+                        <p class="user-role">
+                            <c:choose>
+                                <c:when test="${sessionScope.usuario.idRol == 1}">Administrator</c:when>
+                                <c:when test="${sessionScope.usuario.idRol == 2}">Buyer</c:when>
+                                <c:when test="${sessionScope.usuario.idRol == 3}">Premium User</c:when>
+                                <c:otherwise>Guest</c:otherwise>
+                            </c:choose>
+                        </p>
+                    </div>
+                </div>
 
                 <!-- Footer Links -->
                 <div class="footer-links">
@@ -244,20 +282,7 @@
                     </a>
                 </div>
 
-                <!-- Upgrade Card (Solo para usuarios no-admin) -->
-                <c:if test="${sessionScope.usuario.idRol != 1}">
-                    <div class="upgrade-card">
-                        <div class="upgrade-icon">
-                            <span class="material-symbols-outlined">auto_awesome</span>
-                        </div>
-                        <div class="upgrade-content">
-                            <h4 class="upgrade-title">Upgrade to Pro</h4>
-                            <p class="upgrade-desc">Unlock all premium features</p>
-                        </div>
-                        <button class="upgrade-btn">Upgrade Now</button>
-                    </div>
-                </c:if>
-            </div>
+                            </div>
         </aside>
 
         <!-- Overlay para móvil -->
