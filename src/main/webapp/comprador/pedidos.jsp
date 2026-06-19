@@ -137,7 +137,7 @@
                 class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50 rounded-md">
                 <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
                 <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant font-semibold">Mis Pedidos</a>
-                <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Compras</a>
+                <a href="<%= ctx %>/carrito" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Carrito</a>
                 <div class="border-t my-1"></div>
                 <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
             </div>
