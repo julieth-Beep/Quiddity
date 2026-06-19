@@ -108,29 +108,22 @@
                class="hover:text-primary transition-colors" href="#">Nuestra historia</a>
         </nav>
     </div>
-    <div class="flex items-center gap-6">
-        <a href="<%= ctx %>/catalogo" class="text-on-surface hover:text-primary transition-colors">
-            <span class="material-symbols-outlined">arrow_back</span>
-        </a>
-        <a href="<%= ctx %>/carrito" class="text-primary relative">
-            <span class="material-symbols-outlined">shopping_bag</span>
-            <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center"><%= items.size() %></span>
-        </a>
-        <a href="<%= ctx %>/pedidos" class="text-on-surface hover:text-primary transition-colors relative" title="Mis Pedidos">
-            <span class="material-symbols-outlined">receipt_long</span>
-        </a>
-        <div class="relative group">
-            <button class="flex items-center gap-2 hover:text-primary"
-                    style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">
-                <%= user.getNombre() %>
-                <span class="material-symbols-outlined text-sm">expand_more</span>
-            </button>
-            <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
-                <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
-                <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
-            </div>
-        </div>
+<div class="relative" id="user-menu-container">
+    <button id="user-menu-btn"
+        class="flex items-center gap-2 hover:text-primary transition-colors"
+        style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">
+        <%= user.getNombre() %>
+        <span id="user-menu-icon" class="material-symbols-outlined text-sm transition-transform duration-200">expand_more</span>
+    </button>
+    <div id="user-menu-dropdown"
+        class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50 rounded-md">
+        <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+        <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
+        <a href="<%= ctx %>/carrito" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Carrito</a>
+        <div class="border-t my-1"></div>
+        <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
     </div>
+</div>
 </header>
 
 <main class="pt-36 pb-24 px-container-margin">
@@ -339,6 +332,48 @@
         © 2026 QUIDDITY SKINCARE. ALL RIGHTS RESERVED.
     </p>
 </footer>
+
+<script>
+    // ── Menú de usuario con click (no hover) ──
+    document.addEventListener('DOMContentLoaded', function() {
+        var container = document.getElementById('user-menu-container');
+        if (!container) return;
+
+        var btn = document.getElementById('user-menu-btn');
+        var dropdown = document.getElementById('user-menu-dropdown');
+        var icon = document.getElementById('user-menu-icon');
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            var isOpen = dropdown.classList.contains('hidden');
+            if (isOpen) {
+                dropdown.classList.remove('hidden');
+                icon.textContent = 'expand_less';
+            } else {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        }
+
+        btn.addEventListener('click', toggleMenu);
+
+        // Cerrar al hacer clic fuera del menú
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        // Cerrar con tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+    });
+</script>
 
 </body>
 </html>

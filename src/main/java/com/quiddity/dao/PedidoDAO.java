@@ -1,16 +1,21 @@
 package com.quiddity.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.quiddity.model.Catalogo;
 import com.quiddity.model.Direccion;
 import com.quiddity.model.Pedido;
 import com.quiddity.model.PedidoItem;
 import com.quiddity.util.ConexionDB;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 public class PedidoDAO {
 
@@ -64,14 +69,10 @@ public class PedidoDAO {
     // Todo o nada: si falla algo se hace rollback.
 
     public int crearPedido(Pedido pedido) {
-        String sqlPedido = """
-                INSERT INTO pedido (usuarioid, direccionid, estado, total, notas)
-                VALUES (?, ?, ?, ?, ?)
-                """;
-        String sqlItem = """
-                INSERT INTO pedido_item (pedido_id, catalogo_id, cantidad, precio_unitario, subtotal)
-                VALUES (?, ?, ?, ?, ?)
-                """;
+        String sqlPedido = "INSERT INTO pedido (usuarioid, direccionid, estado, total, notas) " +
+                "VALUES (?, ?, ?, ?, ?)";
+        String sqlItem = "INSERT INTO pedido_item (pedido_id, catalogo_id, cantidad, precio_unitario, subtotal) " +
+                "VALUES (?, ?, ?, ?, ?)";
         String sqlStock = "UPDATE catalogo SET stock = stock - ? WHERE id = ? AND stock >= ?";
 
         Connection con = null;
@@ -147,18 +148,16 @@ public class PedidoDAO {
 
     public List<Pedido> getHistorialPorUsuario(int usuarioId) {
         List<Pedido> lista = new ArrayList<>();
-        String sql = """
-                SELECT p.*, d.departamento, d.ciudad, d.barrio,
-                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural,
-                       COALESCE(SUM(pi.cantidad), 0) AS cantidad_items
-                FROM pedido p
-                JOIN direccion d ON p.direccionid = d.id
-                LEFT JOIN pedido_item pi ON pi.pedido_id = p.id
-                WHERE p.usuarioid = ?
-                GROUP BY p.id, d.departamento, d.ciudad, d.barrio,
-                         d.direccion, d.es_rural, d.descripcion_rural
-                ORDER BY p.creado_en DESC
-                """;
+        String sql = "SELECT p.*, d.departamento, d.ciudad, d.barrio, " +
+                "d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural, " +
+                "COALESCE(SUM(pi.cantidad), 0) AS cantidad_items " +
+                "FROM pedido p " +
+                "JOIN direccion d ON p.direccionid = d.id " +
+                "LEFT JOIN pedido_item pi ON pi.pedido_id = p.id " +
+                "WHERE p.usuarioid = ? " +
+                "GROUP BY p.id, d.departamento, d.ciudad, d.barrio, " +
+                "d.direccion, d.es_rural, d.descripcion_rural " +
+                "ORDER BY p.creado_en DESC";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -190,22 +189,18 @@ public class PedidoDAO {
     // ─── SELECT — detalle de un pedido con sus ítems ───────────────────────────
 
     public Pedido getDetallePedido(int pedidoId, int usuarioId) {
-        String sqlPedido = """
-                SELECT p.*, d.departamento, d.ciudad, d.barrio,
-                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
-                FROM pedido p
-                JOIN direccion d ON p.direccionid = d.id
-                WHERE p.id = ? AND p.usuarioid = ?
-                """;
-        String sqlItems = """
-                SELECT pi.id AS item_id, pi.pedido_id AS pedidoid, pi.catalogo_id AS catalogoid,
-                       pi.cantidad, pi.precio_unitario, pi.subtotal,
-                       c.nombre AS prod_nombre, c.imagen AS prod_imagen,
-                       c.categoria AS prod_categoria, c.marca AS prod_marca
-                FROM pedido_item pi
-                JOIN catalogo c ON pi.catalogo_id = c.id
-                WHERE pi.pedido_id = ?
-                """;
+        String sqlPedido = "SELECT p.*, d.departamento, d.ciudad, d.barrio, " +
+                "d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural " +
+                "FROM pedido p " +
+                "JOIN direccion d ON p.direccionid = d.id " +
+                "WHERE p.id = ? AND p.usuarioid = ?";
+        String sqlItems = "SELECT pi.id AS item_id, pi.pedido_id AS pedidoid, pi.catalogo_id AS catalogoid, " +
+                "pi.cantidad, pi.precio_unitario, pi.subtotal, " +
+                "c.nombre AS prod_nombre, c.imagen AS prod_imagen, " +
+                "c.categoria AS prod_categoria, c.marca AS prod_marca " +
+                "FROM pedido_item pi " +
+                "JOIN catalogo c ON pi.catalogo_id = c.id " +
+                "WHERE pi.pedido_id = ?";
         try (Connection con = ConexionDB.getConnection()) {
 
             Pedido pedido = null;
@@ -381,16 +376,15 @@ public class PedidoDAO {
     public List<Pedido> buscarConFiltros(String estado, java.time.LocalDate fechaInicio,
             java.time.LocalDate fechaFin, Integer usuarioId) {
         List<Pedido> lista = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("""
-                SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido,
-                       u.email AS usu_email,
-                       d.departamento, d.ciudad, d.barrio,
-                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
-                FROM pedido p
-                JOIN usuario u ON p.usuarioid = u.id
-                JOIN direccion d ON p.direccionid = d.id
-                WHERE 1=1
-                """);
+        StringBuilder sql = new StringBuilder(
+                "SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido, " +
+                "u.email AS usu_email, " +
+                "d.departamento, d.ciudad, d.barrio, " +
+                "d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural " +
+                "FROM pedido p " +
+                "JOIN usuario u ON p.usuarioid = u.id " +
+                "JOIN direccion d ON p.direccionid = d.id " +
+                "WHERE 1=1 ");
 
         if (estado != null && !estado.isBlank())
             sql.append(" AND p.estado = ?");
@@ -448,25 +442,21 @@ public class PedidoDAO {
     // ─────────────────────────
 
     public Pedido getDetallePedidoAdmin(int pedidoId) {
-        String sqlPedido = """
-                SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido,
-                       u.email AS usu_email, u.documento AS usu_documento,
-                       d.departamento, d.ciudad, d.barrio,
-                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
-                FROM pedido p
-                JOIN usuario u ON p.usuarioid = u.id
-                JOIN direccion d ON p.direccionid = d.id
-                WHERE p.id = ?
-                """;
-        String sqlItems = """
-                SELECT pi.id AS item_id, pi.pedido_id AS pedidoid, pi.catalogo_id AS catalogoid,
-                       pi.cantidad, pi.precio_unitario, pi.subtotal,
-                       c.nombre AS prod_nombre, c.imagen AS prod_imagen,
-                       c.categoria AS prod_categoria, c.marca AS prod_marca
-                FROM pedido_item pi
-                JOIN catalogo c ON pi.catalogo_id = c.id
-                WHERE pi.pedido_id = ?
-                """;
+        String sqlPedido = "SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido, " +
+                "u.email AS usu_email, u.documento AS usu_documento, " +
+                "d.departamento, d.ciudad, d.barrio, " +
+                "d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural " +
+                "FROM pedido p " +
+                "JOIN usuario u ON p.usuarioid = u.id " +
+                "JOIN direccion d ON p.direccionid = d.id " +
+                "WHERE p.id = ?";
+        String sqlItems = "SELECT pi.id AS item_id, pi.pedido_id AS pedidoid, pi.catalogo_id AS catalogoid, " +
+                "pi.cantidad, pi.precio_unitario, pi.subtotal, " +
+                "c.nombre AS prod_nombre, c.imagen AS prod_imagen, " +
+                "c.categoria AS prod_categoria, c.marca AS prod_marca " +
+                "FROM pedido_item pi " +
+                "JOIN catalogo c ON pi.catalogo_id = c.id " +
+                "WHERE pi.pedido_id = ?";
 
         try (Connection con = ConexionDB.getConnection()) {
 
@@ -528,11 +518,17 @@ public class PedidoDAO {
                     return false;
 
                 Pedido.Estado estadoActual = Pedido.Estado.valueOf(rs.getString("estado"));
-                Pedido.Estado siguienteEstado = switch (estadoActual) {
-                    case PENDIENTE -> Pedido.Estado.EN_PROCESO;
-                    case EN_PROCESO -> Pedido.Estado.ENTREGADO;
-                    default -> null; // ENTREGADO, CANCELADO, DEVUELTO no avanzan
-                };
+                Pedido.Estado siguienteEstado = null;
+                switch (estadoActual) {
+                    case PENDIENTE:
+                        siguienteEstado = Pedido.Estado.EN_PROCESO;
+                        break;
+                    case EN_PROCESO:
+                        siguienteEstado = Pedido.Estado.ENTREGADO;
+                        break;
+                    default:
+                        siguienteEstado = null; // ENTREGADO, CANCELADO, DEVUELTO no avanzan
+                }
 
                 if (siguienteEstado == null)
                     return false;
@@ -568,18 +564,16 @@ public class PedidoDAO {
 
     public List<Pedido> buscarPorNombreUsuario(String termino) {
         List<Pedido> lista = new ArrayList<>();
-        String sql = """
-                SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido,
-                       u.email AS usu_email,
-                       d.departamento, d.ciudad, d.barrio,
-                       d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural
-                FROM pedido p
-                JOIN usuario u ON p.usuarioid = u.id
-                JOIN direccion d ON p.direccionid = d.id
-                WHERE LOWER(u.nombre || ' ' || u.apellido) LIKE LOWER(?)
-                   OR LOWER(u.email) LIKE LOWER(?)
-                ORDER BY p.creado_en DESC
-                """;
+        String sql = "SELECT p.*, u.nombre AS usu_nombre, u.apellido AS usu_apellido, " +
+                "u.email AS usu_email, " +
+                "d.departamento, d.ciudad, d.barrio, " +
+                "d.direccion AS dir_direccion, d.es_rural, d.descripcion_rural " +
+                "FROM pedido p " +
+                "JOIN usuario u ON p.usuarioid = u.id " +
+                "JOIN direccion d ON p.direccionid = d.id " +
+                "WHERE LOWER(CONCAT(u.nombre, ' ', u.apellido)) LIKE LOWER(?) " +
+                "   OR LOWER(u.email) LIKE LOWER(?) " +
+                "ORDER BY p.creado_en DESC";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 

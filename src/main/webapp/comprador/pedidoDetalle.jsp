@@ -151,13 +151,16 @@
         <a href="<%= ctx %>/pedidos" class="text-primary transition-colors relative" title="Mis Pedidos">
             <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400;">receipt_long</span>
         </a>
-        <div class="relative group">
-            <button class="flex items-center gap-2 hover:text-primary"
-                    style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">
+        <!-- MENÚ DE USUARIO CON CLICK -->
+        <div class="relative" id="user-menu-container">
+            <button id="user-menu-btn"
+                class="flex items-center gap-2 hover:text-primary transition-colors"
+                style="font-family:'Manrope',sans-serif; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;">
                 <%= user.getNombre() %>
-                <span class="material-symbols-outlined text-sm">expand_more</span>
+                <span id="user-menu-icon" class="material-symbols-outlined text-sm transition-transform duration-200">expand_more</span>
             </button>
-            <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
+            <div id="user-menu-dropdown"
+                class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50 rounded-md">
                 <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
                 <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant font-semibold">Mis Pedidos</a>
                 <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Compras</a>
@@ -246,10 +249,32 @@
                     int cantidad = item.getCantidad();
                     double precioUnit = item.getPrecioUnitario();
                     double subtotal = cantidad * precioUnit;
+
+                    // Build image source from producto
+                    String imgRaw = (item.getProducto() != null && item.getProducto().getImagen() != null) ? item.getProducto().getImagen() : "";
+                    String imgSrc = "";
+                    if (!imgRaw.trim().isEmpty()) {
+                        imgRaw = imgRaw.trim();
+                        if (imgRaw.startsWith("http")) {
+                            imgSrc = imgRaw;
+                        } else {
+                            String limpio = imgRaw.replaceFirst("^uploads/catalogo/", "");
+                            imgSrc = ctx + "/uploads/catalogo/" + limpio;
+                        }
+                    }
                 %>
                 <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    <!-- Producto -->
-                    <div class="col-span-6">
+                    <!-- Imagen + Producto -->
+                    <div class="col-span-6 flex items-center gap-4">
+                        <div class="w-16 h-16 flex-shrink-0 bg-surface-variant overflow-hidden border border-outline/10">
+                            <% if (!imgSrc.isEmpty()) { %>
+                                <img src="<%= imgSrc %>" alt="<%= nombreProd %>" class="w-full h-full object-cover" />
+                            <% } else { %>
+                                <div class="w-full h-full flex items-center justify-center text-outline/40">
+                                    <span class="material-symbols-outlined" style="font-size:20px;">image</span>
+                                </div>
+                            <% } %>
+                        </div>
                         <p style="font-family:'EB Garamond',serif; font-size:16px;"><%= nombreProd %></p>
                     </div>
                     <!-- Cantidad -->
@@ -300,6 +325,48 @@
         © 2026 QUIDDITY SKINCARE. ALL RIGHTS RESERVED.
     </p>
 </footer>
+
+<!-- ── Script para menú con click ── -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var container = document.getElementById('user-menu-container');
+        if (!container) return;
+
+        var btn = document.getElementById('user-menu-btn');
+        var dropdown = document.getElementById('user-menu-dropdown');
+        var icon = document.getElementById('user-menu-icon');
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            var isOpen = dropdown.classList.contains('hidden');
+            if (isOpen) {
+                dropdown.classList.remove('hidden');
+                icon.textContent = 'expand_less';
+            } else {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        }
+
+        btn.addEventListener('click', toggleMenu);
+
+        // Cerrar al hacer clic fuera del menú
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        // Cerrar con tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
