@@ -19,10 +19,8 @@ public class CatalogoDAO {
     // ═══════════════════════════════════════════════════════════════════════
 
     public boolean crear(Catalogo catalogo) {
-        String sql = """
-                INSERT INTO catalogo (nombre, descripcion, componentes, precio, stock, imagen, categoria, marca)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
+        String sql = "INSERT INTO catalogo (nombre, descripcion, componentes, precio, stock, imagen, categoria, marca) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
@@ -161,11 +159,9 @@ public class CatalogoDAO {
     }
 
     public boolean actualizar(Catalogo catalogo) {
-        String sql = """
-                UPDATE catalogo SET nombre = ?, descripcion = ?, componentes = ?,
-                precio = ?, stock = ?, imagen = ?, categoria = ?, marca = ?
-                WHERE id = ?
-                """;
+        String sql = "UPDATE catalogo SET nombre = ?, descripcion = ?, componentes = ?, " +
+                "precio = ?, stock = ?, imagen = ?, categoria = ?, marca = ? " +
+                "WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -379,14 +375,12 @@ public class CatalogoDAO {
 
     public List<Map<String, Object>> getCategoriaConConteo() {
         List<Map<String, Object>> resultado = new ArrayList<>();
-        String sql = """
-                SELECT categoria, COUNT(*) AS total,
-                       SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS activos,
-                       SUM(CASE WHEN stock = 0 THEN 1 ELSE 0 END) AS sin_stock
-                FROM catalogo
-                GROUP BY categoria
-                ORDER BY categoria
-                """;
+        String sql = "SELECT categoria, COUNT(*) AS total, " +
+                "SUM(CASE WHEN activo = true THEN 1 ELSE 0 END) AS activos, " +
+                "SUM(CASE WHEN stock = 0 THEN 1 ELSE 0 END) AS sin_stock " +
+                "FROM catalogo " +
+                "GROUP BY categoria " +
+                "ORDER BY categoria";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {

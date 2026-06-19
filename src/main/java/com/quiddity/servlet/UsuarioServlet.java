@@ -53,7 +53,7 @@ public class UsuarioServlet extends HttpServlet {
         String contextPath = req.getContextPath();
 
         if (uri.equals(contextPath + "/usuario/dashboard")) {
-            req.getRequestDispatcher("/WEB-INF/usuario/dashboard.jsp").forward(req, resp);
+            req.getRequestDispatcher("/panel").forward(req, resp);
             return;
         }
 

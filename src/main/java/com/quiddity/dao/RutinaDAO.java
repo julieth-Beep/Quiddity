@@ -162,6 +162,22 @@ public class RutinaDAO {
         }
         return null;
     }
+     public List<Rutina> listarPorUsuario(int idUsuario) throws SQLException {
+        List<Rutina> lista = new ArrayList<>();
+        String sql = "SELECT * FROM rutina WHERE idusuario = ? ORDER BY categoria, subcategoria, nombre";
+
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idUsuario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next())
+                    lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
 
     public boolean marcarFavorito(int idRutina, boolean favorito) {
         String sql = "UPDATE rutina SET favoritos = ? WHERE id = ?";
@@ -177,6 +193,24 @@ public class RutinaDAO {
         }
     }
 
+        // Listar rutinas favoritas de un usuario (favoritos = 'true')
+    public List<Rutina> listarFavoritasPorUsuario(int idUsuario) throws SQLException {
+        List<Rutina> lista = new ArrayList<>();
+        // NOTA: Las rutinas del catálogo pertenecen al admin (idusuario=1).
+        // Cuando un usuario marca favorito, solo cambia el campo 'favoritos',
+        // NO el idusuario. Por eso NO filtramos por idusuario aquí.
+        String sql = "SELECT * FROM rutina WHERE LOWER(TRIM(COALESCE(favoritos,''))) = 'true' ORDER BY categoria, subcategoria, nombre";
+
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next())
+                    lista.add(mapear(rs));
+            }
+        }
+        return lista;
+    }
     public boolean guardar(Rutina r) {
         String sql = "INSERT INTO rutina (idusuario, nombre, objetivo, url, favoritos, categoria, subcategoria, "
                 + "tipo_piel, tipo_cabello, tono_piel, forma_cara, tipo_cuerpo) "

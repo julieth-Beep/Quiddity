@@ -106,23 +106,24 @@
                 <h1 class="font-display-lg text-headline-md tracking-[0.2em] text-primary uppercase">Quiddity</h1>
             </a>
             <nav class="hidden md:flex gap-8">
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="<%= ctx %>/comprador/catalogo.jsp">Shop</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="#">Nuestra historia</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="#">Apothecary</a>
-                <a class="font-label-md text-label-md uppercase hover:text-primary" href="#">Blog</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/comprador/catalogo.jsp">Shop</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Nuestra historia</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Apothecary</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Blog</a>
             </nav>
         </div>
         <div class="flex items-center gap-6">
-            <a href="<%= ctx %>/carrito" class="text-on-surface hover:text-primary relative">
+            <a href="<%= ctx %>/carrito" class="text-on-surface hover:text-primary transition-colors relative" title="Carrito">
                 <span class="material-symbols-outlined">shopping_bag</span>
             </a>
-            <div class="relative group">
-                <button class="flex items-center gap-2 font-label-md uppercase tracking-widest text-on-surface hover:text-primary">
-                    <%= user.getNombre() %> <span class="material-symbols-outlined text-sm">expand_more</span>
+            <div class="relative" id="user-menu-container">
+                <button id="user-menu-btn" class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary">
+                    <%= user.getNombre() %>
+                    <span id="user-menu-icon" class="material-symbols-outlined text-sm">expand_more</span>
                 </button>
-                <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
-                    <a href="<%= ctx %>/comprador/perfil.jsp"  class="block px-4 py-2 text-sm hover:bg-surface-variant">Mi Perfil</a>
-                    <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm hover:bg-surface-variant">Mis Compras</a>
+                <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50">
+                    <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                    <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Compras</a>
                     <div class="border-t my-1"></div>
                     <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
                 </div>
@@ -178,12 +179,12 @@
 
             <!-- Acciones -->
             <div class="fade-up-3 flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="<%= ctx %>/comprador/compras.jsp"
+                <a href="<%= ctx %>/pedidos"
                    class="inline-flex items-center justify-center gap-2 border border-primary text-primary px-8 py-3 font-label-md text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-colors duration-200">
                     <span class="material-symbols-outlined text-base">receipt_long</span>
-                    Ver mis compras
+                    Ver mis pedidos
                 </a>
-                <a href="<%= ctx %>/comprador/catalogo.jsp"
+                <a href="<%= ctx %>/catalogo"
                    class="inline-flex items-center justify-center gap-2 bg-primary text-white px-8 py-3 font-label-md text-xs uppercase tracking-widest hover:bg-tertiary transition-colors duration-200">
                     <span class="material-symbols-outlined text-base">storefront</span>
                     Seguir comprando
@@ -192,6 +193,44 @@
 
         </div>
     </main>
+
+<script>
+/* ═══════════════ USER MENU DROPDOWN (IGUAL A FAVORITOS) ═══════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('user-menu-btn');
+    var dropdown = document.getElementById('user-menu-dropdown');
+    var icon = document.getElementById('user-menu-icon');
+    var container = document.getElementById('user-menu-container');
+
+    if (btn && dropdown) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var isHidden = dropdown.classList.contains('hidden');
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                icon.textContent = 'expand_less';
+            } else {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+    }
+});
+</script>
 
 </body>
 </html>

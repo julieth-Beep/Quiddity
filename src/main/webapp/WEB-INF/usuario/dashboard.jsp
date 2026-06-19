@@ -4,7 +4,6 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%
-    // ── Datos del servlet ─────────────────────────────────────────────
     com.quiddity.model.Usuario usuario = (com.quiddity.model.Usuario) session.getAttribute("usuario");
     com.quiddity.model.Caracteristicas caract = (com.quiddity.model.Caracteristicas) request.getAttribute("caract");
     java.util.List<com.quiddity.model.Prenda> prendasRecientes = (java.util.List<com.quiddity.model.Prenda>) request.getAttribute("prendasRecientes");
@@ -12,6 +11,7 @@
     com.quiddity.model.Rutina rutinaDelDia = (com.quiddity.model.Rutina) request.getAttribute("rutinaDelDia");
     java.util.List<com.quiddity.model.LookGenerado> favoritosPreview = (java.util.List<com.quiddity.model.LookGenerado>) request.getAttribute("favoritosPreview");
     com.quiddity.model.Frase fraseActual = (com.quiddity.model.Frase) session.getAttribute("fraseActual");
+    com.quiddity.model.LookGenerado lookDelDia = (com.quiddity.model.LookGenerado) request.getAttribute("lookDelDia");
 
     int totalPrendas = request.getAttribute("totalPrendas") != null ? (Integer) request.getAttribute("totalPrendas") : 0;
     int totalPedidos = request.getAttribute("totalPedidos") != null ? (Integer) request.getAttribute("totalPedidos") : 0;
@@ -22,14 +22,20 @@
     String fotoPerfil = usuario != null && usuario.getFotoPerfil() != null ? usuario.getFotoPerfil() : "";
     String tipoPiel = (caract != null && caract.getTipoPiel() != null) ? caract.getTipoPiel() : null;
 
-    // FIX: getEstado() devuelve enum -> convertir a String
+    String tCuerpo = (caract != null) ? caract.getTipoCuerpo() : null;
+    String tCabello = (caract != null) ? caract.getTipoCabello() : null;
+    boolean perfilIncompleto = (caract == null)
+        || tCuerpo == null || tCuerpo.trim().isEmpty()
+        || tCabello == null || tCabello.trim().isEmpty()
+        || tipoPiel == null || tipoPiel.trim().isEmpty();
+
     String estadoUltimoPedido = "";
     if (ultimoPedido != null && ultimoPedido.getEstado() != null) {
         estadoUltimoPedido = ultimoPedido.getEstado().toString();
     }
 
-    // Tracker de pedido
-    String[] estadosPedido = {"Confirmado", "En preparacion", "Enviado", "Entregado"};
+    String[] estadosPedido = {"PENDIENTE", "CONFIRMADO", "EN_PREPARACION", "ENVIADO", "ENTREGADO"};
+    String[] icons = {"receipt_long", "check_circle", "inventory_2", "local_shipping", "check_circle"};
     int pasoActual = -1;
     if (!estadoUltimoPedido.isEmpty()) {
         for (int i = 0; i < estadosPedido.length; i++) {
@@ -39,29 +45,8 @@
             }
         }
     }
-
-    // Clima
-    String ciudad = "Bogota";
-    String temp = "18C";
-    String condicion = "Parcialmente nublado";
-
-    // FIX: Frase getter generico
-    String fraseTexto = null;
-    if (fraseActual != null) {
-        try {
-            fraseTexto = (String) fraseActual.getClass().getMethod("getTexto").invoke(fraseActual);
-        } catch (Exception e1) {
-            try {
-                fraseTexto = (String) fraseActual.getClass().getMethod("getFrase").invoke(fraseActual);
-            } catch (Exception e2) {
-                try {
-                    fraseTexto = (String) fraseActual.getClass().getMethod("getContenido").invoke(fraseActual);
-                } catch (Exception e3) {
-                    fraseTexto = fraseActual.toString();
-                }
-            }
-        }
-    }
+    boolean pedidoCancelado = estadoUltimoPedido.equalsIgnoreCase("CANCELADO") 
+                           || estadoUltimoPedido.equalsIgnoreCase("DEVUELTO");
 
     request.setAttribute("activePage", "dashboard");
 %>
@@ -80,10 +65,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    
     <style>
         :root {
-            /* MISMA PALETA DEL ADMIN - pasteles elegantes y frios */
             --bg: #F8F9FA;
             --bg-soft: #FFFFFF;
             --surface: #FFFFFF;
@@ -146,7 +129,6 @@
             overflow: hidden;
         }
 
-        /* MAIN CONTENT */
         .main-content {
             flex: 1;
             padding: 16px 20px;
@@ -161,7 +143,6 @@
         .main-content.sidebar-open { max-width: calc(100% - 320px); }
         .main-content.sidebar-closed { max-width: 100%; }
 
-        /* RIGHT SIDEBAR */
         .right-sidebar {
             width: 320px;
             min-width: 320px;
@@ -229,7 +210,6 @@
             transform: scale(1.1);
         }
 
-        /* WELCOME - Elegante y sobrio (igual admin) */
         .welcome-section {
             margin-bottom: 14px;
             display: flex;
@@ -253,9 +233,7 @@
             letter-spacing: -0.3px;
         }
 
-        .welcome-title span {
-            color: var(--accent-sky);
-        }
+        .welcome-title span { color: var(--accent-sky); }
 
         .welcome-subtitle {
             font-size: 12px;
@@ -290,7 +268,6 @@
         .avatar-name { font-weight: 700; font-size: 13px; color: var(--text-primary); }
         .avatar-role { font-size: 11px; color: var(--text-tertiary); font-weight: 600; }
 
-        /* Skin badge */
         .skin-badge {
             display: inline-flex;
             align-items: center;
@@ -306,7 +283,6 @@
 
         .skin-badge .material-symbols-rounded { font-size: 14px; }
 
-        /* CTA escaneo */
         .scan-cta {
             display: inline-flex;
             align-items: center;
@@ -334,7 +310,6 @@
 
         .scan-cta .material-symbols-rounded { font-size: 16px; }
 
-        /* Toggle Closet Button */
         .welcome-actions {
             display: flex;
             align-items: center;
@@ -367,7 +342,6 @@
         .toggle-closet-btn .toggle-icon { transition: transform 0.3s ease; }
         .toggle-closet-btn.active .toggle-icon { transform: rotate(180deg); }
 
-        /* Weather widget */
         .weather-widget {
             display: flex;
             align-items: center;
@@ -399,7 +373,6 @@
             letter-spacing: 0.05em;
         }
 
-        /* KPI GRID - Compacto (igual admin) */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -507,7 +480,6 @@
         .kpi-trend.down { background: var(--pastel-coral); color: var(--accent-coral); }
         .kpi-trend .material-symbols-rounded { font-size: 13px; }
 
-        /* DASHBOARD GRID */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -523,7 +495,6 @@
             min-height: 0;
         }
 
-        /* PANELS (igual admin) */
         .panel {
             background: var(--surface);
             border-radius: var(--radius-md);
@@ -605,7 +576,6 @@
             min-height: 0;
         }
 
-        /* OUTFIT DEL DIA */
         .outfit-visual {
             display: flex;
             align-items: center;
@@ -675,7 +645,6 @@
         .outfit-btn.view { background: var(--pastel-lavender); color: var(--accent-lavender); }
         .outfit-btn.view:hover { background: var(--pastel-lavender-dark); }
 
-        /* TRACKER PEDIDO */
         .tracker {
             display: flex;
             align-items: center;
@@ -763,7 +732,6 @@
         .tracker-step.active .step-label { color: var(--accent-sky); }
         .tracker-step.completed .step-label { color: var(--accent-mint); }
 
-        /* RUTINA */
         .routine-list {
             display: flex;
             flex-direction: column;
@@ -828,7 +796,6 @@
             white-space: nowrap;
         }
 
-        /* ACCESOS RAPIDOS */
         .quick-access {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -885,7 +852,6 @@
             color: var(--text-primary);
         }
 
-        /* SIDEBAR - Mi Closet reciente */
         .closet-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -941,7 +907,52 @@
             text-decoration: none;
         }
 
-        /* ANIMATIONS */
+        /* ── NUEVO: Botón de subir prenda en sidebar ── */
+        .upload-trigger-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 24px 16px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .upload-trigger-btn:hover {
+            background: var(--pastel-mint);
+            color: var(--accent-mint);
+        }
+
+        .upload-trigger-btn .upload-icon {
+            font-size: 28px;
+            color: var(--text-tertiary);
+            transition: transform 0.2s ease;
+        }
+
+        .upload-trigger-btn:hover .upload-icon {
+            transform: scale(1.1);
+            color: var(--accent-mint);
+        }
+
+        .upload-trigger-btn .upload-title {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .upload-trigger-btn .upload-hint {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-tertiary);
+        }
+
+        .upload-trigger-btn:hover .upload-hint {
+            color: var(--accent-mint);
+        }
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
@@ -968,7 +979,16 @@
         .stagger-children > *:nth-child(4) { animation-delay: 0.12s; }
         .stagger-children > *:nth-child(5) { animation-delay: 0.15s; }
 
-        /* RESPONSIVE */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+
         @media (max-width: 1280px) {
             .kpi-grid { grid-template-columns: repeat(2, 1fr); }
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -991,19 +1011,13 @@
 <div class="layout-wrapper">
 <%@ include file="/includes/sidebar.jsp" %>
 
-    <!-- MAIN CONTENT -->
     <main class="main-content sidebar-open" id="mainContent">
-        <!-- Welcome Section - Elegante -->
         <div class="welcome-section anim-fade-up">
             <div class="welcome-content">
                 <h1 class="welcome-title">Hola, <span><%= nombreUsuario %></span></h1>
-                <p class="welcome-subtitle">
-                    <% if (fraseTexto != null) { %>
-                        <%= fraseTexto %>
-                    <% } else { %>
-                        Descubre tu look perfecto para hoy y manten tu rutina de skincare al dia.
-                    <% } %>
-                </p>
+               <p class="welcome-subtitle">
+                    Descubre tu look perfecto para hoy y manten tu rutina de skincare al dia.
+              </p> 
                 <% if (tipoPiel != null) { %>
                     <div class="skin-badge">
                         <span class="material-symbols-rounded">auto_awesome</span>
@@ -1020,8 +1034,8 @@
                 <div class="weather-widget">
                     <span class="material-symbols-rounded weather-icon">partly_cloudy_day</span>
                     <div class="weather-info">
-                        <div class="weather-temp"><%= temp %></div>
-                        <div class="weather-city"><%= ciudad %></div>
+                        <div class="weather-temp" id="widgetTemp">--</div>
+                        <div class="weather-city" id="widgetCiudad">Ubicacion</div>
                     </div>
                 </div>
                 <button class="toggle-closet-btn" id="toggleClosetBtn" onclick="toggleSidebar()">
@@ -1038,7 +1052,7 @@
                         <% if (!fotoPerfil.isEmpty()) { %>
                             <img src="<%= request.getContextPath() %>/uploads/perfiles/<%= fotoPerfil %>" 
                                 alt="<%= nombreUsuario %>"
-                                onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\"display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:var(--accent-sky);color:white;font-weight:700;font-size:16px;border-radius:50%;\"><%= nombreUsuario.substring(0,1).toUpperCase() %></span>';">
+                                onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:var(--accent-sky);color:white;font-weight:700;font-size:16px;border-radius:50%;\'><%= nombreUsuario.substring(0,1).toUpperCase() %></span>';">
                         <% } else { %>
                             <img src="https://ui-avatars.com/api/?name=<%= nombreUsuario %>&background=random&color=fff&size=128" 
                                 alt="<%= nombreUsuario %>">
@@ -1046,9 +1060,23 @@
                     </div>
                 </div>
             </div>
+                </div>
+        <% if (perfilIncompleto) { %>
+        <div class="profile-warning-banner anim-fade-up">
+            <div class="profile-warning-content">
+                <span class="material-symbols-rounded">warning</span>
+                <div class="profile-warning-text">
+                    <strong>Tu perfil está incompleto</strong>
+                    <span>Completa tu tipo de cuerpo, cabello y piel para recibir mejores recomendaciones.</span>
+                </div>
+            </div>
+            <a href="<%= request.getContextPath() %>/caracteristicas" class="profile-warning-btn">
+                <span class="material-symbols-rounded" style="font-size:16px;">edit</span>
+                Completar perfil
+            </a>
         </div>
+        <% } %>
 
-        <!-- KPIs -->
         <div class="kpi-grid">
             <div class="kpi-card sky anim-fade-up delay-1">
                 <div class="kpi-header">
@@ -1107,58 +1135,62 @@
             </div>
         </div>
 
-        <!-- Dashboard Grid -->
         <div class="dashboard-grid">
-            <!-- Left Column -->
             <div class="dashboard-left">
-                <!-- Outfit del Dia -->
-                <div class="panel anim-fade-up delay-2">
+                <div class="panel anim-fade-up delay-2" id="panelOutfit">
                     <div class="panel-header">
                         <div class="panel-title-group">
                             <h3>Outfit del Dia</h3>
-                            <p>Sugerencia segun el clima en <%= ciudad %></p>
+                            <p id="outfitSubtitulo">Activa tu ubicacion para obtener sugerencias personalizadas</p>
                         </div>
                         <div class="panel-actions">
-                            <button class="icon-btn" title="Regenerar"><span class="material-symbols-rounded">refresh</span></button>
+                            <button class="icon-btn" id="btnGenerarOutfit" title="Generar look para hoy" onclick="pedirUbicacionYGenerar()">
+                                <span class="material-symbols-rounded">auto_awesome</span>
+                            </button>
                             <button class="icon-btn" title="Mas opciones"><span class="material-symbols-rounded">more_vert</span></button>
                         </div>
                     </div>
                     <div class="panel-body">
-                        <div class="outfit-visual">
-                            <% if (favoritosPreview != null && !favoritosPreview.isEmpty() && favoritosPreview.get(0).getImagenGenerada() != null) { %>
-                                <img src="<%= request.getContextPath() %>/<%= favoritosPreview.get(0).getImagenGenerada() %>" 
-                                     alt="Outfit del dia" class="outfit-image">
+                        <div class="outfit-visual" id="outfitVisual">
+                            <% if (lookDelDia != null && lookDelDia.getImagenGenerada() != null) { %>
+                                <img src="<%= request.getContextPath() %>/<%= lookDelDia.getImagenGenerada() %>" 
+                                     alt="Outfit del dia" class="outfit-image" id="imgOutfit">
                             <% } else { %>
-                                <div style="text-align: center; color: var(--text-tertiary);">
-                                    <span class="material-symbols-rounded" style="font-size: 48px; display: block; margin-bottom: 8px;">auto_awesome</span>
-                                    <p style="font-size: 13px; font-weight: 600;">Genera tu primer look</p>
+                                <div style="text-align: center; color: var(--text-tertiary);" id="estadoInicial">
+                                    <span class="material-symbols-rounded" style="font-size: 48px; display: block; margin-bottom: 8px;">location_on</span>
+                                    <p style="font-size: 13px; font-weight: 600;">Permite el acceso a tu ubicacion</p>
+                                    <p style="font-size: 11px; margin-top: 4px;">Asi podemos sugerirte el outfit perfecto para el clima de donde estas</p>
+                                    <button onclick="pedirUbicacionYGenerar()" class="scan-cta" style="margin-top: 12px;">
+                                        <span class="material-symbols-rounded" style="font-size: 14px;">location_searching</span>
+                                        Activar ubicacion
+                                    </button>
                                 </div>
                             <% } %>
                         </div>
-                        <div class="outfit-tags">
+                        <div class="outfit-tags" id="outfitTags" style="<%= lookDelDia != null ? "display: flex;" : "display: none;" %>">
                             <span class="outfit-tag">
                                 <span class="material-symbols-rounded">thermostat</span>
-                                <%= temp %>
+                                <span id="tagTemp">--</span>
                             </span>
                             <span class="outfit-tag">
                                 <span class="material-symbols-rounded">wb_sunny</span>
-                                <%= condicion %>
+                                <span id="tagCondicion">--</span>
                             </span>
                             <span class="outfit-tag">
                                 <span class="material-symbols-rounded">event</span>
-                                Casual
+                                <span id="tagEstilo">--</span>
                             </span>
                         </div>
-                        <div class="outfit-actions">
-                            <button class="outfit-btn like" onclick="alert('Me gusta!')">
+                        <div class="outfit-actions" id="outfitActions" style="<%= lookDelDia != null ? "display: flex;" : "display: none;" %>">
+                            <button class="outfit-btn like" onclick="toggleFavoritoOutfit()" id="btnLike">
                                 <span class="material-symbols-rounded">thumb_up</span>
                                 Me gusta
                             </button>
-                            <button class="outfit-btn change" onclick="alert('Cambiando outfit...')">
+                            <button class="outfit-btn change" onclick="pedirUbicacionYGenerar()">
                                 <span class="material-symbols-rounded">sync</span>
                                 Cambiar
                             </button>
-                            <button class="outfit-btn view" onclick="alert('Ver en avatar')">
+                            <button class="outfit-btn view" onclick="verEnAvatar()">
                                 <span class="material-symbols-rounded">visibility</span>
                                 Ver en avatar
                             </button>
@@ -1166,7 +1198,6 @@
                     </div>
                 </div>
 
-                <!-- Ultimo Pedido -->
                 <div class="panel anim-fade-up delay-3">
                     <div class="panel-header">
                         <div class="panel-title-group">
@@ -1180,12 +1211,10 @@
                         </div>
                     </div>
                     <div class="panel-body">
-                        <% if (ultimoPedido != null) { %>
+                        <% if (ultimoPedido != null && !pedidoCancelado) { %>
                             <div class="tracker">
-                                <div class="tracker-line" style="width: <%= pasoActual >= 0 ? (pasoActual * 33.33) + "%" : "0%" %>;"></div>
-                                <% 
-                                String[] icons = {"receipt_long", "inventory_2", "local_shipping", "check_circle"};
-                                for (int i = 0; i < estadosPedido.length; i++) { 
+                                <div class="tracker-line" style="width: <%= pasoActual > 0 ? ((pasoActual / 4.0) * 100) + "%" : "0%" %>;"></div>
+                                <% for (int i = 0; i < estadosPedido.length; i++) { 
                                     boolean isActive = i == pasoActual;
                                     boolean isCompleted = i < pasoActual;
                                 %>
@@ -1196,6 +1225,14 @@
                                         <span class="step-label"><%= estadosPedido[i] %></span>
                                     </div>
                                 <% } %>
+                            </div>
+                        <% } else if (ultimoPedido != null && pedidoCancelado) { %>
+                            <div style="text-align: center; padding: 24px; color: var(--accent-coral);">
+                                <span class="material-symbols-rounded" style="font-size: 36px; display: block; margin-bottom: 8px;">cancel</span>
+                                <p style="font-size: 12px; font-weight: 600;">Pedido <%= estadoUltimoPedido %></p>
+                                <a href="<%= request.getContextPath() %>/catalogo" style="color: var(--accent-sky); font-weight: 700; text-decoration: none; margin-top: 6px; display: inline-block;">
+                                    Explorar catalogo
+                                </a>
                             </div>
                         <% } else { %>
                             <div style="text-align: center; padding: 24px; color: var(--text-tertiary);">
@@ -1210,78 +1247,62 @@
                 </div>
             </div>
 
-            <!-- Right Column -->
             <div class="dashboard-right">
-                <!-- Rutina de Hoy -->
-                <div class="panel anim-fade-up delay-2">
+                               <div class="panel anim-fade-up delay-2">
                     <div class="panel-header">
                         <div class="panel-title-group">
-                            <h3>Rutina de Hoy</h3>
-                            <p><%= tipoPiel != null ? "Personalizada para piel " + tipoPiel : "Completa tu perfil" %></p>
+                            <h3>Rutinas Favoritas</h3>
+                            <p><%= totalRutinas %> rutinas guardadas</p>
                         </div>
                         <div class="panel-actions">
-                            <button class="icon-btn" title="Ver todas"><span class="material-symbols-rounded">spa</span></button>
-                            <button class="icon-btn" title="Mas opciones"><span class="material-symbols-rounded">more_vert</span></button>
+                            <a href="<%= request.getContextPath() %>/rutinas" class="icon-btn" title="Ver todas">
+                                <span class="material-symbols-rounded">arrow_forward</span>
+                            </a>
                         </div>
                     </div>
                     <div class="panel-body">
-                        <% if (rutinaDelDia != null) { %>
+                        <% if (rutinaDelDia != null) { 
+                            String nombreRutina = rutinaDelDia.getNombre();
+                            String objRutina = rutinaDelDia.getObjetivo();
+                            if (objRutina == null) objRutina = "Sin descripcion";
+                            String catRutina = rutinaDelDia.getCategoria();
+                            if (catRutina == null) catRutina = "General";
+                        %>
                             <div class="routine-list stagger-children">
                                 <div class="routine-step">
                                     <div class="step-number">1</div>
                                     <div class="step-info">
-                                        <div class="step-name">Limpieza facial</div>
-                                        <div class="step-product">Gel limpiador suave</div>
+                                        <div class="step-name"><%= nombreRutina %></div>
+                                        <div class="step-product"><%= objRutina %></div>
                                     </div>
-                                    <span class="step-time">2 min</span>
+                                    <span class="step-time"><%= catRutina %></span>
                                 </div>
+                                <% if (rutinaDelDia.getSubcategoria() != null) { %>
                                 <div class="routine-step">
                                     <div class="step-number">2</div>
                                     <div class="step-info">
-                                        <div class="step-name">Tonico equilibrante</div>
-                                        <div class="step-product">Tonico de rosas</div>
+                                        <div class="step-name">Subcategoria</div>
+                                        <div class="step-product"><%= rutinaDelDia.getSubcategoria() %></div>
                                     </div>
-                                    <span class="step-time">1 min</span>
+                                    <span class="step-time">Detalle</span>
                                 </div>
-                                <div class="routine-step">
-                                    <div class="step-number">3</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Serum hidratante</div>
-                                        <div class="step-product">Acido hialuronico 2%</div>
-                                    </div>
-                                    <span class="step-time">1 min</span>
-                                </div>
-                                <div class="routine-step">
-                                    <div class="step-number">4</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Crema hidratante</div>
-                                        <div class="step-product">Moisturizer SPF 30</div>
-                                    </div>
-                                    <span class="step-time">2 min</span>
-                                </div>
-                                <div class="routine-step">
-                                    <div class="step-number">5</div>
-                                    <div class="step-info">
-                                        <div class="step-name">Protector solar</div>
-                                        <div class="step-product">Sunscreen SPF 50</div>
-                                    </div>
-                                    <span class="step-time">1 min</span>
-                                </div>
+                                <% } %>
                             </div>
                             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
                                 <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 600;">
-                                    <span class="material-symbols-rounded" style="font-size: 13px; vertical-align: middle; margin-right: 4px;">schedule</span>
-                                    ~7 min total
+                                    <span class="material-symbols-rounded" style="font-size: 13px; vertical-align: middle; margin-right: 4px;">favorite</span>
+                                    Rutina favorita
                                 </span>
-                                <button class="scan-cta" style="padding: 6px 14px; font-size: 11px; margin-top: 0;">
+                                <a href="<%= request.getContextPath() %>/rutinas" class="scan-cta" style="padding: 6px 14px; font-size: 11px; margin-top: 0;">
                                     <span class="material-symbols-rounded" style="font-size: 14px;">play_arrow</span>
-                                    Iniciar
-                                </button>
+                                    Ver rutinas
+                                </a>
                             </div>
                         <% } else { %>
                             <div style="text-align: center; padding: 24px; color: var(--text-tertiary);">
                                 <span class="material-symbols-rounded" style="font-size: 36px; display: block; margin-bottom: 8px;">spa</span>
-                                <p style="font-size: 12px; font-weight: 600;">No tienes rutinas activas</p>
+                                <p style="font-size: 12px; font-weight: 600;">No tienes rutinas favoritas</p>
+                                <p style="font-size: 11px; margin-top: 4px;">Guarda rutinas desde el catalogo</p>
                                 <a href="<%= request.getContextPath() %>/rutinas" style="color: var(--accent-sky); font-weight: 700; text-decoration: none; margin-top: 6px; display: inline-block;">
                                     Descubrir rutinas
                                 </a>
@@ -1289,8 +1310,6 @@
                         <% } %>
                     </div>
                 </div>
-
-                <!-- Accesos Rapidos -->
                 <div class="panel anim-fade-up delay-3">
                     <div class="panel-header">
                         <div class="panel-title-group">
@@ -1334,7 +1353,10 @@
         </div>
     </main>
 
-    <!-- RIGHT SIDEBAR - Mi Closet Reciente -->
+    <%-- ═══════════════════════════════════════════════════════════
+         RIGHT SIDEBAR — Mi Closet Reciente
+         NUEVO: Botón de subir que redirige a /closet (no modal)
+    ═══════════════════════════════════════════════════════════ --%>
     <aside class="right-sidebar" id="rightSidebar">
         <div class="sidebar-header">
             <div class="sidebar-title">
@@ -1346,26 +1368,31 @@
             </button>
         </div>
 
-        <div class="closet-grid stagger-children">
-            <% if (prendasRecientes != null && !prendasRecientes.isEmpty()) { 
-                for (com.quiddity.model.Prenda p : prendasRecientes) { %>
-                <div class="closet-item">
-                    <img src="<%= request.getContextPath() %>/<%= p.getImagen() != null ? p.getImagen() : "assets/img/placeholder.png" %>" 
-                         alt="<%= p.getTipo() %>">
-                    <div class="closet-overlay">
-                        <a href="<%= request.getContextPath() %>/avatar?prenda=<%= p.getId() %>" class="closet-action">
-                            Ver en avatar
-                        </a>
+        <%-- NUEVO: Botón que redirige a /closet — estilo igual al empty state --%>
+        <a href="<%= request.getContextPath() %>/closet" class="upload-trigger-btn">
+            <span class="material-symbols-rounded upload-icon">add_photo_alternate</span>
+            <span class="upload-title">
+                <%= (prendasRecientes != null && !prendasRecientes.isEmpty()) ? "Agregar otra prenda" : "Sube tu primera prenda" %>
+            </span>
+            <span class="upload-hint">Se aplicará Prettify automáticamente ✨</span>
+        </a>
+
+        <%-- Grid de prendas recientes (solo si hay prendas) --%>
+        <% if (prendasRecientes != null && !prendasRecientes.isEmpty()) { %>
+            <div class="closet-grid stagger-children">
+                <% for (com.quiddity.model.Prenda p : prendasRecientes) { %>
+                    <div class="closet-item">
+                        <img src="<%= request.getContextPath() %>/<%= p.getImagen() != null ? p.getImagen() : "assets/img/placeholder.png" %>" 
+                             alt="<%= p.getTipo() %>">
+                        <div class="closet-overlay">
+                            <a href="<%= request.getContextPath() %>/avatar?prenda=<%= p.getId() %>" class="closet-action">
+                                Ver en avatar
+                            </a>
+                        </div>
                     </div>
-                </div>
-            <% } 
-            } else { %>
-                <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-tertiary); background: var(--bg); border-radius: var(--radius-sm); border: 1px dashed var(--border);">
-                    <span class="material-symbols-rounded" style="font-size: 28px; display: block; margin-bottom: 6px;">add_photo_alternate</span>
-                    <p style="font-size: 11px; font-weight: 600;">Sube tu primera prenda</p>
-                </div>
-            <% } %>
-        </div>
+                <% } %>
+            </div>
+        <% } %>
 
         <a href="<%= request.getContextPath() %>/closet" style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; padding: 10px; background: var(--bg); border-radius: var(--radius-sm); text-decoration: none; color: var(--text-secondary); font-size: 11px; font-weight: 700; transition: all 0.2s ease;">
             <span class="material-symbols-rounded" style="font-size: 14px;">arrow_forward</span>
@@ -1376,6 +1403,7 @@
 </div>
 
 <script>
+    // ── Sidebar toggle ──────────────────────────────────
     var sidebarOpen = true;
 
     function toggleSidebar() {
@@ -1401,27 +1429,189 @@
         }
     }
 
+    // ── Animación KPIs ─────────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
         var kpiValues = document.querySelectorAll('.kpi-value');
         for (var i = 0; i < kpiValues.length; i++) {
-            var el = kpiValues[i];
-            var finalValue = parseInt(el.textContent.replace(/[^0-9]/g, '')) || 0;
-            if (finalValue > 0) {
-                var current = 0;
-                var increment = finalValue / 40;
-                var timer = setInterval((function(element, target) {
-                    return function() {
+            (function(element) {
+                var finalValue = parseInt(element.textContent.replace(/[^0-9]/g, '')) || 0;
+                if (finalValue > 0) {
+                    var current = 0;
+                    var increment = finalValue / 40;
+                    var target = finalValue;
+                    var timer = setInterval(function() {
                         current += increment;
                         if (current >= target) {
                             current = target;
                             clearInterval(timer);
                         }
                         element.textContent = Math.floor(current);
-                    };
-                })(el, finalValue), 25);
-            }
+                    }, 25);
+                }
+            })(kpiValues[i]);
         }
     });
+
+    // ── Outfit y geolocalización ──────────────────────
+    var lookActualId = <%= lookDelDia != null ? lookDelDia.getId() : "null" %>;
+    var generando = false;
+    var ubicacionObtenida = false;
+
+    function pedirUbicacionYGenerar() {
+        if (generando) return;
+
+        if (ubicacionObtenida && window.userLat && window.userLon) {
+            generarOutfitClima();
+            return;
+        }
+
+        if (!navigator.geolocation) {
+            mostrarErrorUbicacion('Tu navegador no soporta geolocalizacion');
+            return;
+        }
+
+        mostrarEstadoCargando('Obteniendo tu ubicacion...');
+
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                window.userLat = pos.coords.latitude;
+                window.userLon = pos.coords.longitude;
+                ubicacionObtenida = true;
+                console.log('[Geo] Ubicacion exacta:', window.userLat, window.userLon);
+                generarOutfitClima();
+            },
+            function(err) {
+                console.log('[Geo] Error:', err.code, err.message);
+                var mensaje = 'No se pudo obtener tu ubicacion';
+                if (err.code === 1) mensaje = 'Permiso de ubicacion denegado. Activalo en la configuracion de tu navegador.';
+                else if (err.code === 2) mensaje = 'Ubicacion no disponible. Verifica tu GPS.';
+                else if (err.code === 3) mensaje = 'Tiempo de espera agotado. Intenta de nuevo.';
+                mostrarErrorUbicacion(mensaje);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+
+    function generarOutfitClima() {
+        if (generando) return;
+        if (!window.userLat || !window.userLon) {
+            pedirUbicacionYGenerar();
+            return;
+        }
+
+        generando = true;
+        var btn = document.getElementById('btnGenerarOutfit');
+        var visual = document.getElementById('outfitVisual');
+        var originalIcon = btn ? btn.innerHTML : '';
+
+        if (btn) {
+            btn.innerHTML = '<span class="material-symbols-rounded" style="animation: spin 1s linear infinite;">refresh</span>';
+        }
+
+        visual.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary);">' +
+            '<span class="material-symbols-rounded" style="font-size:36px;display:block;margin-bottom:8px;animation:pulse 1.5s ease infinite;">auto_awesome</span>' +
+            '<p style="font-size:12px;font-weight:600;">Analizando el clima de tu zona...</p>' +
+            '<p style="font-size:11px;margin-top:4px;">Esto tomara unos segundos</p></div>';
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '<%= request.getContextPath() %>/panel/generar-outfit-clima', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                generando = false;
+                if (btn) btn.innerHTML = originalIcon;
+
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    lookActualId = data.id;
+
+                    visual.innerHTML = '<img src="<%= request.getContextPath() %>/' + data.imagen + '" alt="Outfit del dia" class="outfit-image" id="imgOutfit">';
+
+                    document.getElementById('outfitTags').style.display = 'flex';
+                    document.getElementById('tagTemp').textContent = data.temp;
+                    document.getElementById('tagCondicion').textContent = data.condicion;
+                    document.getElementById('tagEstilo').textContent = data.estilo;
+
+                    document.getElementById('outfitSubtitulo').innerHTML = 'Sugerencia para ' + data.ciudad + ' - ' + data.condicion;
+
+                    document.getElementById('outfitActions').style.display = 'flex';
+
+                    document.getElementById('widgetTemp').textContent = data.temp;
+                    document.getElementById('widgetCiudad').textContent = data.ciudad;
+
+                } else {
+                    var errorMsg = 'Error al generar el look';
+                    try {
+                        var errData = JSON.parse(xhr.responseText);
+                        errorMsg = errData.error || errorMsg;
+                    } catch(e) {}
+                    mostrarErrorGeneracion(errorMsg);
+                }
+            }
+        };
+
+        xhr.onerror = function() {
+            generando = false;
+            if (btn) btn.innerHTML = originalIcon;
+            mostrarErrorGeneracion('Error de conexion. Verifica tu internet.');
+        };
+
+        xhr.send('lat=' + encodeURIComponent(window.userLat) + '&lon=' + encodeURIComponent(window.userLon));
+    }
+
+    function mostrarEstadoCargando(mensaje) {
+        var visual = document.getElementById('outfitVisual');
+        visual.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary);">' +
+            '<span class="material-symbols-rounded" style="font-size:36px;display:block;margin-bottom:8px;animation:spin 1s linear infinite;">location_searching</span>' +
+            '<p style="font-size:12px;font-weight:600;">' + mensaje + '</p></div>';
+    }
+
+    function mostrarErrorUbicacion(mensaje) {
+        var visual = document.getElementById('outfitVisual');
+        visual.innerHTML = '<div style="text-align:center;padding:24px;color:var(--accent-coral);">' +
+            '<span class="material-symbols-rounded" style="font-size:36px;display:block;margin-bottom:8px;">location_off</span>' +
+            '<p style="font-size:12px;font-weight:600;">' + mensaje + '</p>' +
+            '<button onclick="pedirUbicacionYGenerar()" class="scan-cta" style="margin-top:12px;background:var(--pastel-coral);border-color:var(--pastel-coral-dark);color:var(--accent-coral);">' +
+            '<span class="material-symbols-rounded" style="font-size:14px;">refresh</span> Intentar de nuevo</button></div>';
+    }
+
+    function mostrarErrorGeneracion(mensaje) {
+        var visual = document.getElementById('outfitVisual');
+        visual.innerHTML = '<div style="text-align:center;padding:24px;color:var(--accent-coral);">' +
+            '<span class="material-symbols-rounded" style="font-size:36px;display:block;margin-bottom:8px;">error</span>' +
+            '<p style="font-size:12px;font-weight:600;">' + mensaje + '</p>' +
+            '<button onclick="pedirUbicacionYGenerar()" class="scan-cta" style="margin-top:12px;">' +
+            '<span class="material-symbols-rounded" style="font-size:14px;">refresh</span> Reintentar</button></div>';
+    }
+
+    function toggleFavoritoOutfit() {
+        if (!lookActualId) {
+            alert('Primero genera un look');
+            return;
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open('PUT', '<%= request.getContextPath() %>/look/' + lookActualId + '/fav', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var btn = document.getElementById('btnLike');
+                if (btn) {
+                    btn.style.background = 'var(--pastel-mint-dark)';
+                    setTimeout(function() { btn.style.background = ''; }, 1000);
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    function verEnAvatar() {
+        if (!lookActualId) {
+            alert('Primero genera un look');
+            return;
+        }
+        window.location.href = '<%= request.getContextPath() %>/avatar?look=' + lookActualId;
+    }
 </script>
 
 </body>

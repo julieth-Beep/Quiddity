@@ -155,6 +155,20 @@ public class FraseDAO {
             return false;
         }
     }
+    public Frase obtenerAleatoria() {
+        String sql = "SELECT id, imagen, autor, categoria, estadoanimo FROM frase ORDER BY RANDOM() LIMIT 1";
+        try (Connection con = ConexionDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next())
+                return mapear(rs);
+
+        } catch (SQLException e) {
+            System.err.println("FraseDAO.obtenerAleatoria: " + e.getMessage());
+        }
+        return null;
+    }
 
     // ─── DELETE ────────────────────────────────────────────────────────────────
 
