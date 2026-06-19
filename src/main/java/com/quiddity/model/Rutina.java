@@ -10,7 +10,6 @@ public class Rutina {
     private String favoritos;
     private String categoria;
     private String subcategoria;
-    // Filtros de características (nullable — null = aplica a todos)
     private String tipoPiel;
     private String tipoCabello;
     private String tonoPiel;
@@ -20,8 +19,8 @@ public class Rutina {
     public Rutina() {
     }
 
-    public Rutina(int id, int idUsuario, String nombre, String objetivo,
-            String url, String favoritos, String categoria, String subcategoria,
+    public Rutina(int id, int idUsuario, String nombre, String objetivo, String url,
+            String favoritos, String categoria, String subcategoria,
             String tipoPiel, String tipoCabello, String tonoPiel,
             String formaCara, String tipoCuerpo) {
         this.id = id;
@@ -38,8 +37,6 @@ public class Rutina {
         this.formaCara = formaCara;
         this.tipoCuerpo = tipoCuerpo;
     }
-
-    // --- Getters y Setters ---
 
     public int getId() {
         return id;
@@ -143,10 +140,5 @@ public class Rutina {
 
     public void setTipoCuerpo(String tipoCuerpo) {
         this.tipoCuerpo = tipoCuerpo;
-    }
-
-    @Override
-    public String toString() {
-        return "Rutina{id='" + id + "', nombre='" + nombre + "', categoria='" + categoria + "'}";
     }
 }

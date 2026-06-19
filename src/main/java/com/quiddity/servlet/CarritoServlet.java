@@ -29,7 +29,8 @@ import java.util.List;
 public class CarritoServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
-
+    
+    private static final int ROL_ADMIN     = 1;
     private static final int ROL_USUARIO = 3;
     private static final int ROL_COMPRADOR = 2;
 
@@ -228,7 +229,7 @@ public class CarritoServlet extends HttpServlet {
         }
 
         Usuario u = (Usuario) session.getAttribute("usuario");
-        if (u.getIdRol() != ROL_USUARIO && u.getIdRol() != ROL_COMPRADOR) {
+        if (u.getIdRol() != ROL_ADMIN && u.getIdRol() != ROL_USUARIO && u.getIdRol() != ROL_COMPRADOR) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return null;
         }

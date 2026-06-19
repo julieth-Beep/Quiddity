@@ -31,7 +31,7 @@
                             </a>
                         </li>
                         <li class="nav-item ${activePage == 'catalogo' ? 'active' : ''}">
-                            <a href="${pageContext.request.contextPath}/comprador/catalogo.jsp" class="nav-link">
+                            <a href="${pageContext.request.contextPath}/catalogo" class="nav-link">
                                 <span class="material-symbols-outlined nav-icon">category</span>
                                 <span class="nav-text">Catálogo</span>
                             </a>
@@ -108,7 +108,7 @@
                                 </a>
                             </li>
                             <li class="nav-item ${activePage == 'rutinas' ? 'active' : ''}">
-                                <a href="${pageContext.request.contextPath}/usuario/rutinas" class="nav-link">
+                                <a href="${pageContext.request.contextPath}/rutinas" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">self_improvement</span>
                                     <span class="nav-text">Rutinas</span>
                                 </a>
@@ -204,6 +204,12 @@
                                 <a href="${pageContext.request.contextPath}/admin/estadisticas" class="nav-link">
                                     <span class="material-symbols-outlined nav-icon">bar_chart</span>
                                     <span class="nav-text">Estadísticas</span>
+                                </a>
+                            </li>
+                            <li class="nav-item ${activePage == 'rutinas' ? 'active' : ''}">
+                                <a href="${pageContext.request.contextPath}/rutinas" class="nav-link">
+                                    <span class="material-symbols-outlined nav-icon">self_improvement</span>
+                                    <span class="nav-text">Rutinas</span>
                                 </a>
                             </li>
                         </ul>

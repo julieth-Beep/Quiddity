@@ -107,9 +107,9 @@ public class UsuarioDashboardServlet extends HttpServlet {
         List<Rutina> rutinas = new ArrayList<>();
         try {
             if (caract != null) {
-                rutinas = rutinaDAO.listarPorCaracteristicas(caract);
+                rutinas = rutinaDAO.obtenerRecomendadasPorCategoria(caract, tipoPiel);
             } else {
-                rutinas = rutinaDAO.listarTodas();
+                rutinas = rutinaDAO.obtenerTodas();
             }
         } catch (Exception ignored) {}
 
