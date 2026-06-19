@@ -310,8 +310,16 @@
                     </button>
                     <div id="user-menu-dropdown"
                         class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50 rounded-md">
-                        <a href="<%= ctx %>/comprador/perfil.jsp"
-                            class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                        <% if (isAdmin) { %>
+                            <a href="<%= ctx %>/admin/dashboard"
+                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                        <% } else if (isUsuario) { %>
+                            <a href="<%= ctx %>/usuario/dashboard"
+                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                        <% } else { %>
+                            <a href="<%= ctx %>/comprador/perfil.jsp"
+                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                        <% } %>
                         <a href="<%= ctx %>/pedidos"
                             class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
                         <a href="<%= ctx %>/carrito"

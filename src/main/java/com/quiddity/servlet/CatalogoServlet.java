@@ -190,10 +190,6 @@ public class CatalogoServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
-        if (usuario.getIdRol() == ROL_ADMIN) {
-            resp.sendRedirect(req.getContextPath() + "/admin/catalogo");
-            return;
-        }
 
         String categoria = req.getParameter("categoria");
         String marca = req.getParameter("marca");
@@ -207,7 +203,6 @@ public class CatalogoServlet extends HttpServlet {
         } else if (marca != null && !marca.isBlank()) {
             productos = catalogoDAO.listarPorMarca(marca);
         } else {
-            // Solo productos activos con stock
             productos = catalogoDAO.listarActivos();
         }
 
