@@ -294,7 +294,7 @@ body {
 
 <!-- NAVBAR -->
 <nav class="navbar">
-    <a href="<%=ctx%>/comprador/catalogo.jsp" class="navbar-brand">Quiddity</a>
+    <a href="<%=ctx%>/catalogo.jsp" class="navbar-brand">Quiddity</a>
     <div class="navbar-steps">
         <div class="step done">
             <div class="step-dot">✓</div>

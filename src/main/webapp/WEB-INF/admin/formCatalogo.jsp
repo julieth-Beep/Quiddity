@@ -1,11 +1,12 @@
 <%@ page import="com.quiddity.model.Catalogo" %>
+<%@ page import="com.quiddity.model.CatalogoImagen" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%
     String ctx = request.getContextPath();
-    String accion = request.getParameter("accion"); // agregar | editar | stock
+    String accion = request.getParameter("accion");
     if (accion == null) accion = "agregar";
 
     Catalogo producto = (Catalogo) request.getAttribute("producto");
@@ -23,10 +24,8 @@
     boolean isEdit     = "editar".equals(accion);
     boolean isNew      = "agregar".equals(accion);
     
-    // Determinar ruta de categoría actual para el campo rutaCategoria
     String rutaCategoriaActual = "";
     if (producto != null && producto.getCategoria() != null) {
-        // Convertir categoría BD a ruta de carpeta
         String cat = producto.getCategoria().toLowerCase().trim();
         if (cat.contains("cuidado") && cat.contains("facial")) {
             rutaCategoriaActual = "cuidado/skincare";
@@ -86,11 +85,9 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-/* ── LAYOUT ── */
 .layout-wrapper { display: flex; min-height: 100vh; width: 100%; }
 .main-content { flex: 1; padding: 24px 40px; display: flex; flex-direction: column; gap: 20px;  }
 
-/* ── BREADCRUMB ── */
 .breadcrumb-bar {
     display: flex; align-items: center; gap: 8px;
     font-size: 11px; font-weight: 600; color: var(--text-tertiary);
@@ -100,7 +97,6 @@ body {
 .breadcrumb-bar .sep { color: var(--border); }
 .breadcrumb-bar .current { color: var(--text-primary); }
 
-/* ── HEADER DE PÁGINA ── */
 .page-header {
     display: flex; align-items: flex-start; justify-content: space-between;
     background: var(--surface); border-radius: var(--radius-lg); padding: 20px 32px;
@@ -126,7 +122,6 @@ body {
 }
 .btn-back:hover { background: var(--pastel-sky); color: var(--accent-sky); border-color: var(--pastel-sky-dark); }
 
-/* ── TOAST ── */
 .toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
 .toast-item {
     background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-md);
@@ -142,7 +137,6 @@ body {
 .toast-item.error   .toast-icon { background: var(--pastel-coral); color: var(--accent-coral); }
 @keyframes slideInToast { from{transform:translateX(120%);opacity:0;} to{transform:translateX(0);opacity:1;} }
 
-/* ── FORM CARD ── */
 .form-card {
     background: var(--surface); border-radius: var(--radius-lg);
     border: 1px solid var(--border); box-shadow: var(--shadow-sm);
@@ -168,12 +162,10 @@ body {
 }
 .form-card-body { padding: 28px 32px; flex: 1; }
 
-/* ── TWO-COLUMN GRID ── */
 .form-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
 .form-fields { display: flex; flex-direction: column; gap: 16px; }
 .form-sidebar { display: flex; flex-direction: column; gap: 16px; }
 
-/* ── FORM GROUPS ── */
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-row.thirds { grid-template-columns: 1fr 1fr 1fr; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
@@ -222,7 +214,6 @@ body {
 }
 .input-prefix-group input { padding-left: 26px; }
 
-/* ── RUTA CATEGORÍA INPUT ── */
 .ruta-cat-input {
     font-family: 'DM Mono', monospace, sans-serif !important;
     font-size: 12px !important;
@@ -241,7 +232,7 @@ body {
 .image-upload-card {
     background: var(--bg); border-radius: var(--radius-md);
     border: 1.5px dashed var(--border); overflow: hidden;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s; position: relative;
 }
 .image-upload-card:hover { border-color: var(--accent-sky); }
 .image-upload-card.has-image { border-style: solid; border-color: var(--border-light); }
@@ -266,6 +257,80 @@ body {
 }
 .image-upload-footer label .material-symbols-outlined { font-size: 15px; }
 #imagenInput { display: none; }
+
+/* ── GALERÍA DE IMÁGENES ADICIONALES ── */
+.galeria-section { margin-top: 20px; }
+.galeria-upload-area {
+    background: var(--bg); border-radius: var(--radius-md);
+    border: 2px dashed var(--border); overflow: hidden;
+    transition: all 0.2s ease; position: relative; cursor: pointer;
+}
+.galeria-upload-area:hover { border-color: var(--accent-sky); background: var(--pastel-sky); }
+.galeria-upload-area .upload-content {
+    padding: 24px 16px; text-align: center; pointer-events: none;
+}
+.galeria-upload-area .upload-content .material-symbols-outlined {
+    font-size: 32px; color: var(--text-tertiary); margin-bottom: 8px;
+}
+.galeria-upload-area .upload-content p {
+    font-size: 11px; color: var(--text-secondary); font-weight: 600;
+}
+.galeria-upload-area input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+
+.galeria-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;
+}
+.gal-thumb {
+    position: relative; border-radius: 10px; overflow: hidden;
+    aspect-ratio: 1; border: 2px solid transparent;
+    transition: all 0.2s ease; background: var(--bg);
+}
+.gal-thumb:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.gal-thumb.principal { border-color: var(--accent-sky); }
+.gal-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gal-thumb .badge-principal {
+    position: absolute; top: 6px; left: 6px;
+    background: var(--accent-sky); color: white;
+    font-size: 8px; font-weight: 700; padding: 3px 8px;
+    border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.gal-thumb .btn-eliminar-img {
+    position: absolute; top: 6px; right: 6px;
+    width: 24px; height: 24px; border-radius: 50%;
+    border: none; background: rgba(194,24,89,0.9); color: white;
+    cursor: pointer; font-size: 14px; display: flex;
+    align-items: center; justify-content: center; line-height: 1;
+    transition: all 0.2s ease; opacity: 0;
+}
+.gal-thumb:hover .btn-eliminar-img { opacity: 1; }
+.gal-thumb .btn-eliminar-img:hover { background: var(--accent-coral); transform: scale(1.1); }
+.gal-thumb .btn-set-principal {
+    position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+    padding: 4px 10px; border-radius: 6px; border: none;
+    background: rgba(0,0,0,0.6); color: white;
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    cursor: pointer; opacity: 0; transition: all 0.2s ease; letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+.gal-thumb:hover .btn-set-principal { opacity: 1; }
+.gal-thumb .btn-set-principal:hover { background: var(--accent-sky); }
+
+.gal-thumb.nueva { border-color: var(--accent-mint); }
+.gal-thumb .badge-nueva {
+    position: absolute; top: 6px; left: 6px;
+    background: var(--accent-mint); color: white;
+    font-size: 8px; font-weight: 700; padding: 3px 8px;
+    border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.preview-nuevas { display: none; margin-top: 14px; }
+.preview-nuevas.visible { display: block; }
+.preview-nuevas-label {
+    font-size: 10px; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+}
 
 /* ── STOCK WIDGET ── */
 .stock-widget {
@@ -312,7 +377,6 @@ body {
 }
 .stock-stepper input#stockDisplay:focus { outline: none; box-shadow: 0 0 0 3px rgba(25,118,210,0.1); }
 
-/* ── OPERATION TABS (solo para stock page) ── */
 .op-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
 .op-tab {
     flex: 1; padding: 8px 4px; border: 1.5px solid var(--border);
@@ -324,7 +388,6 @@ body {
 .op-tab.active { background: var(--pastel-sky); border-color: var(--accent-sky); color: var(--accent-sky); }
 .op-tab:hover:not(.active) { background: var(--bg); }
 
-/* ── FORM ACTIONS ── */
 .form-actions {
     display: flex; align-items: center; justify-content: space-between;
     padding: 18px 32px; border-top: 1px solid var(--border-light);
@@ -361,7 +424,6 @@ body {
 }
 .btn-form.delete-btn:hover { background: var(--accent-coral); color: white; }
 
-/* ── PRODUCT INFO BADGE (editar/stock) ── */
 .product-badge-card {
     display: flex; align-items: center; gap: 12px; padding: 14px 16px;
     background: var(--bg); border-radius: var(--radius-md);
@@ -382,10 +444,8 @@ body {
 .product-badge-info .badge-cat { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
 .product-badge-info .badge-price { font-size: 12px; font-weight: 700; color: var(--accent-coral); margin-top: 2px; }
 
-/* ── ANIMATIONS ── */
 @keyframes fadeUp { from{opacity:0;transform:translateY(14px);} to{opacity:1;transform:translateY(0);} }
 
-/* ── RESPONSIVE ── */
 @media (max-width: 992px) {
     .form-layout { grid-template-columns: 1fr; }
     .form-sidebar { order: -1; }
@@ -400,6 +460,7 @@ body {
     .page-header { padding: 16px 20px; }
     .form-row { grid-template-columns: 1fr; }
     .form-row.thirds { grid-template-columns: 1fr; }
+    .galeria-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
@@ -444,7 +505,7 @@ body {
                     <h1><%= pageTitle %></h1>
                     <p>
                         <% if (isNew) { %>Completa todos los campos requeridos para agregar un producto al catálogo.
-                        <% } else if (isEdit) { %>Modifica los datos del producto. Los campos en blanco conservan su valor actual.
+                        <% } else if (isEdit) { %>Modifica los datos del producto. Las imágenes nuevas se agregarán a la galería existente.
                         <% } else { %>Gestiona el inventario disponible para este producto.
                         <% } %>
                     </p>
@@ -465,7 +526,6 @@ body {
                 <input type="hidden" name="id" value="${producto.id}">
             </c:if>
 
-            <!-- ── Datos Principales ── -->
             <div class="form-card">
                 <div class="form-card-header">
                     <h2>Información del producto</h2>
@@ -515,7 +575,7 @@ body {
                                 </div>
                             </div>
 
-                            <!-- RUTA DE CATEGORÍA (NUEVO CAMPO) -->
+                            <!-- RUTA DE CATEGORÍA -->
                             <div class="form-group">
                                 <label>
                                     Ruta de carpeta para imagen 
@@ -555,7 +615,7 @@ body {
 
                         </div><!-- /form-fields -->
 
-                        <!-- ── Sidebar con imagen ── -->
+                        <!-- ═══ SIDEBAR: IMÁGENES ═══ -->
                         <div class="form-sidebar">
 
                             <!-- Badge del producto (solo editar) -->
@@ -584,11 +644,11 @@ body {
                                 </div>
                             </c:if>
 
-                            <!-- Upload imagen -->
-                            <div class="form-group">
+                            <!-- Imagen PRINCIPAL -->
+                            <div class="form-group" style="margin-bottom:6px;">
                                 <label>
-                                    Imagen del producto 
-                                    <% if (isNew) { %><span class="required">*</span><% } else { %><span class="optional">(dejar vacío para mantener la actual)</span><% } %>
+                                    Imagen principal 
+                                    <% if (isNew) { %><span class="required">*</span><% } else { %><span class="optional">(dejar vacío para mantener)</span><% } %>
                                 </label>
                             </div>
                             <div class="image-upload-card" id="imageUploadCard">
@@ -596,9 +656,7 @@ body {
                                     <c:choose>
                                         <c:when test="${not empty producto.imagen}">
                                             <c:set var="imgSrcPreview" value="${fn:startsWith(producto.imagen, 'http') ? producto.imagen : (fn:startsWith(producto.imagen, 'uploads/') ? (pageContext.request.contextPath.concat('/').concat(producto.imagen)) : (pageContext.request.contextPath.concat('/uploads/catalogo/').concat(producto.imagen)))}" />
-                                            <img id="previewImg"
-                                                 src="${imgSrcPreview}"
-                                                 alt="Preview">
+                                            <img id="previewImg" src="${imgSrcPreview}" alt="Preview">
                                         </c:when>
                                         <c:otherwise>
                                             <div class="image-preview-placeholder" id="previewPlaceholder">
@@ -620,7 +678,59 @@ body {
                                            onchange="previewImage(this)">
                                 </div>
                             </div>
-                            <p class="input-hint">JPG, PNG o GIF — máx. 10 MB. El nombre del archivo se genera automáticamente desde el nombre del producto.</p>
+                            <p class="input-hint">JPG, PNG o GIF — máx. 10 MB</p>
+
+                            <!-- ═══ GALERÍA DE IMÁGENES ADICIONALES ═══ -->
+                            <div class="galeria-section">
+                                <div class="form-group" style="margin-bottom:6px;">
+                                    <label>Imágenes de galería <span class="optional">(máx. 5)</span></label>
+                                </div>
+                                
+                                <!-- Upload area -->
+                                <div class="galeria-upload-area">
+                                    <div class="upload-content">
+                                        <span class="material-symbols-outlined">add_photo_alternate</span>
+                                        <p>Arrastra imágenes aquí o haz clic para seleccionar</p>
+                                    </div>
+                                    <input type="file" name="imagenesAdicionales" multiple 
+                                           accept="image/jpeg,image/png,image/gif"
+                                           onchange="previewMultipleImages(this)">
+                                </div>
+                                <p class="input-hint">Aparecerán en el carrusel del producto</p>
+
+                                <!-- Imágenes EXISTENTES (modo editar) -->
+                                <c:if test="${not empty producto.imagenes}">
+                                    <div style="margin-top:14px;">
+                                        <p class="preview-nuevas-label">
+                                            Galería actual (${producto.imagenes.size()} imagen${producto.imagenes.size() > 1 ? 'es' : ''})
+                                        </p>
+                                        <div class="galeria-grid" id="galeriaExistente">
+                                            <c:forEach var="img" items="${producto.imagenes}">
+                                                <div class="gal-thumb ${img.esPrincipal ? 'principal' : ''}" data-img-id="${img.id}">
+                                                    <c:set var="imgSrcGal" value="${fn:startsWith(img.rutaImagen, 'http') ? img.rutaImagen : (fn:startsWith(img.rutaImagen, 'uploads/') ? (pageContext.request.contextPath.concat('/').concat(img.rutaImagen)) : (pageContext.request.contextPath.concat('/uploads/catalogo/').concat(img.rutaImagen)))}" />
+                                                    <img src="${imgSrcGal}" alt="">
+                                                    
+                                                    <c:if test="${img.esPrincipal}">
+                                                        <span class="badge-principal">Principal</span>
+                                                    </c:if>
+                                                    
+                                                    <button type="button" class="btn-eliminar-img" onclick="eliminarImagenExistente(${img.id}, this)" title="Eliminar imagen">×</button>
+                                                    
+                                                    <c:if test="${!img.esPrincipal}">
+                                                        <button type="button" class="btn-set-principal" onclick="setImagenPrincipal(${img.id})" title="Establecer como principal">Hacer principal</button>
+                                                    </c:if>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+                                </c:if>
+
+                                <!-- Preview de NUEVAS imágenes -->
+                                <div class="preview-nuevas" id="previewNuevasContainer">
+                                    <p class="preview-nuevas-label">Nuevas imágenes</p>
+                                    <div class="galeria-grid" id="imagenesAdicionalesPreview"></div>
+                                </div>
+                            </div>
 
                         </div><!-- /form-sidebar -->
                     </div><!-- /form-layout -->
@@ -674,10 +784,8 @@ body {
                 <div class="form-card-body">
                     <div class="form-layout">
 
-                        <!-- Izquierda: info + operación -->
                         <div class="form-fields">
 
-                            <!-- Badge del producto -->
                             <div class="product-badge-card">
                                 <div class="product-badge-thumb">
                                     <c:choose>
@@ -701,7 +809,6 @@ body {
                                 </div>
                             </div>
 
-                            <!-- Tabs de operación -->
                             <div>
                                 <p style="font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Tipo de operación</p>
                                 <div class="op-tabs">
@@ -720,13 +827,11 @@ body {
                                 </div>
                             </div>
 
-                            <!-- Descripción dinámica de la operación -->
                             <p id="opDesc" style="font-size:11px;color:var(--text-secondary);background:var(--pastel-sky);padding:10px 14px;border-radius:var(--radius-sm);font-weight:600;">
                                 <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;">info</span>
                                 Establece el stock exacto del producto.
                             </p>
 
-                            <!-- Campo de cantidad -->
                             <div class="form-group">
                                 <label id="cantidadLabel">Nuevo stock <span class="required">*</span></label>
                                 <input type="number" id="cantidadVisible" min="0" placeholder="0"
@@ -736,7 +841,6 @@ body {
 
                         </div>
 
-                        <!-- Derecha: visualización -->
                         <div class="form-sidebar">
 
                             <div class="stock-widget">
@@ -768,7 +872,6 @@ body {
                                 </p>
                             </div>
 
-                            <!-- Historial rápido -->
                             <div style="background:var(--bg);border-radius:var(--radius-md);border:1px solid var(--border-light);padding:14px;">
                                 <p style="font-size:10px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Stock de referencia</p>
                                 <div style="display:flex;flex-direction:column;gap:6px;">
@@ -787,9 +890,9 @@ body {
                                 </div>
                             </div>
 
-                        </div><!-- /form-sidebar -->
-                    </div><!-- /form-layout -->
-                </div><!-- /form-card-body -->
+                        </div>
+                    </div>
+                </div>
 
                 <div class="form-actions">
                     <a href="<%= ctx %>/admin/catalogo/form?accion=editar&id=${producto.id}"
@@ -806,7 +909,7 @@ body {
                     </div>
                 </div>
 
-            </div><!-- /form-card -->
+            </div>
         </form>
         </c:if>
 
@@ -816,27 +919,89 @@ body {
 </div>
 
 <script>
-// ── IMAGEN PREVIEW ──
+// ── IMAGEN PRINCIPAL PREVIEW ──
 function previewImage(input) {
-    var previewImg         = document.getElementById('previewImg');
+    var previewImg = document.getElementById('previewImg');
     var previewPlaceholder = document.getElementById('previewPlaceholder');
-    var imageCard          = document.getElementById('imageUploadCard');
+    var imageCard = document.getElementById('imageUploadCard');
 
     if (input.files && input.files[0]) {
         var reader = new FileReader();
         reader.onload = function(e) {
-            previewImg.src           = e.target.result;
+            previewImg.src = e.target.result;
             previewImg.style.display = 'block';
             if (previewPlaceholder) previewPlaceholder.style.display = 'none';
             imageCard.classList.add('has-image');
-            updateRutaPreview();
         };
         reader.readAsDataURL(input.files[0]);
     }
 }
 
+// ── MÚLTIPLES IMÁGENES PREVIEW ──
+function previewMultipleImages(input) {
+    var container = document.getElementById('imagenesAdicionalesPreview');
+    var wrapper = document.getElementById('previewNuevasContainer');
+    
+    if (!input.files || input.files.length === 0) return;
+    
+    wrapper.classList.add('visible');
+    
+    Array.from(input.files).forEach(function(file, idx) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var div = document.createElement('div');
+            div.className = 'gal-thumb nueva';
+            div.innerHTML = 
+                '<img src="' + e.target.result + '" alt="">' +
+                '<span class="badge-nueva">Nueva</span>' +
+                '<button type="button" class="btn-eliminar-img" onclick="this.parentElement.remove(); checkNuevasVacias();" title="Quitar">×</button>';
+            container.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function checkNuevasVacias() {
+    var container = document.getElementById('imagenesAdicionalesPreview');
+    var wrapper = document.getElementById('previewNuevasContainer');
+    if (container.children.length === 0) {
+        wrapper.classList.remove('visible');
+    }
+}
+
+// ── ELIMINAR IMAGEN EXISTENTE ──
+function eliminarImagenExistente(imagenId, btnElement) {
+    if (!confirm('¿Eliminar esta imagen permanentemente?')) return;
+    
+    var productoId = document.querySelector('input[name="id"]')?.value;
+    if (!productoId) {
+        alert('Error: No se pudo determinar el producto');
+        return;
+    }
+    
+    // Eliminar visualmente primero
+    var thumb = btnElement.closest('.gal-thumb');
+    if (thumb) thumb.remove();
+    
+    // Redirigir para eliminar en servidor
+    window.location.href = '<%= ctx %>/admin/catalogo?accion=eliminarImagen&imagenId=' + imagenId + '&productoId=' + productoId;
+}
+
+// ── ESTABLECER IMAGEN PRINCIPAL ──
+function setImagenPrincipal(imagenId) {
+    var productoId = document.querySelector('input[name="id"]')?.value;
+    if (!productoId) return;
+    
+    // Aquí puedes hacer una petición AJAX o redirigir
+    // Por ahora mostramos confirmación
+    if (confirm('¿Establecer esta imagen como principal?')) {
+        // TODO: Implementar endpoint setImagenPrincipal en servlet
+        // window.location.href = '<%= ctx %>/admin/catalogo?accion=setPrincipal&imagenId=' + imagenId + '&productoId=' + productoId;
+        alert('Funcionalidad pendiente: implementar accionSetImagenPrincipal en el servlet');
+    }
+}
+
 // ── RUTA DE CATEGORÍA PREVIEW ──
-// Mapeo de categorías a rutas de carpeta por defecto
 var RUTAS_POR_CATEGORIA = {
     'Belleza':          'belleza',
     'Cuidado Facial':   'cuidado/skincare',
@@ -850,7 +1015,6 @@ function onCategoriaChange() {
     var rutaInput = document.getElementById('rutaCategoria');
     var cat = select.value;
     
-    // Solo auto-llenar si el campo está vacío o tiene el valor por defecto
     if (rutaInput && (!rutaInput.value || rutaInput.value === 'general')) {
         var rutaDefault = RUTAS_POR_CATEGORIA[cat];
         if (rutaDefault) {
@@ -871,7 +1035,6 @@ function updateRutaPreview() {
     var ruta = rutaInput.value.trim();
     if (!ruta) ruta = 'general';
     
-    // Sanitizar visualmente (misma lógica que el servlet)
     ruta = ruta.toLowerCase()
         .replace(/[áäâà]/g, 'a')
         .replace(/[éëêè]/g, 'e')
@@ -887,7 +1050,6 @@ function updateRutaPreview() {
     
     previewRuta.textContent = ruta;
     
-    // Generar preview del nombre de archivo
     if (nombreInput && previewNombre) {
         var nombre = nombreInput.value.trim();
         if (nombre) {
@@ -1014,14 +1176,10 @@ function stepStock(delta) {
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', function() {
-    // Sync stock display on load
     var initStock = parseInt('<%= producto != null ? producto.getStock() : 0 %>') || 0;
     syncDisplay(initStock);
-    
-    // Inicializar preview de ruta
     updateRutaPreview();
 
-    // Auto-dismiss toasts
     setTimeout(function() {
         document.querySelectorAll('.toast-item').forEach(function(t) {
             t.style.transition = 'all 0.4s ease';

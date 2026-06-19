@@ -119,7 +119,7 @@
         <div class="flex items-center gap-12">
             <a href="<%= ctx %>/index.jsp"><h1 class="font-display-lg text-headline-md tracking-[0.2em] text-primary uppercase">Quiddity</h1></a>
             <nav class="hidden md:flex gap-8">
-                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/comprador/catalogo.jsp">Shop</a>
+                <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="<%= ctx %>/catalogo">Shop</a>
                 <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Nuestra historia</a>
                 <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Apothecary</a>
                 <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors" href="#">Blog</a>
@@ -140,7 +140,13 @@
                     <%= user.getNombre() %> <span class="material-symbols-outlined text-sm">expand_more</span>
                 </button>
                 <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
-                    <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                    <% if (user.getIdRol() == 1) { %>
+                        <a href="<%= ctx %>/admin/dashboard" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                    <% } else if (user.getIdRol() == 3) { %>
+                        <a href="<%= ctx %>/usuario/dashboard" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                    <% } else { %>
+                        <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                    <% } %>
                     <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm text-primary bg-surface-variant">Mis Compras</a>
                     <div class="border-t my-1"></div>
                     <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
@@ -205,7 +211,7 @@
 
             <!-- Enlace rápido de regreso al catálogo -->
             <div class="mt-12 text-center">
-                <a href="<%= ctx %>/comprador/catalogo.jsp" class="inline-flex items-center gap-2 text-primary font-label-md text-xs uppercase tracking-wider hover:underline">
+                <a href="<%= ctx %>/catalogo" class="inline-flex items-center gap-2 text-primary font-label-md text-xs uppercase tracking-wider hover:underline">
                     <span class="material-symbols-outlined text-sm">arrow_back</span>
                     Seguir comprando
                 </a>

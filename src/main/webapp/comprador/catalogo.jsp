@@ -1,10 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" pageEncoding="UTF-8" %>
 <%@ page import="com.quiddity.model.Usuario" %>
 <%@ page import="com.quiddity.model.Catalogo" %>
+<%@ page import="com.quiddity.model.CatalogoImagen" %>
 <%@ page import="java.util.*" %>
 <%
     Usuario user = (Usuario) session.getAttribute("usuario");
-    if (user == null || (user.getIdRol() != 2 && user.getIdRol() != 3)) {
+    if (user == null || (user.getIdRol() != 1 && user.getIdRol() != 2 && user.getIdRol() != 3)) {
         response.sendRedirect(request.getContextPath() + "/login");
         return;
     }
@@ -71,8 +72,7 @@
     private String buildImagenSrc(String imgRaw, String ctx) {
         if (imgRaw == null || imgRaw.trim().isEmpty()) return "";
         imgRaw = imgRaw.trim();
-        if (imgRaw.startsWith("http")) return imgRaw; // URL absoluta
-        // Quitar prefijo redundante si ya viene de la BD
+        if (imgRaw.startsWith("http")) return imgRaw;
         String limpio = imgRaw.replaceFirst("^uploads/catalogo/", "");
         return ctx + "/uploads/catalogo/" + limpio;
     }
@@ -185,9 +185,15 @@
     #cart-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
     .marca-pill { display: inline-block; padding: 4px 12px; background: #f1ecef; font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #877276; margin-bottom: 12px; }
-    .modal-img-wrap { position: relative; background: #f7f4f5; }
+    .modal-img-wrap { position: relative; background: #f7f4f5; overflow: hidden; }
     .modal-img-wrap img { display: block; width: 100%; height: 100%; object-fit: cover; }
     .modal-img-placeholder { display: flex; align-items: center; justify-content: center; color: #c4a9a2; }
+
+    /* ═══ CARRUSEL DEL MODAL ═══ */
+    #modalCarouselTrack img { user-select: none; -webkit-user-drag: none; }
+    #carouselPrev:hover, #carouselNext:hover { background: white !important; transform: translateY(-50%) scale(1.1); }
+    .carousel-dot-active { background: #9a3a5a !important; width: 24px !important; border-radius: 4px !important; }
+    .carousel-dot-inactive { background: rgba(255,255,255,0.5); width: 8px; border-radius: 50%; }
 
     @media (max-width: 768px) { .modal-overlay { padding: 16px; } .modal-content { max-height: 95vh; } }
 </style>
@@ -238,16 +244,22 @@
         <a href="<%= ctx %>/pedidos" class="text-on-surface hover:text-primary transition-colors relative" title="Mis Pedidos">
             <span class="material-symbols-outlined">receipt_long</span>
         </a>
-        <div class="relative group">
-            <button class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary">
+        <div class="relative" id="user-menu-container">
+            <button id="user-menu-btn" class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary transition-colors">
                 <%= user.getNombre() %>
-                <span class="material-symbols-outlined text-sm">expand_more</span>
+                <span id="user-menu-icon" class="material-symbols-outlined text-sm transition-transform duration-200">expand_more</span>
             </button>
-            <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
-                <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
-                <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Compras</a>
-                <div class="border-t my-1"></div>
+            <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50 rounded-md">
+                <% if (user.getIdRol() == 1) { %>
+                    <a href="<%= ctx %>/admin/dashboard" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                <% } else if (user.getIdRol() == 3) { %>
+                    <a href="<%= ctx %>/usuario/dashboard" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                <% } else { %>
+                    <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                <% } %>
                 <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
+                <div class="border-t my-1"></div>
+                <a href="<%= ctx %>/carrito" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Carrito</a>
                 <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
             </div>
         </div>
@@ -357,6 +369,25 @@
                 String subcatLabel = (subcat != null && !subcat.isEmpty())
                     ? subcat.substring(0,1).toUpperCase() + subcat.substring(1).replace("-"," ")
                     : "";
+
+                // ═══ CONSTRUIR JSON DE IMÁGENES PARA EL CARRUSEL ═══
+                StringBuilder imagenesJson = new StringBuilder("[");
+                if (!imagenSrc.isEmpty()) {
+                    imagenesJson.append("\"").append(imagenSrc.replace("\"", "\\\"")).append("\"");
+                }
+                List<CatalogoImagen> imgs = prod.getImagenes();
+                if (imgs != null) {
+                    for (CatalogoImagen img : imgs) {
+                        if (!img.isEsPrincipal()) {
+                            String imgSrcAdd = buildImagenSrc(img.getRutaImagen(), ctx);
+                            if (!imgSrcAdd.isEmpty()) {
+                                if (imagenesJson.length() > 1) imagenesJson.append(",");
+                                imagenesJson.append("\"").append(imgSrcAdd.replace("\"", "\\\"")).append("\"");
+                            }
+                        }
+                    }
+                }
+                imagenesJson.append("]");
             %>
             <div class="product-card group"
                  data-cat="<%= cat %>"
@@ -370,6 +401,7 @@
                  data-componentes="<%= compSafe %>"
                  data-marca="<%= marcaSafe %>"
                  data-imagen="<%= imagenSrc %>"
+                 data-imagenes='<%= imagenesJson.toString() %>'
                  data-subcat-label="<%= subcatLabel %>">
 
                 <div class="aspect-[4/5] overflow-hidden bg-surface-variant mb-5 relative cursor-pointer"
@@ -421,19 +453,42 @@
     </section>
 </main>
 
-<!-- MODAL DETALLE PRODUCTO -->
+<!-- ═══ MODAL DETALLE PRODUCTO CON CARRUSEL ═══ -->
 <div id="productModal" class="modal-overlay" onclick="closeModalOnOverlay(event)">
     <div class="modal-content">
         <button class="modal-close" onclick="closeProductModal()">
             <span class="material-symbols-outlined">close</span>
         </button>
         <div class="grid md:grid-cols-2">
-            <div class="modal-img-wrap aspect-square md:aspect-auto md:min-h-[520px]">
-                <img id="modalImage" src="" alt="" class="w-full h-full object-cover" style="display:none;" />
-                <div id="modalImagePlaceholder" class="modal-img-placeholder w-full h-full min-h-[300px]">
+            
+            <!-- ═══ CARRUSEL DE IMÁGENES ═══ -->
+            <div class="modal-img-wrap" style="position:relative;overflow:hidden;background:#f7f4f5;min-height:300px;">
+                <div id="modalCarousel" style="position:relative;width:100%;height:100%;min-height:300px;">
+                    <div id="modalCarouselTrack" style="display:flex;transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);height:100%;">
+                        <!-- Slides inyectados por JS -->
+                    </div>
+                </div>
+                
+                <!-- Controles (solo si hay múltiples) -->
+                <button id="carouselPrev" onclick="carouselMove(-1); event.stopPropagation();" 
+                        style="position:absolute;left:16px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);cursor:pointer;display:none;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,0.15);align-items:center;justify-content:center;transition:all 0.2s;">
+                    <span class="material-symbols-outlined" style="font-size:20px;color:#544246;">chevron_left</span>
+                </button>
+                <button id="carouselNext" onclick="carouselMove(1); event.stopPropagation();"
+                        style="position:absolute;right:16px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);cursor:pointer;display:none;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,0.15);align-items:center;justify-content:center;transition:all 0.2s;">
+                    <span class="material-symbols-outlined" style="font-size:20px;color:#544246;">chevron_right</span>
+                </button>
+                
+                <!-- Indicadores -->
+                <div id="carouselDots" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:10;"></div>
+                
+                <!-- Placeholder (cuando no hay imágenes) -->
+                <div id="modalImagePlaceholder" class="modal-img-placeholder" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;">
                     <span class="material-symbols-outlined text-8xl">spa</span>
                 </div>
             </div>
+            
+            <!-- Info del producto -->
             <div class="flex flex-col p-8 md:p-10 justify-between">
                 <div>
                     <div class="flex items-center gap-3 mb-4">
@@ -539,13 +594,127 @@ var currentQty       = 1;
 var currentStock     = 0;
 var currentPrecio    = 0;
 
+// ═══════════════════════════════════════════════════════════════════════
+// CARRUSEL DE IMÁGENES DEL MODAL
+// ═══════════════════════════════════════════════════════════════════════
+
+var carouselCurrent = 0;
+var carouselImages = [];
+var carouselTouchStartX = 0;
+
+function initCarousel(imagenes) {
+    carouselImages = imagenes || [];
+    carouselCurrent = 0;
+    
+    var track = document.getElementById('modalCarouselTrack');
+    var dots = document.getElementById('carouselDots');
+    var prev = document.getElementById('carouselPrev');
+    var next = document.getElementById('carouselNext');
+    var placeholder = document.getElementById('modalImagePlaceholder');
+    
+    track.innerHTML = '';
+    dots.innerHTML = '';
+    
+    if (carouselImages.length === 0) {
+        placeholder.style.display = 'flex';
+        prev.style.display = 'none';
+        next.style.display = 'none';
+        return;
+    }
+    
+    placeholder.style.display = 'none';
+    
+    // Mostrar controles solo si hay múltiples imágenes
+    if (carouselImages.length > 1) {
+        prev.style.display = 'flex';
+        next.style.display = 'flex';
+    } else {
+        prev.style.display = 'none';
+        next.style.display = 'none';
+    }
+    
+    carouselImages.forEach(function(src, idx) {
+        // Slide
+        var slide = document.createElement('div');
+        slide.style.cssText = 'min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
+        slide.innerHTML = '<img src="' + src + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">';
+        track.appendChild(slide);
+        
+        // Dot
+        var dot = document.createElement('button');
+        dot.style.cssText = 'width:8px;height:8px;border-radius:50%;border:none;cursor:pointer;transition:all 0.3s ease;background:' + (idx === 0 ? '#9a3a5a' : 'rgba(255,255,255,0.5)') + ';';
+        dot.onclick = function(e) { e.stopPropagation(); carouselGoTo(idx); };
+        dots.appendChild(dot);
+    });
+    
+    updateCarouselPosition();
+    
+    // Touch/swipe support
+    var carousel = document.getElementById('modalCarousel');
+    carousel.addEventListener('touchstart', function(e) {
+        carouselTouchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+    
+    carousel.addEventListener('touchend', function(e) {
+        var diff = carouselTouchStartX - e.changedTouches[0].screenX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) carouselMove(1);
+            else carouselMove(-1);
+        }
+    }, {passive: true});
+}
+
+function carouselMove(dir) {
+    if (carouselImages.length <= 1) return;
+    carouselCurrent += dir;
+    if (carouselCurrent < 0) carouselCurrent = carouselImages.length - 1;
+    if (carouselCurrent >= carouselImages.length) carouselCurrent = 0;
+    updateCarouselPosition();
+}
+
+function carouselGoTo(idx) {
+    carouselCurrent = idx;
+    updateCarouselPosition();
+}
+
+function updateCarouselPosition() {
+    var track = document.getElementById('modalCarouselTrack');
+    track.style.transform = 'translateX(-' + (carouselCurrent * 100) + '%)';
+    
+    var dots = document.getElementById('carouselDots').children;
+    for (var i = 0; i < dots.length; i++) {
+        if (i === carouselCurrent) {
+            dots[i].style.background = '#9a3a5a';
+            dots[i].style.width = '24px';
+            dots[i].style.borderRadius = '4px';
+        } else {
+            dots[i].style.background = 'rgba(255,255,255,0.5)';
+            dots[i].style.width = '8px';
+            dots[i].style.borderRadius = '50%';
+        }
+    }
+}
+
+// Modificar openProductModal para usar el carrusel
 function openProductModal(productId) {
     var card = document.querySelector('.product-card[data-id="' + productId + '"]');
     if (!card) return;
+    
     currentProductId = productId;
-    currentQty       = 1;
-    currentStock     = parseInt(card.getAttribute('data-stock')) || 0;
-    currentPrecio    = parseFloat(card.getAttribute('data-precio')) || 0;
+    currentQty = 1;
+    currentStock = parseInt(card.getAttribute('data-stock')) || 0;
+    currentPrecio = parseFloat(card.getAttribute('data-precio')) || 0;
+
+    // ── Inicializar carrusel ──
+    var imagenesAttr = card.getAttribute('data-imagenes');
+    var imagenes = [];
+    try {
+        imagenes = JSON.parse(imagenesAttr || '[]');
+    } catch(e) {
+        var img = card.getAttribute('data-imagen');
+        if (img) imagenes = [img];
+    }
+    initCarousel(imagenes);
 
     document.getElementById('modalNombre').textContent = card.getAttribute('data-nombre') || '';
 
@@ -567,19 +736,6 @@ function openProductModal(productId) {
         compWrap.style.display = 'block';
     } else {
         compWrap.style.display = 'none';
-    }
-
-    var imgSrc = card.getAttribute('data-imagen') || '';
-    var imgEl  = document.getElementById('modalImage');
-    var phEl   = document.getElementById('modalImagePlaceholder');
-    if (imgSrc) {
-        imgEl.src = imgSrc;
-        imgEl.alt = card.getAttribute('data-nombre') || '';
-        imgEl.style.display = 'block';
-        phEl.style.display  = 'none';
-    } else {
-        imgEl.style.display = 'none';
-        phEl.style.display  = 'flex';
     }
 
     actualizarStockUI();
@@ -902,6 +1058,42 @@ document.addEventListener('DOMContentLoaded', function() {
     var params = new URLSearchParams(window.location.search);
     if (params.get('exito')) showToast(decodeURIComponent(params.get('exito')));
 });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('user-menu-btn');
+        var dropdown = document.getElementById('user-menu-dropdown');
+        var icon = document.getElementById('user-menu-icon');
+        var container = document.getElementById('user-menu-container');
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            var isOpen = dropdown.classList.contains('hidden');
+            if (isOpen) {
+                dropdown.classList.remove('hidden');
+                icon.textContent = 'expand_less';
+            } else {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        }
+
+        btn.addEventListener('click', toggleMenu);
+
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+    });
 </script>
 </body>
 </html>

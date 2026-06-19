@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.quiddity.model.Catalogo;
+import com.quiddity.model.CatalogoImagen;
 import com.quiddity.util.ConexionDB;
 
 public class CatalogoDAO {
 
-    // ─── INSERT ────────────────────────────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════
+    // CRUD BÁSICO (existente, sin cambios en firma)
+    // ═══════════════════════════════════════════════════════════════════════
 
     public boolean crear(Catalogo catalogo) {
         String sql = """
@@ -21,7 +24,7 @@ public class CatalogoDAO {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection con = ConexionDB.getConnection();
-                PreparedStatement ps = con.prepareStatement(sql)) {
+                PreparedStatement ps = con.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, catalogo.getNombre());
             ps.setString(2, catalogo.getDescripcion());
@@ -32,15 +35,27 @@ public class CatalogoDAO {
             ps.setString(7, catalogo.getCategoria());
             ps.setString(8, catalogo.getMarca());
 
-            return ps.executeUpdate() > 0;
+            int affected = ps.executeUpdate();
+            
+            // Obtener el ID generado para poder insertar imágenes adicionales
+            if (affected > 0 && !catalogo.getImagenes().isEmpty()) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int newId = rs.getInt(1);
+                        for (CatalogoImagen img : catalogo.getImagenes()) {
+                            img.setCatalogoId(newId);
+                            agregarImagen(img);
+                        }
+                    }
+                }
+            }
+            return affected > 0;
 
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al crear: " + e.getMessage());
             return false;
         }
     }
-
-    // ─── SELECT ALL ────────────────────────────────────────────────────────────
 
     public List<Catalogo> listarTodos() {
         List<Catalogo> lista = new ArrayList<>();
@@ -50,15 +65,13 @@ public class CatalogoDAO {
                 ResultSet rs = ps.executeQuery()) {
 
             while (rs.next())
-                lista.add(mapear(rs));
+                lista.add(mapearConImagenes(rs, con));
 
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al listar: " + e.getMessage());
         }
         return lista;
     }
-
-    // ─── SELECT BY ID ──────────────────────────────────────────────────────────
 
     public Catalogo obtenerPorId(int id) {
         String sql = "SELECT * FROM catalogo WHERE id = ?";
@@ -68,7 +81,7 @@ public class CatalogoDAO {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next())
-                    return mapear(rs);
+                    return mapearConImagenes(rs, con);
             }
 
         } catch (SQLException e) {
@@ -76,8 +89,6 @@ public class CatalogoDAO {
         }
         return null;
     }
-
-    // ─── SELECT BY CATEGORIA ───────────────────────────────────────────────────
 
     public List<Catalogo> listarPorCategoria(String categoria) {
         List<Catalogo> lista = new ArrayList<>();
@@ -88,7 +99,7 @@ public class CatalogoDAO {
             ps.setString(1, categoria);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next())
-                    lista.add(mapear(rs));
+                    lista.add(mapearConImagenes(rs, con));
             }
 
         } catch (SQLException e) {
@@ -96,8 +107,6 @@ public class CatalogoDAO {
         }
         return lista;
     }
-
-    // ─── SELECT BY MARCA ───────────────────────────────────────────────────────
 
     public List<Catalogo> listarPorMarca(String marca) {
         List<Catalogo> lista = new ArrayList<>();
@@ -108,7 +117,7 @@ public class CatalogoDAO {
             ps.setString(1, marca);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next())
-                    lista.add(mapear(rs));
+                    lista.add(mapearConImagenes(rs, con));
             }
 
         } catch (SQLException e) {
@@ -116,9 +125,6 @@ public class CatalogoDAO {
         }
         return lista;
     }
-
-    // ─── BÚSQUEDA POR NOMBRE ───────────────────────────────────────────────────
-    // Para barra de búsqueda — coincidencia parcial.
 
     public List<Catalogo> buscarPorNombre(String termino) {
         List<Catalogo> lista = new ArrayList<>();
@@ -129,7 +135,7 @@ public class CatalogoDAO {
             ps.setString(1, "%" + termino + "%");
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next())
-                    lista.add(mapear(rs));
+                    lista.add(mapearConImagenes(rs, con));
             }
 
         } catch (SQLException e) {
@@ -137,8 +143,6 @@ public class CatalogoDAO {
         }
         return lista;
     }
-
-    // ─── LISTAR CON STOCK DISPONIBLE ───────────────────────────────────────────
 
     public List<Catalogo> listarConStock() {
         List<Catalogo> lista = new ArrayList<>();
@@ -148,15 +152,13 @@ public class CatalogoDAO {
                 ResultSet rs = ps.executeQuery()) {
 
             while (rs.next())
-                lista.add(mapear(rs));
+                lista.add(mapearConImagenes(rs, con));
 
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al listar con stock: " + e.getMessage());
         }
         return lista;
     }
-
-    // ─── UPDATE ────────────────────────────────────────────────────────────────
 
     public boolean actualizar(Catalogo catalogo) {
         String sql = """
@@ -185,8 +187,6 @@ public class CatalogoDAO {
         }
     }
 
-    // ─── UPDATE STOCK (descontar al comprar) ───────────────────────────────────
-
     public boolean descontarStock(int id, int cantidad) {
         String sql = "UPDATE catalogo SET stock = stock - ? WHERE id = ? AND stock >= ?";
         try (Connection con = ConexionDB.getConnection();
@@ -194,8 +194,7 @@ public class CatalogoDAO {
 
             ps.setInt(1, cantidad);
             ps.setInt(2, id);
-            ps.setInt(3, cantidad); // evita stock negativo
-
+            ps.setInt(3, cantidad);
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -203,8 +202,6 @@ public class CatalogoDAO {
             return false;
         }
     }
-
-    // ─── DELETE ────────────────────────────────────────────────────────────────
 
     public boolean eliminar(int id) {
         String sql = "DELETE FROM catalogo WHERE id = ?";
@@ -220,24 +217,7 @@ public class CatalogoDAO {
         }
     }
 
-    // ─── MAPPER ────────────────────────────────────────────────────────────────
-
-    private Catalogo mapear(ResultSet rs) throws SQLException {
-        return new Catalogo(
-                rs.getInt("id"),
-                rs.getString("nombre"),
-                rs.getString("descripcion"),
-                rs.getString("componentes"),
-                rs.getDouble("precio"),
-                rs.getInt("stock"),
-                rs.getString("imagen"),
-                rs.getString("categoria"),
-                rs.getString("marca"),
-                rs.getBoolean("me_gusta"),
-                rs.getBoolean("activo"));
-    }
-    // ─── SOFT DELETE
-    // ───────────────────────────────────────────────────────────────
+    // ─── SOFT DELETE ─────────────────────────────────────────────────────────
 
     public boolean desactivar(int id) {
         String sql = "UPDATE catalogo SET activo = false WHERE id = ?";
@@ -263,8 +243,7 @@ public class CatalogoDAO {
         }
     }
 
-    // ─── LISTAR FILTRADOS
-    // ──────────────────────────────────────────────────────────
+    // ─── LISTAR FILTRADOS ────────────────────────────────────────────────────
 
     public List<Catalogo> listarActivos() {
         List<Catalogo> lista = new ArrayList<>();
@@ -273,7 +252,7 @@ public class CatalogoDAO {
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next())
-                lista.add(mapear(rs));
+                lista.add(mapearConImagenes(rs, con));
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al listar activos: " + e.getMessage());
         }
@@ -287,7 +266,7 @@ public class CatalogoDAO {
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next())
-                lista.add(mapear(rs));
+                lista.add(mapearConImagenes(rs, con));
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al listar inactivos: " + e.getMessage());
         }
@@ -302,7 +281,7 @@ public class CatalogoDAO {
             ps.setInt(1, umbral);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next())
-                    lista.add(mapear(rs));
+                    lista.add(mapearConImagenes(rs, con));
             }
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al listar bajo stock: " + e.getMessage());
@@ -317,7 +296,7 @@ public class CatalogoDAO {
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next())
-                lista.add(mapear(rs));
+                lista.add(mapearConImagenes(rs, con));
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al listar sin stock: " + e.getMessage());
         }
@@ -331,19 +310,17 @@ public class CatalogoDAO {
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery()) {
             while (rs.next())
-                lista.add(mapear(rs));
+                lista.add(mapearConImagenes(rs, con));
         } catch (SQLException e) {
             System.err.println("[CatalogoDAO] Error al listar todos (admin): " + e.getMessage());
         }
         return lista;
     }
 
-    // ─── GESTIÓN DE STOCK INLINE
-    // ───────────────────────────────────────────────────
+    // ─── GESTIÓN DE STOCK INLINE ─────────────────────────────────────────────
 
     public boolean actualizarStock(int id, int nuevoStock) {
-        if (nuevoStock < 0)
-            return false;
+        if (nuevoStock < 0) return false;
         String sql = "UPDATE catalogo SET stock = ? WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
@@ -357,8 +334,7 @@ public class CatalogoDAO {
     }
 
     public boolean aumentarStock(int id, int cantidad) {
-        if (cantidad <= 0)
-            return false;
+        if (cantidad <= 0) return false;
         String sql = "UPDATE catalogo SET stock = stock + ? WHERE id = ?";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
@@ -372,8 +348,7 @@ public class CatalogoDAO {
     }
 
     public boolean disminuirStock(int id, int cantidad) {
-        if (cantidad <= 0)
-            return false;
+        if (cantidad <= 0) return false;
         String sql = "UPDATE catalogo SET stock = stock - ? WHERE id = ? AND stock >= ?";
         try (Connection con = ConexionDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql)) {
@@ -386,9 +361,6 @@ public class CatalogoDAO {
             return false;
         }
     }
-
-    // ─── ACTUALIZAR IMAGEN
-    // ─────────────────────────────────────────────────────────
 
     public boolean actualizarImagen(int id, String nuevaRutaImagen) {
         String sql = "UPDATE catalogo SET imagen = ? WHERE id = ?";
@@ -403,8 +375,7 @@ public class CatalogoDAO {
         }
     }
 
-    // ─── CATEGORÍAS CON CONTEO
-    // ─────────────────────────────────────────────────────
+    // ─── CATEGORÍAS CON CONTEO ───────────────────────────────────────────────
 
     public List<Map<String, Object>> getCategoriaConConteo() {
         List<Map<String, Object>> resultado = new ArrayList<>();
@@ -433,9 +404,7 @@ public class CatalogoDAO {
         return resultado;
     }
 
-    // ─── BÚSQUEDA CON FILTROS COMBINADOS
-    // ──────────────────────────────────────────
-    // estado: "activo", "inactivo", "bajo_stock", "sin_stock" — null para ignorar
+    // ─── BÚSQUEDA CON FILTROS COMBINADOS ─────────────────────────────────────
 
     public List<Catalogo> buscarConFiltros(String categoria, String estado, String termino) {
         List<Catalogo> lista = new ArrayList<>();
@@ -468,7 +437,7 @@ public class CatalogoDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next())
-                    lista.add(mapear(rs));
+                    lista.add(mapearConImagenes(rs, con));
             }
 
         } catch (SQLException e) {
@@ -477,9 +446,6 @@ public class CatalogoDAO {
         return lista;
     }
 
-    /**
-     * Obtiene productos por lista de IDs
-     */
     public List<Catalogo> obtenerPorIds(List<Integer> ids) {
         List<Catalogo> resultado = new ArrayList<>();
         if (ids == null || ids.isEmpty()) {
@@ -498,7 +464,7 @@ public class CatalogoDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    resultado.add(mapear(rs));
+                    resultado.add(mapearConImagenes(rs, conn));
                 }
             }
         } catch (SQLException e) {
@@ -507,4 +473,146 @@ public class CatalogoDAO {
         return resultado;
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // NUEVOS MÉTODOS: GESTIÓN DE IMÁGENES ADICIONALES
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Obtiene todas las imágenes de un producto
+     */
+    public List<CatalogoImagen> getImagenesByProducto(int catalogoId) {
+        List<CatalogoImagen> lista = new ArrayList<>();
+        String sql = "SELECT * FROM catalogo_imagenes WHERE catalogo_id = ? ORDER BY es_principal DESC, orden ASC, id ASC";
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, catalogoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearImagen(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[CatalogoDAO] Error al obtener imágenes: " + e.getMessage());
+        }
+        return lista;
+    }
+
+    /**
+     * Agrega una imagen adicional
+     */
+    public boolean agregarImagen(CatalogoImagen imagen) {
+        String sql = "INSERT INTO catalogo_imagenes (catalogo_id, ruta_imagen, orden, es_principal) VALUES (?, ?, ?, ?)";
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, imagen.getCatalogoId());
+            ps.setString(2, imagen.getRutaImagen());
+            ps.setInt(3, imagen.getOrden());
+            ps.setBoolean(4, imagen.isEsPrincipal());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[CatalogoDAO] Error al agregar imagen: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Elimina una imagen por ID
+     */
+    public boolean eliminarImagen(int imagenId) {
+        String sql = "DELETE FROM catalogo_imagenes WHERE id = ?";
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, imagenId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[CatalogoDAO] Error al eliminar imagen: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Elimina TODAS las imágenes de un producto (útil para hard delete)
+     */
+    public boolean eliminarImagenesByProducto(int catalogoId) {
+        String sql = "DELETE FROM catalogo_imagenes WHERE catalogo_id = ?";
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, catalogoId);
+            return ps.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            System.err.println("[CatalogoDAO] Error al eliminar imágenes del producto: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Establece una imagen como principal
+     */
+    public boolean setImagenPrincipal(int catalogoId, int imagenId) {
+        // El trigger en PostgreSQL ya se encarga de quitar principal a las demás
+        String sql = "UPDATE catalogo_imagenes SET es_principal = true WHERE id = ? AND catalogo_id = ?";
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, imagenId);
+            ps.setInt(2, catalogoId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[CatalogoDAO] Error al setear imagen principal: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Actualiza el orden de una imagen
+     */
+    public boolean actualizarOrdenImagen(int imagenId, int nuevoOrden) {
+        String sql = "UPDATE catalogo_imagenes SET orden = ? WHERE id = ?";
+        try (Connection con = ConexionDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, nuevoOrden);
+            ps.setInt(2, imagenId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[CatalogoDAO] Error al actualizar orden: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // MAPPERS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    private Catalogo mapear(ResultSet rs) throws SQLException {
+        return new Catalogo(
+                rs.getInt("id"),
+                rs.getString("nombre"),
+                rs.getString("descripcion"),
+                rs.getString("componentes"),
+                rs.getDouble("precio"),
+                rs.getInt("stock"),
+                rs.getString("imagen"),
+                rs.getString("categoria"),
+                rs.getString("marca"),
+                rs.getBoolean("me_gusta"),
+                rs.getBoolean("activo"));
+    }
+
+    /**
+     * Mapea un Catalogo Y carga sus imágenes adicionales
+     */
+    private Catalogo mapearConImagenes(ResultSet rs, Connection con) throws SQLException {
+        Catalogo c = mapear(rs);
+        // Cargar imágenes adicionales usando la misma conexión
+        c.setImagenes(getImagenesByProducto(c.getId()));
+        return c;
+    }
+
+    private CatalogoImagen mapearImagen(ResultSet rs) throws SQLException {
+        return new CatalogoImagen(
+                rs.getInt("id"),
+                rs.getInt("catalogo_id"),
+                rs.getString("ruta_imagen"),
+                rs.getInt("orden"),
+                rs.getBoolean("es_principal"));
+    }
 }

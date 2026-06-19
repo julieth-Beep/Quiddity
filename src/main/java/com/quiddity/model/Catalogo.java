@@ -1,5 +1,8 @@
 package com.quiddity.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Catalogo {
 
     private int id;
@@ -13,6 +16,8 @@ public class Catalogo {
     private String marca;
     private boolean meGusta;
     private boolean activo;
+
+    private List<CatalogoImagen> imagenes = new ArrayList<>();
 
     public Catalogo() {
     }
@@ -122,4 +127,22 @@ public class Catalogo {
         this.activo = activo;
     }
 
+    public List<CatalogoImagen> getImagenes() { return imagenes; }
+    public void setImagenes(List<CatalogoImagen> imagenes) { this.imagenes = imagenes; }
+
+    // Helper: obtener solo las imágenes NO principales (para el carrusel)
+    public List<CatalogoImagen> getImagenesAdicionales() {
+        List<CatalogoImagen> adicionales = new ArrayList<>();
+        for (CatalogoImagen img : imagenes) {
+            if (!img.isEsPrincipal()) {
+                adicionales.add(img);
+            }
+        }
+        return adicionales;
+    }
+    
+    // Helper: contar total de imágenes
+    public int getTotalImagenes() {
+        return imagenes.size();
+    }
 }

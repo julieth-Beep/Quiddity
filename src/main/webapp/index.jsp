@@ -279,7 +279,7 @@
             <nav class="hidden md:flex gap-8">
                 <%-- Si está logueado como comprador o usuario, el enlace "Shop" va al catálogo completo
                     --%>
-                    <% String shopLink=(isComprador || isUsuario) ? ctx + "/comprador/catalogo.jsp" :
+                    <% String shopLink=(isComprador || isUsuario) ? ctx + "/catalogo" :
                         ctx + "/catalogo.jsp" ; %>
                             <a class="font-label-md text-label-md uppercase hover:text-primary transition-colors"
                                 href="<%= shopLink %>">Shop</a>
@@ -299,30 +299,37 @@
                     class="font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary transition-colors">Login</a>
                 <a href="<%= ctx %>/registro.jsp"
                     class="font-label-md text-label-md uppercase tracking-widest px-6 py-2.5 bg-primary text-white hover:bg-tertiary transition-all duration-300 active:scale-95">Registro</a>
-                <% } else { %>
-                    <!-- Usuario logueado: muestra menú de cuenta -->
-                    <div class="w-px h-5 bg-outline/20"></div>
-                    <div class="relative group">
-                        <button
-                            class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary">
-                            <%= currentUser.getNombre() %>
-                                <span class="material-symbols-outlined text-sm">expand_more</span>
-                        </button>
-                        <div
-                            class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
+            <% } else { %>
+                <!-- Usuario logueado: menú de cuenta con click -->
+                <div class="w-px h-5 bg-outline/20"></div>
+                <div class="relative" id="user-menu-container">
+                    <button id="user-menu-btn"
+                        class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary transition-colors">
+                        <%= currentUser.getNombre() %>
+                        <span id="user-menu-icon" class="material-symbols-outlined text-sm transition-transform duration-200">expand_more</span>
+                    </button>
+                    <div id="user-menu-dropdown"
+                        class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50 rounded-md">
+                        <% if (isAdmin) { %>
+                            <a href="<%= ctx %>/admin/dashboard"
+                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                        <% } else if (isUsuario) { %>
+                            <a href="<%= ctx %>/usuario/dashboard"
+                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                        <% } else { %>
                             <a href="<%= ctx %>/comprador/perfil.jsp"
-                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi
-                                Perfil</a>
-                            <a href="<%= ctx %>/comprador/compras.jsp"
-                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis
-                                Compras</a>
-                            <div class="border-t my-1"></div>
-                            <a href="<%= ctx %>/logout"
-                                class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar
-                                sesión</a>
-                        </div>
+                                class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
+                        <% } %>
+                        <a href="<%= ctx %>/pedidos"
+                            class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
+                        <a href="<%= ctx %>/carrito"
+                            class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Carrito</a>
+                        <div class="border-t my-1"></div>
+                        <a href="<%= ctx %>/logout"
+                            class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
                     </div>
-                    <% } %>
+                </div>
+            <% } %>
         </div>
     </header>
 
@@ -894,6 +901,48 @@
             });
         });
     </script>
+    <script>
+        // ── Menú de usuario con click (no hover) ──
+        document.addEventListener('DOMContentLoaded', function() {
+            var container = document.getElementById('user-menu-container');
+            if (!container) return;
+
+            var btn = document.getElementById('user-menu-btn');
+            var dropdown = document.getElementById('user-menu-dropdown');
+            var icon = document.getElementById('user-menu-icon');
+
+            function toggleMenu(e) {
+                e.stopPropagation();
+                var isOpen = dropdown.classList.contains('hidden');
+                if (isOpen) {
+                    dropdown.classList.remove('hidden');
+                    icon.textContent = 'expand_less';
+                } else {
+                    dropdown.classList.add('hidden');
+                    icon.textContent = 'expand_more';
+                }
+            }
+
+            btn.addEventListener('click', toggleMenu);
+
+            // Cerrar al hacer clic fuera del menú
+            document.addEventListener('click', function(e) {
+                if (!container.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                    icon.textContent = 'expand_more';
+                }
+            });
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                    icon.textContent = 'expand_more';
+                }
+            });
+        });
+    </script>
+
     <%@ include file="chatbot.jsp" %>
 
 </body>

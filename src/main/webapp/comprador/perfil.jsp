@@ -184,15 +184,16 @@
             <span class="material-symbols-outlined">shopping_bag</span>
             <span class="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">2</span>
         </a>
-        <div class="relative group">
-            <button class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary">
+        <div class="relative" id="user-menu-container">
+            <button id="user-menu-btn" class="flex items-center gap-2 font-label-md text-label-md uppercase tracking-widest text-on-surface hover:text-primary">
                 <%= user.getNombre() %>
-                <span class="material-symbols-outlined text-sm">expand_more</span>
+                <span id="user-menu-icon" class="material-symbols-outlined text-sm">expand_more</span>
             </button>
-            <div class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden group-hover:block z-50">
-                <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-primary bg-surface-variant">Mi Perfil</a>
+            <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white shadow-lg border border-outline/10 hidden z-50">
+                <a href="<%= ctx %>/comprador/perfil.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mi Perfil</a>
                 <a href="<%= ctx %>/comprador/compras.jsp" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Compras</a>
                 <div class="border-t my-1"></div>
+                <a href="<%= ctx %>/pedidos" class="block px-4 py-2 text-sm text-on-surface hover:bg-surface-variant">Mis Pedidos</a>
                 <a href="<%= ctx %>/logout" class="block px-4 py-2 text-sm text-primary hover:bg-surface-variant">Cerrar sesión</a>
             </div>
         </div>
@@ -490,6 +491,44 @@
     // Cerrar modal al hacer clic fuera
     document.getElementById('modalRol').addEventListener('click', function(e) {
         if (e.target === this) cerrarModal();
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.getElementById('user-menu-btn');
+        var dropdown = document.getElementById('user-menu-dropdown');
+        var icon = document.getElementById('user-menu-icon');
+        var container = document.getElementById('user-menu-container');
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            var isOpen = dropdown.classList.contains('hidden');
+            if (isOpen) {
+                dropdown.classList.remove('hidden');
+                icon.textContent = 'expand_less';
+            } else {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        }
+
+        btn.addEventListener('click', toggleMenu);
+
+        // Cerrar al hacer clic fuera del menú
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        // Opcional: cerrar al presionar Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+                icon.textContent = 'expand_more';
+            }
+        });
     });
 </script>
 </body>

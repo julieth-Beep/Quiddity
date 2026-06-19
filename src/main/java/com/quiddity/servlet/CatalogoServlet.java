@@ -1,4 +1,5 @@
 package com.quiddity.servlet;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,6 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -25,19 +28,19 @@ import com.quiddity.dao.CatalogoDAO;
 import com.quiddity.dao.CatalogoEstadisticasDAO;
 import com.quiddity.dao.PedidoDAO;
 import com.quiddity.model.Catalogo;
+import com.quiddity.model.CatalogoImagen;
 import com.quiddity.model.Pedido;
 import com.quiddity.model.Usuario;
 
 /**
  * CatalogoServlet
  *
- * GET /catalogo → catálogo para compradores/usuarios
- * GET /admin/catalogo → panel de productos (admin)
- * POST /admin/catalogo → acciones: agregar, actualizar, eliminar, stock, toggleActivo
- * GET /admin/pedidos → panel de pedidos (admin)
- * POST /admin/pedidos → acción: avanzarEstado
- * GET /admin/pedidos/detalle → detalle de un pedido (admin)
- * GET /admin/estadisticas → panel de estadísticas (admin)
+ * GET /catalogo → catálogo para compradores/usuarios GET /admin/catalogo →
+ * panel de productos (admin) POST /admin/catalogo → acciones: agregar,
+ * actualizar, eliminar, stock, toggleActivo GET /admin/pedidos → panel de
+ * pedidos (admin) POST /admin/pedidos → acción: avanzarEstado GET
+ * /admin/pedidos/detalle → detalle de un pedido (admin) GET /admin/estadisticas
+ * → panel de estadísticas (admin)
  */
 @WebServlet(urlPatterns = {
     "/catalogo",
@@ -187,10 +190,6 @@ public class CatalogoServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
-        if (usuario.getIdRol() == ROL_ADMIN) {
-            resp.sendRedirect(req.getContextPath() + "/admin/catalogo");
-            return;
-        }
 
         String categoria = req.getParameter("categoria");
         String marca = req.getParameter("marca");
@@ -204,7 +203,6 @@ public class CatalogoServlet extends HttpServlet {
         } else if (marca != null && !marca.isBlank()) {
             productos = catalogoDAO.listarPorMarca(marca);
         } else {
-            // Solo productos activos con stock
             productos = catalogoDAO.listarActivos();
         }
 
@@ -309,6 +307,9 @@ public class CatalogoServlet extends HttpServlet {
             case "toggleActivo":
                 accionToggleActivo(req, resp);
                 break;
+            case "eliminarImagen":
+                accionEliminarImagen(req, resp);
+                break;
             default:
                 resp.sendRedirect(req.getContextPath() + "/admin/catalogo");
         }
@@ -325,8 +326,6 @@ public class CatalogoServlet extends HttpServlet {
         String marca = getParam(req, "marca");
         double precio = parseDouble(req.getParameter("precio"), 0);
         int stock = parseInt(req.getParameter("stock"), 0);
-        
-        // Ruta de subcategoría para la estructura de carpetas (ej: cuidado/skincare/cremas)
         String rutaCategoria = getParam(req, "rutaCategoria");
 
         if (nombre == null || nombre.isBlank() || precio <= 0) {
@@ -334,6 +333,7 @@ public class CatalogoServlet extends HttpServlet {
             return;
         }
 
+        // ── Imagen principal ──
         String imagenNombre = null;
         Part filePart = req.getPart("imagen");
         if (filePart != null && filePart.getSize() > 0) {
@@ -345,6 +345,7 @@ public class CatalogoServlet extends HttpServlet {
             }
         }
 
+        // Crear producto
         Catalogo c = new Catalogo();
         c.setNombre(nombre);
         c.setDescripcion(nvl(descripcion));
@@ -356,12 +357,32 @@ public class CatalogoServlet extends HttpServlet {
         c.setMarca(nvl(marca));
         c.setActivo(true);
 
+        // ── Imágenes adicionales ──
+        List<CatalogoImagen> imagenesAdicionales = new ArrayList<>();
+        Collection<Part> parts = req.getParts();
+        int orden = 1;
+        for (Part part : parts) {
+            if ("imagenesAdicionales".equals(part.getName()) && part.getSize() > 0) {
+                String rutaImg = guardarImagen(part, rutaCategoria, nombre + "_gal" + orden);
+                if (rutaImg != null) {
+                    CatalogoImagen img = new CatalogoImagen();
+                    img.setRutaImagen(rutaImg);
+                    img.setOrden(orden);
+                    img.setEsPrincipal(false);
+                    imagenesAdicionales.add(img);
+                    orden++;
+                }
+            }
+        }
+        c.setImagenes(imagenesAdicionales);
+
         boolean ok = catalogoDAO.crear(c);
         redirigir(req, resp, "/admin/catalogo",
                 ok ? "exito" : "error",
                 ok ? "Producto agregado correctamente." : "No se pudo agregar el producto.");
     }
 
+    // ── Actualizar producto ─────────────────────────────────────────────────
     // ── Actualizar producto ─────────────────────────────────────────────────
     private void accionActualizar(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
@@ -385,11 +406,18 @@ public class CatalogoServlet extends HttpServlet {
         String marca = getParam(req, "marca");
         double precio = parseDouble(req.getParameter("precio"), 0);
         int stock = parseInt(req.getParameter("stock"), 0);
-        
+
         // Ruta de subcategoría para la estructura de carpetas
         String rutaCategoria = getParam(req, "rutaCategoria");
 
-        // Nueva imagen opcional
+        // ── Validaciones mínimas ──
+        if (nombre == null || nombre.isBlank() || precio <= 0) {
+            redirigir(req, resp, "/admin/catalogo/form?accion=editar&id=" + id,
+                    "error", "Nombre y precio son obligatorios.");
+            return;
+        }
+
+        // ── Imagen principal: nueva o conservar la actual ──
         String imagenNombre = actual.getImagen();
         Part filePart = req.getPart("imagen");
         if (filePart != null && filePart.getSize() > 0) {
@@ -398,8 +426,40 @@ public class CatalogoServlet extends HttpServlet {
                 borrarImagenDisco(imagenNombre);
             }
             imagenNombre = guardarImagen(filePart, rutaCategoria, nombre);
+            if (imagenNombre == null) {
+                redirigir(req, resp, "/admin/catalogo/form?accion=editar&id=" + id,
+                        "error", "Imagen principal inválida. Use JPG, PNG o GIF (máx. 10 MB).");
+                return;
+            }
         }
 
+        // ── Imágenes adicionales (galería) ──
+        // Procesar nuevas imágenes subidas desde el formulario
+        Collection<Part> parts = req.getParts();
+        int ordenBase = actual.getImagenes() != null ? actual.getImagenes().size() : 0;
+        int orden = ordenBase + 1;
+        int nuevasImagenes = 0;
+
+        for (Part part : parts) {
+            if ("imagenesAdicionales".equals(part.getName()) && part.getSize() > 0) {
+                String rutaImg = guardarImagen(part, rutaCategoria, nombre + "_gal" + orden);
+                if (rutaImg != null) {
+                    CatalogoImagen img = new CatalogoImagen();
+                    img.setCatalogoId(id);
+                    img.setRutaImagen(rutaImg);
+                    img.setOrden(orden);
+                    img.setEsPrincipal(false);
+
+                    boolean okImg = catalogoDAO.agregarImagen(img);
+                    if (okImg) {
+                        nuevasImagenes++;
+                        orden++;
+                    }
+                }
+            }
+        }
+
+        // ── Actualizar campos del producto ──
         actual.setNombre(nvl(nombre));
         actual.setDescripcion(nvl(descripcion));
         actual.setComponentes(nvl(componentes));
@@ -410,9 +470,14 @@ public class CatalogoServlet extends HttpServlet {
         actual.setMarca(nvl(marca));
 
         boolean ok = catalogoDAO.actualizar(actual);
-        redirigir(req, resp, "/admin/catalogo",
-                ok ? "exito" : "error",
-                ok ? "Producto actualizado." : "No se pudo actualizar el producto.");
+
+        String mensaje = ok ? "Producto actualizado" : "No se pudo actualizar el producto";
+        if (ok && nuevasImagenes > 0) {
+            mensaje += " (" + nuevasImagenes + " imagen" + (nuevasImagenes > 1 ? "es" : "") + " agregada" + (nuevasImagenes > 1 ? "s" : "") + ")";
+        }
+
+        redirigir(req, resp, "/admin/catalogo/form?accion=editar&id=" + id,
+                ok ? "exito" : "error", mensaje);
     }
 
     // ── Eliminar producto (soft o hard) ─────────────────────────────────────
@@ -514,7 +579,7 @@ public class CatalogoServlet extends HttpServlet {
         redirigir(req, resp, "/admin/catalogo", ok ? "exito" : "error", mensaje);
     }
 
-        // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
     // GET /admin/pedidos — listado de pedidos con filtros (CORREGIDO)
     // ─────────────────────────────────────────────────────────────────────────
     private void adminPedidosGet(HttpServletRequest req, HttpServletResponse resp)
@@ -590,7 +655,7 @@ public class CatalogoServlet extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/admin/detallePedido.jsp").forward(req, resp);
     }
 
-        // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
     // POST /admin/pedidos — acciones: avanzarEstado, cambiarEstado
     // ─────────────────────────────────────────────────────────────────────────
     private void adminPedidosPost(HttpServletRequest req, HttpServletResponse resp)
@@ -684,10 +749,10 @@ public class CatalogoServlet extends HttpServlet {
     // ═════════════════════════════════════════════════════════════════════════
     // MANEJO DE IMÁGENES - CORREGIDO PARA RUTAS DE CATEGORÍA
     // ═════════════════════════════════════════════════════════════════════════
-    
     /**
-     * Extrae el nombre de archivo de un Part desde el header Content-Disposition.
-     * Compatible con Servlet 3.0 (Tomcat 7) — no usa getSubmittedFileName().
+     * Extrae el nombre de archivo de un Part desde el header
+     * Content-Disposition. Compatible con Servlet 3.0 (Tomcat 7) — no usa
+     * getSubmittedFileName().
      */
     private String getFileNameFromPart(Part part) {
         String contentDisp = part.getHeader("content-disposition");
@@ -722,13 +787,16 @@ public class CatalogoServlet extends HttpServlet {
     }
 
     /**
-     * Guarda la imagen en uploads/catalogo/<ruta_categoria>/<nombre_limpio>.<ext>.
-     * 
+     * Guarda la imagen en
+     * uploads/catalogo/<ruta_categoria>/<nombre_limpio>.<ext>.
+     *
      * @param filePart Parte del archivo subido
-     * @param rutaCategoria Ruta de categoría tipo "cuidado/skincare/cremas" (puede ser null)
+     * @param rutaCategoria Ruta de categoría tipo "cuidado/skincare/cremas"
+     * (puede ser null)
      * @param nombreProducto Nombre del producto para generar nombre limpio
-     * @return Ruta relativa completa para BD: "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg"
-     *         o null si hay error de validación.
+     * @return Ruta relativa completa para BD:
+     * "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg" o null si hay
+     * error de validación.
      */
     private String guardarImagen(Part filePart, String rutaCategoria, String nombreProducto) throws IOException {
         // Validar tipo MIME
@@ -780,8 +848,7 @@ public class CatalogoServlet extends HttpServlet {
         }
 
         // Guardar archivo en disco
-        try (InputStream input = filePart.getInputStream(); 
-             FileOutputStream output = new FileOutputStream(filePath)) {
+        try (InputStream input = filePart.getInputStream(); FileOutputStream output = new FileOutputStream(filePath)) {
             byte[] buffer = new byte[4096];
             int len;
             while ((len = input.read(buffer)) > 0) {
@@ -796,8 +863,8 @@ public class CatalogoServlet extends HttpServlet {
 
     /**
      * Borra la imagen del disco. La ruta en BD tiene el formato:
-     * "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg"
-     * o rutas antiguas como "cuidado_corporal/uuid_file.jpg"
+     * "uploads/catalogo/cuidado/skincare/cremas/vitamin_c.jpg" o rutas antiguas
+     * como "cuidado_corporal/uuid_file.jpg"
      */
     private void borrarImagenDisco(String imagenRelativa) {
         if (imagenRelativa == null || imagenRelativa.isBlank()) {
@@ -811,7 +878,7 @@ public class CatalogoServlet extends HttpServlet {
 
         String basePath = getServletContext().getRealPath("") + File.separator;
         Path filePath;
-        
+
         // Si la ruta ya empieza con "uploads/", usarla directamente
         if (imagenRelativa.startsWith("uploads/")) {
             filePath = Paths.get(basePath, imagenRelativa);
@@ -819,7 +886,7 @@ public class CatalogoServlet extends HttpServlet {
             // Ruta antigua: compatibilidad hacia atrás
             filePath = Paths.get(basePath, UPLOAD_ROOT, imagenRelativa);
         }
-        
+
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
@@ -830,12 +897,11 @@ public class CatalogoServlet extends HttpServlet {
     // ═════════════════════════════════════════════════════════════════════════
     // HELPERS - NUEVOS PARA SANITIZACIÓN DE RUTAS Y NOMBRES
     // ═════════════════════════════════════════════════════════════════════════
-    
     /**
-     * Sanitiza una ruta de categoría con múltiples niveles.
-     * Convierte "cuidado/skinCare/cremas" → "cuidado/skincare/cremas"
-     * Quita espacios, acentos, caracteres especiales. Normaliza separadores.
-     * 
+     * Sanitiza una ruta de categoría con múltiples niveles. Convierte
+     * "cuidado/skinCare/cremas" → "cuidado/skincare/cremas" Quita espacios,
+     * acentos, caracteres especiales. Normaliza separadores.
+     *
      * @param ruta Ruta de categoría tipo "cuidado/skincare/cremas" o null
      * @return Ruta sanitizada, nunca null (devuelve "general" si está vacía)
      */
@@ -843,19 +909,21 @@ public class CatalogoServlet extends HttpServlet {
         if (ruta == null || ruta.isBlank()) {
             return "general";
         }
-        
+
         // Normalizar separadores a forward slash
         ruta = ruta.replace("\\", "/").trim();
         // Quitar slashes al inicio y final
         ruta = ruta.replaceAll("^/+", "").replaceAll("/+$", "");
-        
+
         String[] partes = ruta.split("/+");
         StringBuilder result = new StringBuilder();
-        
+
         for (String parte : partes) {
             parte = parte.trim();
-            if (parte.isEmpty()) continue;
-            
+            if (parte.isEmpty()) {
+                continue;
+            }
+
             // Quitar acentos y pasar a minúsculas
             parte = parte.toLowerCase()
                     .replaceAll("[áäâà]", "a")
@@ -866,27 +934,31 @@ public class CatalogoServlet extends HttpServlet {
                     .replaceAll("[ñ]", "n")
                     .replaceAll("[ç]", "c")
                     .replaceAll("[ýÿ]", "y");
-            
+
             // Reemplazar caracteres no alfanuméricos por underscore
             parte = parte.replaceAll("[^a-z0-9]", "_");
             // Colapsar múltiples underscores
             parte = parte.replaceAll("_+", "_");
             // Quitar underscores al inicio/final
             parte = parte.replaceAll("^_+|_+$", "");
-            
-            if (parte.isEmpty()) continue;
-            
-            if (result.length() > 0) result.append("/");
+
+            if (parte.isEmpty()) {
+                continue;
+            }
+
+            if (result.length() > 0) {
+                result.append("/");
+            }
             result.append(parte);
         }
-        
+
         return result.length() > 0 ? result.toString() : "general";
     }
 
     /**
      * Sanitiza el nombre del producto para usar como nombre de archivo.
      * Convierte "Sérum Vitamina C 20%" → "serum_vitamina_c_20"
-     * 
+     *
      * @param nombre Nombre del producto
      * @return Nombre sanitizado, nunca null
      */
@@ -894,7 +966,7 @@ public class CatalogoServlet extends HttpServlet {
         if (nombre == null || nombre.isBlank()) {
             return "producto";
         }
-        
+
         return nombre.trim().toLowerCase()
                 .replaceAll("[áäâà]", "a")
                 .replaceAll("[éëêè]", "e")
@@ -912,7 +984,6 @@ public class CatalogoServlet extends HttpServlet {
     // ═════════════════════════════════════════════════════════════════════════
     // HELPERS EXISTENTES
     // ═════════════════════════════════════════════════════════════════════════
-    
     private Usuario verificarAdmin(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
         HttpSession session = req.getSession(false);
@@ -966,7 +1037,8 @@ public class CatalogoServlet extends HttpServlet {
     }
 
     /**
-     * @deprecated Usar sanitizarRutaCategoria() en su lugar para soportar rutas anidadas
+     * @deprecated Usar sanitizarRutaCategoria() en su lugar para soportar rutas
+     * anidadas
      */
     @Deprecated
     private String sanitizarNombreDir(String nombre) {
@@ -1014,5 +1086,18 @@ public class CatalogoServlet extends HttpServlet {
 
         // Ajusta la ruta según donde hayas guardado formCatalogo.jsp
         req.getRequestDispatcher("/WEB-INF/admin/formCatalogo.jsp").forward(req, resp);
+    }
+
+    private void accionEliminarImagen(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        int imagenId = parseInt(req.getParameter("imagenId"), 0);
+        int productoId = parseInt(req.getParameter("productoId"), 0);
+
+        // Opcional: obtener ruta y borrar del disco
+        // (requiere método getImagenById en DAO)
+        boolean ok = catalogoDAO.eliminarImagen(imagenId);
+        redirigir(req, resp, "/admin/catalogo/form?accion=editar&id=" + productoId,
+                ok ? "exito" : "error",
+                ok ? "Imagen eliminada." : "No se pudo eliminar la imagen.");
     }
 }
