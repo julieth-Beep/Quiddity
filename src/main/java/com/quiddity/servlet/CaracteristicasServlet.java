@@ -70,7 +70,7 @@ public class CaracteristicasServlet extends HttpServlet {
             boolean ok = caracteristicasDAO.actualizar(existente);
 
             if (ok) {
-                resp.sendRedirect(req.getContextPath() + "/usuario");
+                resp.sendRedirect(req.getContextPath() + "/closet");
             } else {
                 req.setAttribute("error", "No se pudo guardar la informacion. Intentalo de nuevo.");
                 req.getRequestDispatcher("/WEB-INF/usuario/caracteristicas.jsp").forward(req, resp);
@@ -84,7 +84,7 @@ public class CaracteristicasServlet extends HttpServlet {
             boolean ok = caracteristicasDAO.crearParaUsuario(usuario.getId(), nueva);
 
             if (ok) {
-                resp.sendRedirect(req.getContextPath() + "/usuario");
+                resp.sendRedirect(req.getContextPath() + "/closet");
             } else {
                 req.setAttribute("error", "No se pudo guardar la informacion. Intentalo de nuevo.");
                 req.getRequestDispatcher("/WEB-INF/usuario/caracteristicas.jsp").forward(req, resp);
