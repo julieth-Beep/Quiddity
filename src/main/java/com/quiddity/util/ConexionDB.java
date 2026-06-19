@@ -1,18 +1,17 @@
 package com.quiddity.util;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
 public class ConexionDB {
 
-    private static String URL;
-    private static String USERNAME;
-    private static String PASSWORD;
-    private static String DRIVER;
+    private static HikariDataSource dataSource;
 
     static {
         try (InputStream input = ConexionDB.class
@@ -26,20 +25,45 @@ public class ConexionDB {
             Properties props = new Properties();
             props.load(input);
 
-            URL      = props.getProperty("db.url");
-            USERNAME = props.getProperty("db.username");
-            PASSWORD = props.getProperty("db.password");
-            DRIVER   = props.getProperty("db.driver");
+            String url      = props.getProperty("db.url");
+            String username = props.getProperty("db.username");
+            String password = props.getProperty("db.password");
+            String driver    = props.getProperty("db.driver");
 
-            Class.forName(DRIVER);
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl(url);
+            config.setUsername(username);
+            config.setPassword(password);
+            config.setDriverClassName(driver);
 
-        } catch (IOException | ClassNotFoundException e) {
+            // --- Tamaño del pool ---
+            // 5-10 conexiones es de sobra para un proyecto académico/pequeño.
+            // No subas esto sin necesidad: Supabase free tier tiene límite de conexiones simultáneas.
+            config.setMaximumPoolSize(10);
+            config.setMinimumIdle(2);
+
+            // --- Tiempos ---
+            config.setConnectionTimeout(10000);   // 10s máx esperando una conexión libre
+            config.setIdleTimeout(300000);        // 5 min antes de cerrar una conexión ociosa
+            config.setMaxLifetime(1700000);       // ~28 min, recicla conexiones antes de que Supabase las corte
+
+            // --- Validación rápida de conexión ---
+            config.setConnectionTestQuery("SELECT 1");
+
+            // --- Si usas el modo "pooler" de Supabase (puerto 6543), recomienda esto: ---
+            config.addDataSourceProperty("prepareThreshold", "0");
+
+            config.setPoolName("QuidditPool");
+
+            dataSource = new HikariDataSource(config);
+
+        } catch (IOException e) {
             throw new RuntimeException("Error al inicializar ConexionDB: " + e.getMessage(), e);
         }
     }
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        return dataSource.getConnection();
     }
 
     // Opcional: para cerrar recursos desde los DAO
@@ -49,6 +73,13 @@ public class ConexionDB {
                 try { r.close(); }
                 catch (Exception e) { e.printStackTrace(); }
             }
+        }
+    }
+
+    // Llamar esto solo si necesitas apagar el pool manualmente (ej. en un ServletContextListener al destruir el contexto)
+    public static void shutdown() {
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
         }
     }
 }
