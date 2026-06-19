@@ -1,26 +1,27 @@
 package com.quiddity.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.quiddity.model.Carrito;
 import com.quiddity.model.Catalogo;
 import com.quiddity.util.ConexionDB;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class CarritoDAO {
 
     // Traer todos los ítems del carrito de un usuario con datos del producto
     public List<Carrito> getCarritoByUsuario(int usuarioId) {
         List<Carrito> items = new ArrayList<>();
-        String sql = """
-                SELECT c.id, c.usuarioid, c.catalogoid, c.cantidad,
-                       p.id AS pid, p.nombre, p.descripcion, p.precio,
-                       p.stock, p.imagen, p.categoria, p.marca, p.componentes
-                FROM carrito c
-                JOIN catalogo p ON c.catalogoid = p.id
-                WHERE c.usuarioid = ?
-                """;
+        String sql = "SELECT c.id, c.usuarioid, c.catalogoid, c.cantidad, " +
+                     "p.id AS pid, p.nombre, p.descripcion, p.precio, " +
+                     "p.stock, p.imagen, p.categoria, p.marca, p.componentes " +
+                     "FROM carrito c " +
+                     "JOIN catalogo p ON c.catalogoid = p.id " +
+                     "WHERE c.usuarioid = ?";
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -138,12 +139,10 @@ public class CarritoDAO {
     // Categorías distintas del carrito
     public List<String> getCategoriasDelCarrito(int usuarioId) {
         List<String> categorias = new ArrayList<>();
-        String sql = """
-                SELECT DISTINCT p.categoria
-                FROM carrito c
-                JOIN catalogo p ON c.catalogoid = p.id
-                WHERE c.usuarioid = ?
-                """;
+        String sql = "SELECT DISTINCT p.categoria " +
+                     "FROM carrito c " +
+                     "JOIN catalogo p ON c.catalogoid = p.id " +
+                     "WHERE c.usuarioid = ?";
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -160,12 +159,10 @@ public class CarritoDAO {
 
     // Total del carrito
     public double getTotalCarrito(int usuarioId) {
-        String sql = """
-                SELECT SUM(p.precio * c.cantidad) AS total
-                FROM carrito c
-                JOIN catalogo p ON c.catalogoid = p.id
-                WHERE c.usuarioid = ?
-                """;
+        String sql = "SELECT SUM(p.precio * c.cantidad) AS total " +
+                     "FROM carrito c " +
+                     "JOIN catalogo p ON c.catalogoid = p.id " +
+                     "WHERE c.usuarioid = ?";
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 

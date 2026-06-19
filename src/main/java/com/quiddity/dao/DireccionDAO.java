@@ -1,11 +1,14 @@
 package com.quiddity.dao;
 
-import com.quiddity.model.Direccion;
-import com.quiddity.util.ConexionDB;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.quiddity.model.Direccion;
+import com.quiddity.util.ConexionDB;
 
 public class DireccionDAO {
 
@@ -28,11 +31,9 @@ public class DireccionDAO {
     // ─── INSERT ────────────────────────────────────────────────────────────────
 
     public boolean crear(Direccion direccion) {
-        String sql = """
-                INSERT INTO direccion (usuarioid, departamento, ciudad, barrio,
-                    direccion, es_rural, descripcion_rural, predeterminada)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
+        String sql = "INSERT INTO direccion (usuarioid, departamento, ciudad, barrio, " +
+                     "direccion, es_rural, descripcion_rural, predeterminada) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -57,11 +58,9 @@ public class DireccionDAO {
 
     public List<Direccion> listarPorUsuario(int usuarioId) {
         List<Direccion> lista = new ArrayList<>();
-        String sql = """
-                SELECT * FROM direccion
-                WHERE usuarioid = ?
-                ORDER BY predeterminada DESC, id DESC
-                """;
+        String sql = "SELECT * FROM direccion " +
+                     "WHERE usuarioid = ? " +
+                     "ORDER BY predeterminada DESC, id DESC";
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -115,11 +114,9 @@ public class DireccionDAO {
     // ─── UPDATE ────────────────────────────────────────────────────────────────
 
     public boolean actualizar(Direccion direccion) {
-        String sql = """
-                UPDATE direccion SET departamento = ?, ciudad = ?, barrio = ?,
-                    direccion = ?, es_rural = ?, descripcion_rural = ?
-                WHERE id = ? AND usuarioid = ?
-                """;
+        String sql = "UPDATE direccion SET departamento = ?, ciudad = ?, barrio = ?, " +
+                     "direccion = ?, es_rural = ?, descripcion_rural = ? " +
+                     "WHERE id = ? AND usuarioid = ?";
         try (Connection con = ConexionDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 

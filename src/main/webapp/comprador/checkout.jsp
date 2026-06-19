@@ -5,6 +5,10 @@
 <%
     String ctx = request.getContextPath();
     com.quiddity.model.Usuario usuario = (com.quiddity.model.Usuario) session.getAttribute("usuario");
+    boolean isLoggedIn = (usuario != null);
+    boolean isComprador = isLoggedIn && usuario.getIdRol() == 2;
+    boolean isUsuario = isLoggedIn && usuario.getIdRol() == 3;
+    boolean isAdmin = isLoggedIn && usuario.getIdRol() == 1;
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -15,6 +19,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Material Symbols para los iconos de pago y la barra de nav -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com" rel="preconnect" />
+<link crossorigin href="https://fonts.gstatic.com" rel="preconnect" />
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 <style>
 :root {
     --ink:      #1a1209;
@@ -39,7 +49,10 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* ── NAVBAR ── */
+/* ── Material Symbols base ── */
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+
+/* ── NAVBAR DE PASOS DEL CHECKOUT (ORIGINAL) ── */
 .navbar {
     background: var(--surface); border-bottom: 1px solid var(--border);
     padding: 0 40px; height: 64px;
@@ -65,6 +78,122 @@ body {
     font-size: 10px; font-weight: 700; flex-shrink: 0;
 }
 .step-divider { width: 24px; height: 1px; background: var(--border); }
+
+/* ── BARRA DE NAVEGACIÓN QUIDDITY (IGUAL A FAVORITOS) ── */
+#announcement-bar { background-color: #c4a9a2; height: 42px; }
+#main-header {
+    position: fixed;
+    top: 42px;
+    left: 0; right: 0;
+    z-index: 50;
+    background: rgba(255,255,255,0.90);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(28,27,29,0.05);
+    padding: 0 80px;
+    height: 72px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: padding 0.3s;
+}
+#main-header .logo {
+    font-family: 'EB Garamond', serif;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    color: #9a3a5a;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+#main-header nav { display: flex; gap: 32px; }
+#main-header nav a {
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1c1b1d;
+    text-decoration: none;
+    transition: color 0.2s;
+    padding-bottom: 2px;
+}
+#main-header nav a:hover { color: #9a3a5a; }
+#main-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+#main-header .header-actions a {
+    color: #1c1b1d;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+}
+#main-header .header-actions a:hover { color: #9a3a5a; }
+#main-header .header-actions .nav-icon {
+    position: relative;
+    font-size: 20px;
+}
+#main-header .header-actions .nav-icon .badge-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #9a3a5a;
+    color: white;
+    font-size: 9px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+}
+.user-menu {
+    position: relative;
+}
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1c1b1d;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.user-menu-btn:hover { color: #9a3a5a; }
+.user-menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: 48px;
+    width: 192px;
+    background: #ffffff;
+    border: 1px solid rgba(135,114,118,0.10);
+    box-shadow: 0 10px 40px rgba(28,27,29,0.08);
+    display: none;
+    z-index: 50;
+}
+.user-menu-dropdown.show { display: block; }
+.user-menu-dropdown a {
+    display: block;
+    padding: 10px 16px;
+    font-family: 'Manrope', sans-serif;
+    font-size: 13px;
+    color: #1c1b1d;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+.user-menu-dropdown a:hover { background: #f1ecef; color: #9a3a5a; }
+.user-menu-dropdown .divider { border-top: 1px solid rgba(135,114,118,0.12); margin: 4px 0; }
 
 /* ── LAYOUT ── */
 .checkout-layout {
@@ -198,7 +327,7 @@ body {
     border-color: var(--rose); background: var(--rose-soft);
 }
 .pago-label:hover { border-color: var(--rose); }
-.pago-icon { font-size: 24px; }
+.pago-icon { color: #544246; }
 .pago-name { font-size: 12px; font-weight: 700; color: var(--ink); }
 .pago-desc { font-size: 11px; color: var(--muted); }
 
@@ -292,29 +421,77 @@ body {
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-    <a href="<%=ctx%>/catalogo.jsp" class="navbar-brand">Quiddity</a>
-    <div class="navbar-steps">
-        <div class="step done">
-            <div class="step-dot">✓</div>
-            <span>Carrito</span>
-        </div>
-        <div class="step-divider"></div>
-        <div class="step active">
-            <div class="step-dot">2</div>
-            <span>Envío &amp; Pago</span>
-        </div>
-        <div class="step-divider"></div>
-        <div class="step">
-            <div class="step-dot">3</div>
-            <span>Confirmación</span>
-        </div>
+<!-- ═══════════════════════════════════════════
+     BARRA DE NAVEGACIÓN QUIDDITY (IGUAL A FAVORITOS)
+═══════════════════════════════════════════ -->
+<!-- ANNOUNCEMENT BAR -->
+<div id="announcement-bar" style="background-color:#c4a9a2;height:42px;position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:0 32px;">
+    <p style="font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:0.3em;color:white;text-transform:uppercase;">
+        NUEVOS ARRIVALES — ENVÍO GRATIS EN PEDIDOS MAYORES A $150.000
+    </p>
+    <button onclick="document.getElementById('announcement-bar').style.display='none';document.getElementById('main-header').style.top='0'" style="position:absolute;right:24px;background:none;border:none;color:white;cursor:pointer;">
+        <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+    </button>
+</div>
+
+<!-- HEADER -->
+<header id="main-header" style="position:fixed;top:42px;left:0;right:0;z-index:50;background:rgba(255,255,255,0.90);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(28,27,29,0.05);padding:0 80px;height:72px;display:flex;justify-content:space-between;align-items:center;transition:padding 0.3s;">
+    <div style="display:flex;align-items:center;gap:48px;">
+        <a href="<%= ctx %>/index.jsp" style="text-decoration:none;">
+            <h1 style="font-family:'EB Garamond',serif;font-size:24px;font-weight:400;letter-spacing:0.2em;color:#9a3a5a;text-transform:uppercase;margin:0;">Quiddity</h1>
+        </a>
+        <nav style="display:flex;gap:32px;">
+            <a href="<%= ctx %>/catalogo" style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#1c1b1d;text-decoration:none;transition:color 0.2s;padding-bottom:2px;">Shop</a>
+            <a href="<%= ctx %>/index.jsp#nuestra-historia" style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#1c1b1d;text-decoration:none;transition:color 0.2s;padding-bottom:2px;">Nuestra historia</a>
+            <a href="<%= ctx %>/index.jsp#apothecary" style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#1c1b1d;text-decoration:none;transition:color 0.2s;padding-bottom:2px;">Apothecary</a>
+            <a href="<%= ctx %>/index.jsp#offerings" style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#1c1b1d;text-decoration:none;transition:color 0.2s;padding-bottom:2px;">Blog</a>
+        </nav>
     </div>
-</nav>
+    <div style="display:flex;align-items:center;gap:24px;">
+        <% if (!isLoggedIn) { %>
+            <a href="<%= ctx %>/login.jsp" style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#1c1b1d;text-decoration:none;">Login</a>
+            <a href="<%= ctx %>/registro.jsp" style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;background:#9a3a5a;color:white;padding:10px 24px;text-decoration:none;">Registro</a>
+        <% } else { %>
+            <a href="<%= ctx %>/catalogo" style="color:#1c1b1d;text-decoration:none;display:flex;align-items:center;transition:color 0.2s;" title="Buscar">
+                <span class="material-symbols-outlined" style="font-size:20px;">search</span>
+            </a>
+            <a href="<%= ctx %>/favoritos" style="color:#9a3a5a;text-decoration:none;display:flex;align-items:center;transition:color 0.2s;position:relative;" title="Favoritos">
+                <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">favorite</span>
+                <span id="fav-badge" style="position:absolute;top:-6px;right:-6px;background:#9a3a5a;color:white;font-size:9px;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-weight:700;">0</span>
+            </a>
+            <a href="<%= ctx %>/carrito" style="color:#1c1b1d;text-decoration:none;display:flex;align-items:center;transition:color 0.2s;" title="Carrito">
+                <span class="material-symbols-outlined" style="font-size:20px;">shopping_bag</span>
+            </a>
+            <a href="<%= ctx %>/pedidos" style="color:#1c1b1d;text-decoration:none;display:flex;align-items:center;transition:color 0.2s;" title="Mis Pedidos">
+                <span class="material-symbols-outlined" style="font-size:20px;">receipt_long</span>
+            </a>
+            <div style="position:relative;" id="user-menu-container">
+                <button id="user-menu-btn" style="display:flex;align-items:center;gap:6px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#1c1b1d;background:none;border:none;cursor:pointer;transition:color 0.2s;">
+                    <%= usuario.getNombre() %>
+                    <span id="user-menu-icon" class="material-symbols-outlined" style="font-size:16px;">expand_more</span>
+                </button>
+                <div id="user-menu-dropdown" style="position:absolute;right:0;top:48px;width:192px;background:#ffffff;border:1px solid rgba(135,114,118,0.10);box-shadow:0 10px 40px rgba(28,27,29,0.08);display:none;z-index:50;">
+                    <% if (isAdmin) { %>
+                        <a href="<%= ctx %>/admin/dashboard" style="display:block;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:13px;color:#1c1b1d;text-decoration:none;transition:all 0.15s;">Mi Perfil</a>
+                    <% } else if (isUsuario) { %>
+                        <a href="<%= ctx %>/usuario/dashboard" style="display:block;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:13px;color:#1c1b1d;text-decoration:none;transition:all 0.15s;">Mi Perfil</a>
+                    <% } else { %>
+                        <a href="<%= ctx %>/comprador/perfil.jsp" style="display:block;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:13px;color:#1c1b1d;text-decoration:none;transition:all 0.15s;">Mi Perfil</a>
+                    <% } %>
+                    <a href="<%= ctx %>/comprador/compras.jsp" style="display:block;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:13px;color:#1c1b1d;text-decoration:none;transition:all 0.15s;">Mis Compras</a>
+                    <div style="border-top:1px solid rgba(135,114,118,0.12);margin:4px 0;"></div>
+                    <a href="<%= ctx %>/pedidos" style="display:block;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:13px;color:#1c1b1d;text-decoration:none;transition:all 0.15s;">Mis Pedidos</a>
+                    <a href="<%= ctx %>/logout" style="display:block;padding:10px 16px;font-family:'Manrope',sans-serif;font-size:13px;color:#9a3a5a;text-decoration:none;transition:all 0.15s;">Cerrar sesión</a>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</header>
+
+
 
 <form action="<%=ctx%>/checkout" method="POST">
-<div class="checkout-layout">
+<div class="checkout-layout" style="padding-top:180px;">
 
     <!-- ── COLUMNA IZQUIERDA ── -->
     <div>
@@ -401,21 +578,21 @@ body {
                 <div class="pago-grid">
                     <input type="radio" class="pago-radio" name="metodoPago" id="pagoEfectivo" value="Efectivo contra entrega" checked>
                     <label class="pago-label" for="pagoEfectivo">
-                        <span class="pago-icon">💵</span>
+                        <span class="material-symbols-outlined pago-icon" style="font-size:28px;font-variation-settings:'FILL' 0,'wght' 300;">payments</span>
                         <span class="pago-name">Efectivo</span>
                         <span class="pago-desc">Contra entrega</span>
                     </label>
 
                     <input type="radio" class="pago-radio" name="metodoPago" id="pagoTransferencia" value="Transferencia bancaria">
                     <label class="pago-label" for="pagoTransferencia">
-                        <span class="pago-icon">🏦</span>
+                        <span class="material-symbols-outlined pago-icon" style="font-size:28px;font-variation-settings:'FILL' 0,'wght' 300;">account_balance</span>
                         <span class="pago-name">Transferencia</span>
                         <span class="pago-desc">Bancaria</span>
                     </label>
 
                     <input type="radio" class="pago-radio" name="metodoPago" id="pagoNequi" value="Nequi / Daviplata">
                     <label class="pago-label" for="pagoNequi">
-                        <span class="pago-icon">📱</span>
+                        <span class="material-symbols-outlined pago-icon" style="font-size:28px;font-variation-settings:'FILL' 0,'wght' 300;">smartphone</span>
                         <span class="pago-name">Nequi</span>
                         <span class="pago-desc">/ Daviplata</span>
                     </label>
@@ -500,20 +677,62 @@ body {
 </form>
 
 <script>
+/* ═══════════════ USER MENU DROPDOWN (IGUAL A FAVORITOS) ═══════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('user-menu-btn');
+    var dropdown = document.getElementById('user-menu-dropdown');
+    var icon = document.getElementById('user-menu-icon');
+    var container = document.getElementById('user-menu-container');
+
+    if (btn && dropdown) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var isHidden = dropdown.style.display === 'none' || dropdown.style.display === '';
+            if (isHidden) {
+                dropdown.style.display = 'block';
+                icon.textContent = 'expand_less';
+            } else {
+                dropdown.style.display = 'none';
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!container.contains(e.target)) {
+                dropdown.style.display = 'none';
+                icon.textContent = 'expand_more';
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+                icon.textContent = 'expand_more';
+            }
+        });
+    }
+});
 function toggleNuevaDireccion() {
     const form = document.getElementById('nuevaDirForm');
     form.classList.toggle('open');
-    // Si se abre la nueva dirección, deseleccionar las existentes
     if (form.classList.contains('open')) {
         document.querySelectorAll('.dir-option').forEach(r => r.checked = false);
     }
 }
 
-// Al seleccionar una dirección guardada, cerrar el formulario de nueva
 document.querySelectorAll('.dir-option').forEach(radio => {
     radio.addEventListener('change', function() {
         document.getElementById('nuevaDirForm').classList.remove('open');
     });
+});
+
+// Cerrar dropdown al hacer click fuera
+document.addEventListener('click', function(e) {
+    var dropdown = document.getElementById('userDropdown');
+    var btn = document.querySelector('.user-menu-btn');
+    if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.remove('show');
+    }
 });
 </script>
 
