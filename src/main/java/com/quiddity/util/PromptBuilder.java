@@ -11,16 +11,17 @@ import java.util.List;
  */
 public class PromptBuilder {
 
-    private static final String SUFIJO = ", white background, full body shot, fashion editorial photography, "
-            + "high quality, professional studio lighting, Pinterest aesthetic, "
-            + "no text, no watermark";
+    private static final String SUFIJO = ", pure white seamless background, full body shot, "
+            + "Vogue fashion editorial, soft natural lighting, elegant feminine aesthetic, "
+            + "beautiful woman, slim fit clothes, polished and clean look, "
+            + "high resolution, no text, no watermark, no logo";
 
     /**
      * IMAGEN 6 — Outfit armado manualmente con prendas del closet.
      */
     public static String buildOutfitManual(List<Prenda> prendas, Caracteristicas caracteristicas) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Fashion photo, full body, woman wearing EXACTLY these clothing items: ");
+        sb.append("Vogue editorial, full body fashion photo of a beautiful stylish woman wearing EXACTLY these clothing items: ");
 
         if (prendas != null && !prendas.isEmpty()) {
             for (int i = 0; i < prendas.size(); i++) {
@@ -51,7 +52,7 @@ public class PromptBuilder {
      */
     public static String buildChatOutfit(String mensajeUsuario, Caracteristicas caracteristicas) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Full body fashion photo of a woman in a stylish complete outfit. ");
+        sb.append("Vogue editorial, full body fashion photo of a beautiful stylish woman in a complete polished outfit. ");
         sb.append("Outfit style: ").append(mensajeUsuario.trim());
 
         if (caracteristicas != null) {
@@ -71,7 +72,7 @@ public class PromptBuilder {
     public static String buildViaje(List<Prenda> prendas, String destino,
             String clima, Caracteristicas caracteristicas) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Full body fashion photo, woman wearing a travel outfit");
+        sb.append("Vogue editorial, full body fashion photo of a beautiful stylish woman wearing a travel outfit");
 
         if (destino != null && !destino.isBlank())
             sb.append(" for ").append(destino);
@@ -101,7 +102,7 @@ public class PromptBuilder {
     public static String buildRecomendacion(String estilo, String ocasion,
             String clima, Caracteristicas caracteristicas) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Full body fashion photo of a stylish woman wearing a complete ");
+        sb.append("Vogue editorial, full body fashion photo of a beautiful stylish woman wearing a complete, well-fitted ");
         if (estilo != null)
             sb.append(estilo).append(" ");
         sb.append("outfit");
