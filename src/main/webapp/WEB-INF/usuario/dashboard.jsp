@@ -1328,11 +1328,11 @@
                                 </div>
                                 <span class="access-label">Escaneo Facial</span>
                             </a>
-                            <a href="<%= request.getContextPath() %>/avatar" class="access-btn avatar">
+                            <a href="<%= request.getContextPath() %>/perfil" class="access-btn avatar">
                                 <div class="access-icon">
                                     <span class="material-symbols-rounded">person</span>
                                 </div>
-                                <span class="access-label">Mi Avatar</span>
+                                <span class="access-label">Mi Perfil</span>
                             </a>
                             <a href="<%= request.getContextPath() %>/closet" class="access-btn closet">
                                 <div class="access-icon">
