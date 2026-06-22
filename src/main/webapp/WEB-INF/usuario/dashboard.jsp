@@ -1613,6 +1613,7 @@
         window.location.href = '<%= request.getContextPath() %>/avatar?look=' + lookActualId;
     }
 </script>
+    <%@ include file="chatbot.jsp" %>
 
 </body>
 </html>

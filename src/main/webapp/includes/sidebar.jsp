@@ -831,4 +831,3 @@
             })();
         </script>
 
-            <%@ include file="chatbot.jsp" %>
