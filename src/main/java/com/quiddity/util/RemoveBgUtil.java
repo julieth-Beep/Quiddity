@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class RemoveBgUtil {
 
-    private static final String API_KEY = "";
+    private static final String API_KEY = System.getenv("API_KEY") != null ? System.getenv("API_KEY") : "";
     private static final String ENDPOINT = "https://api.remove.bg/v1.0/removebg";
 
     /**

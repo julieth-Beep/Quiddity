@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class HuggingFaceUtil {
 
-    private static final String HF_TOKEN = "";
+    private static final String HF_TOKEN = System.getenv("HF_TOKEN") != null ? System.getenv("HF_TOKEN") : "";
     private static final String ENDPOINT = " https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell";
 
     /**
