@@ -14,31 +14,38 @@ public class ConexionDB {
     private static HikariDataSource dataSource;
 
     static {
-        try (InputStream input = ConexionDB.class
-                .getClassLoader()
-                .getResourceAsStream("db.properties")) {
+        try {
+            // Lee variables de entorno primero (Railway), si no existen usa db.properties (local)
+            String url      = System.getenv("DB_URL");
+            String username = System.getenv("DB_USER");
+            String password = System.getenv("DB_PASSWORD");
 
-            if (input == null) {
-                throw new RuntimeException("No se encontró db.properties en el classpath");
+            if (url == null || username == null || password == null) {
+                // Fallback: cargar desde db.properties
+                try (InputStream input = ConexionDB.class
+                        .getClassLoader()
+                        .getResourceAsStream("db.properties")) {
+
+                    if (input == null) {
+                        throw new RuntimeException("No se encontró db.properties en el classpath");
+                    }
+
+                    Properties props = new Properties();
+                    props.load(input);
+
+                    url      = props.getProperty("db.url");
+                    username = props.getProperty("db.username");
+                    password = props.getProperty("db.password");
+                }
             }
-
-            Properties props = new Properties();
-            props.load(input);
-
-            String url      = props.getProperty("db.url");
-            String username = props.getProperty("db.username");
-            String password = props.getProperty("db.password");
-            String driver    = props.getProperty("db.driver");
 
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(url);
             config.setUsername(username);
             config.setPassword(password);
-            config.setDriverClassName(driver);
+            config.setDriverClassName("org.postgresql.Driver");
 
             // --- Tamaño del pool ---
-            // 5-10 conexiones es de sobra para un proyecto académico/pequeño.
-            // No subas esto sin necesidad: Supabase free tier tiene límite de conexiones simultáneas.
             config.setMaximumPoolSize(10);
             config.setMinimumIdle(2);
 
@@ -49,9 +56,6 @@ public class ConexionDB {
 
             // --- Validación rápida de conexión ---
             config.setConnectionTestQuery("SELECT 1");
-
-            // --- Si usas el modo "pooler" de Supabase (puerto 6543), recomienda esto: ---
-            config.addDataSourceProperty("prepareThreshold", "0");
 
             config.setPoolName("QuidditPool");
 
@@ -66,7 +70,6 @@ public class ConexionDB {
         return dataSource.getConnection();
     }
 
-    // Opcional: para cerrar recursos desde los DAO
     public static void close(AutoCloseable... recursos) {
         for (AutoCloseable r : recursos) {
             if (r != null) {
@@ -76,7 +79,6 @@ public class ConexionDB {
         }
     }
 
-    // Llamar esto solo si necesitas apagar el pool manualmente (ej. en un ServletContextListener al destruir el contexto)
     public static void shutdown() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
