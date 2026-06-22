@@ -1077,7 +1077,6 @@
             if (sidebar) sidebar.classList.toggle('open');
         }
     </script>
-    <%@ include file="chatbot.jsp" %>
 
 </body>
 </html>

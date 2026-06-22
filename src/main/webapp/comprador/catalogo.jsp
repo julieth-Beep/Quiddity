@@ -1095,7 +1095,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 </script>
-    <%@ include file="chatbot.jsp" %>
 
 </body>
 </html>
