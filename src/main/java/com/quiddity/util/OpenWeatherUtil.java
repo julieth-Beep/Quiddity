@@ -16,11 +16,11 @@ import java.time.LocalDate;
  * 1. Geocoding API → convierte "Bogotá" en lat/lon
  * 2. Forecast API → clima de los próximos 5 días
  *
- * CONFIGURACIÓN: pon tu API key en API_KEY.
+ * CONFIGURACIÓN: pon tu API key en API_KEY111.
  */
 public class OpenWeatherUtil {
 
-    private static final String API_KEY = "";
+    private static final String API_KEY1 = System.getenv("API_KEY1") != null ? System.getenv("API_KEY1") : "";
     private static final String GEO_URL = "https://api.openweathermap.org/geo/1.0/direct";
     private static final String FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
     private static final String CURRENT_URL = "https://api.openweathermap.org/data/2.5/weather";
@@ -74,7 +74,7 @@ public class OpenWeatherUtil {
     // Geocoding
     private static double[] geocodificar(String destino) throws Exception {
         String url = GEO_URL + "?q=" + URLEncoder.encode(destino, StandardCharsets.UTF_8)
-                + "&limit=1&appid=" + API_KEY;
+                + "&limit=1&appid=" + API_KEY1;
         String json = hacerGet(url);
         if (json == null || json.equals("[]"))
             return null;
@@ -86,7 +86,7 @@ public class OpenWeatherUtil {
     // Forecast 5 días
     private static Object[] obtenerForecast(double lat, double lon, LocalDate fecha) throws Exception {
         String url = FORECAST_URL + "?lat=" + lat + "&lon=" + lon
-                + "&appid=" + API_KEY + "&units=metric&lang=es&cnt=40";
+                + "&appid=" + API_KEY1 + "&units=metric&lang=es&cnt=40";
         String json = hacerGet(url);
         if (json == null)
             return null;
@@ -109,7 +109,7 @@ public class OpenWeatherUtil {
     // Clima actual
     private static Object[] obtenerClimaActual(double lat, double lon) throws Exception {
         String url = CURRENT_URL + "?lat=" + lat + "&lon=" + lon
-                + "&appid=" + API_KEY + "&units=metric&lang=es";
+                + "&appid=" + API_KEY1 + "&units=metric&lang=es";
         String json = hacerGet(url);
         if (json == null)
             return null;
