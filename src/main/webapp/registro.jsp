@@ -950,7 +950,7 @@
                 </div>
 
                 <div class="field" id="fld-email">
-                    <label for="email">Correo electrónico</label>
+                    <label for="email">Correo electrónico "En Minúsculas"</label>
                     <div class="glass-wrap">
                         <span class="material-symbols-outlined gi">mail</span>
                         <input type="email" id="email" name="email"
