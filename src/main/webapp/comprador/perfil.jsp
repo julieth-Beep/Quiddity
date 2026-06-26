@@ -207,7 +207,6 @@
         <!-- SIDEBAR -->
         <div class="lg:col-span-1 profile-sidebar">
             <div class="flex flex-col items-center text-center mb-6">
-                <!-- Avatar con foto o iniciales -->
                 <div class="w-40 h-40 rounded-full overflow-hidden bg-gradient-to-tr from-primary to-tertiary p-[2px] mx-auto mb-3 flex-shrink-0">
                     <div class="w-full h-full rounded-full overflow-hidden bg-surface-variant flex items-center justify-center" id="sidebarAvatarWrap">
                         <% if (user.getFotoPerfil() != null && !user.getFotoPerfil().isBlank()) { %>
@@ -252,7 +251,8 @@
             <!-- FOTO DE PERFIL -->
             <div>
                 <h3 class="font-headline-md text-2xl italic border-b border-outline/10 pb-3 mb-6 py-4">Foto de perfil</h3>
-                <form action="<%= ctx %>/perfil" method="post" enctype="multipart/form-data" id="formFoto">
+                <%-- action corregido a /comprador/actualizar-perfil --%>
+                <form action="<%= ctx %>/comprador/actualizar-perfil" method="post" enctype="multipart/form-data" id="formFoto">
                     <div class="flex items-center gap-6 flex-wrap">
                         <!-- Preview -->
                         <div class="w-20 h-20 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center flex-shrink-0">
@@ -285,8 +285,9 @@
             <!-- DATOS PERSONALES -->
             <div>
                 <h3 class="font-headline-md text-2xl italic border-b border-outline/10 pb-3 mb-6 py-4">Datos personales</h3>
-                <form action="<%= ctx %>/perfil" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input type="hidden" name="accion" value="actualizarInfo">
+                <%-- action y accion corregidos --%>
+                <form action="<%= ctx %>/comprador/actualizar-perfil" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="hidden" name="accion" value="actualizarDatos">
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1">Nombre</label>
                         <input type="text" name="nombre" value="<%= user.getNombre() != null ? user.getNombre() : "" %>"
@@ -304,13 +305,14 @@
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1">Usuario</label>
-                        <input type="text" value="<%= user.getUserName() %>" disabled
+                        <%-- Sin name, disabled: no se envía al servidor --%>
+                        <input type="text" value="<%= user.getUserName() != null ? user.getUserName() : "" %>" disabled
                             class="w-full border-b border-outline/20 py-2 bg-surface-variant/50 cursor-not-allowed">
                         <p class="text-[9px] text-outline mt-1">No se puede modificar</p>
                     </div>
-                    <!-- Documento: solo lectura para no-admin -->
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1">Documento / ID</label>
+                        <%-- Sin name, disabled: no se envía al servidor --%>
                         <input type="text" value="<%= user.getDocumento() != null ? user.getDocumento() : "" %>" disabled
                             class="w-full border-b border-outline/20 py-2 bg-surface-variant/50 cursor-not-allowed">
                         <p class="text-[9px] text-outline mt-1">Solo puede modificarlo un administrador</p>
@@ -328,7 +330,6 @@
             <div>
                 <h3 class="font-headline-md text-2xl italic border-b border-outline/10 pb-3 mb-6 py-4">Tipo de cuenta</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Comprador -->
                     <div class="border-2 p-5 cursor-pointer transition rol-card <%= user.getIdRol() == 2 ? "border-primary bg-primary/5" : "border-outline/20 hover:border-primary/40" %>"
                          onclick="seleccionarRol(2, this)">
                         <div class="flex items-center gap-3 mb-2">
@@ -340,7 +341,6 @@
                         </div>
                         <p class="text-[11px] text-outline">Puedes agregar productos al carrito y realizar compras.</p>
                     </div>
-                    <!-- Usuario -->
                     <div class="border-2 p-5 cursor-pointer transition rol-card <%= user.getIdRol() == 3 ? "border-primary bg-primary/5" : "border-outline/20 hover:border-primary/40" %>"
                          onclick="seleccionarRol(3, this)">
                         <div class="flex items-center gap-3 mb-2">
@@ -353,8 +353,8 @@
                         <p class="text-[11px] text-outline">Accedes a funciones de estilo y recomendaciones personalizadas.</p>
                     </div>
                 </div>
-                <!-- Form oculto cambio de rol -->
-                <form id="formCambiarRol" action="<%= ctx %>/perfil" method="post" class="mt-4 hidden">
+                <%-- action corregido --%>
+                <form id="formCambiarRol" action="<%= ctx %>/comprador/actualizar-perfil" method="post" class="mt-4 hidden">
                     <input type="hidden" name="accion" value="cambiarRol">
                     <input type="hidden" name="nuevoRol" id="nuevoRolInput" value="">
                     <button type="submit"
@@ -367,7 +367,8 @@
             <!-- SEGURIDAD -->
             <div>
                 <h3 class="font-headline-md text-2xl italic border-b border-outline/10 pb-3 mb-6 py-4">Seguridad</h3>
-                <form action="<%= ctx %>/perfil" method="post" class="space-y-5 max-w-lg">
+                <%-- action y nombres de campos corregidos --%>
+                <form action="<%= ctx %>/comprador/actualizar-perfil" method="post" class="space-y-5 max-w-lg">
                     <input type="hidden" name="accion" value="cambiarPassword">
                     <div>
                         <div class="flex items-center justify-between mb-1">
@@ -376,17 +377,17 @@
                                 ¿Olvidaste tu contraseña?
                             </a>
                         </div>
-                        <input type="password" name="passwordActual" required
+                        <input type="password" name="contrasenaActual" required
                             class="w-full border-b border-outline/20 py-2 focus:border-primary outline-none transition">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1">Nueva contraseña</label>
-                        <input type="password" name="passwordNueva" required minlength="8"
+                        <input type="password" name="nuevaContrasena" required minlength="8"
                             class="w-full border-b border-outline/20 py-2 focus:border-primary outline-none transition">
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-outline mb-1">Confirmar nueva contraseña</label>
-                        <input type="password" name="passwordConfirmar" required minlength="8"
+                        <input type="password" name="confirmarContrasena" required minlength="8"
                             class="w-full border-b border-outline/20 py-2 focus:border-primary outline-none transition">
                     </div>
                     <button type="submit"
@@ -408,7 +409,6 @@
 </footer>
 
 <script>
-    // ── Announcement bar ──────────────────────────────────────────────────
     function closeAnnouncementBar() {
         document.getElementById('announcement-bar').style.display = 'none';
         document.getElementById('main-header').style.top = '0px';
@@ -424,7 +424,6 @@
         }
     });
 
-    // ── Foto preview ──────────────────────────────────────────────────────
     document.getElementById('fotoInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -432,14 +431,12 @@
 
         const reader = new FileReader();
         reader.onload = function(ev) {
-            // Preview en el form
             const img = document.getElementById('fotoPreviewImg');
             const ini = document.getElementById('fotoIniciales');
             img.src = ev.target.result;
             img.classList.remove('hidden');
             if (ini) ini.classList.add('hidden');
 
-            // Preview en el sidebar
             const sidebarImg = document.getElementById('sidebarAvatarImg');
             const sidebarIni = document.getElementById('sidebarIniciales');
             sidebarImg.src = ev.target.result;
@@ -452,7 +449,6 @@
         reader.readAsDataURL(file);
     });
 
-    // ── Modal cambio de rol ───────────────────────────────────────────────
     const rolActual = <%= user.getIdRol() %>;
     let rolPendiente = null;
 
@@ -488,7 +484,6 @@
         document.getElementById('formCambiarRol').submit();
     }
 
-    // Cerrar modal al hacer clic fuera
     document.getElementById('modalRol').addEventListener('click', function(e) {
         if (e.target === this) cerrarModal();
     });
@@ -514,7 +509,6 @@
 
         btn.addEventListener('click', toggleMenu);
 
-        // Cerrar al hacer clic fuera del menú
         document.addEventListener('click', function(e) {
             if (!container.contains(e.target)) {
                 dropdown.classList.add('hidden');
@@ -522,7 +516,6 @@
             }
         });
 
-        // Opcional: cerrar al presionar Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
                 dropdown.classList.add('hidden');
