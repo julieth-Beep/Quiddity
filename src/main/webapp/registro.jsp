@@ -953,7 +953,6 @@
                     <label for="email">Correo electrónico "En Minúsculas"</label>
                     <div class="glass-wrap">
                         <span class="material-symbols-outlined gi">mail</span>
-                         ws12w|<
                         <input type="email" id="email" name="email"
                                placeholder="tu@email.com"
                                autocomplete="email" required
